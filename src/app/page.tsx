@@ -383,7 +383,7 @@ export default function HomePage() {
       </section>
 
       {/* VERSION DESKTOP (>= md) : Plein écran immersif avec éléments de crédibilité de classe mondiale */}
-      <section className="hidden md:flex relative overflow-hidden w-full bg-[#EFF3FE] items-center min-h-[calc(100vh-80px)] py-12">
+      <section className="hidden md:flex relative overflow-hidden w-full bg-[#F8F9FE] items-center min-h-[calc(100vh-80px)] py-12">
         
         {/* CALQUE 1 : Arrière-plan photographique intégral couvrant 100% de la Hero Section */}
         <div className="absolute inset-0 z-0 pointer-events-none select-none">
@@ -413,7 +413,7 @@ export default function HomePage() {
             {/* Titre Principal percutant avec accentuation élégante */}
             <h1 className="text-4xl sm:text-5xl lg:text-[54px] font-black text-slate-900 tracking-tight leading-[1.12]">
               Réussis ton entretien <br />
-              <span className="bg-gradient-to-r from-[#0066FF] via-[#0052CC] to-[#00B4D8] bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-[#0066FF] to-[#38BDF8] bg-clip-text text-transparent">
                 Campus France
               </span> <br />
               avec confiance.
@@ -1006,7 +1006,7 @@ export default function HomePage() {
 
       {/* 9. BANNIÈRE CTA BLEU NUIT PRESTIGE */}
       <section className="py-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-16 w-full">
-        <div className="bg-gradient-to-r from-[#07132D] via-[#0A1938] to-[#0A2558] text-white rounded-3xl p-8 sm:p-14 shadow-2xl relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-8 border border-blue-900/40">
+        <div className="bg-gradient-to-r from-[#07132D] to-[#0A1938] text-white rounded-3xl p-8 sm:p-14 shadow-2xl relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-8 border border-blue-900/40">
           
           {/* Lueur d'arche bleue sur la droite */}
           <div className="absolute right-0 top-0 bottom-0 w-96 bg-gradient-to-l from-[#0066FF]/30 to-transparent pointer-events-none rounded-r-3xl" />
