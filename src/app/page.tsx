@@ -240,47 +240,50 @@ export default function HomePage() {
 
       {/* 2. HERO SECTION — COUVERTURE TOTALE (PLEIN ÉCRAN IMMERSIF) */}
       
-      {/* VERSION MOBILE (< md) : Arrière-plan photo couvrant 100% de la page */}
-      <section className="md:hidden relative w-full overflow-hidden min-h-[calc(100dvh-64px)] flex items-center px-4 min-[390px]:px-5 py-6">
+      {/* VERSION MOBILE (< md) : Arrière-plan photo authentique couvrant 100% de la section */}
+      <section className="md:hidden relative w-full overflow-hidden h-[460px] min-[400px]:h-[490px] flex items-center px-4 min-[390px]:px-5 py-6">
         
-        {/* CALQUE 1 : L'arrière-plan de la photo couvre 100% de toute la page mobile */}
+        {/* CALQUE 1 : L'arrière-plan de la photo couvre 100% de toute la section hero mobile */}
         <div className="absolute inset-0 z-0 pointer-events-none select-none">
           <Image
-            src="/hero-fullpage-mobile.jpg"
-            alt="Campus France Préparation - Réussite"
+            src="/hero-authentic-paris-flipped-hd.jpg"
+            alt="Étudiante à Paris devant la Tour Eiffel - Réussite Campus France"
             fill
             priority
-            className="object-cover object-center select-none"
+            unoptimized
+            className="object-cover object-[58%_center] select-none"
             sizes="100vw"
           />
+          {/* Dégradé doux de luminosité sur la gauche pour assurer un contraste parfait au texte */}
+          <div className="absolute inset-y-0 left-0 w-[64%] min-[400px]:w-[60%] bg-gradient-to-r from-white via-white/95 sm:via-white/80 to-transparent z-10" />
         </div>
 
-        {/* CALQUE 2 : Contenu textuel sur la gauche assis sur la zone de ciel de la photo */}
-        <div className="relative z-10 w-[54%] min-[400px]:w-[52%] flex flex-col items-start">
+        {/* CALQUE 2 : Contenu textuel sur la gauche assis sur la zone dégagée */}
+        <div className="relative z-20 w-[52%] min-[400px]:w-[48%] flex flex-col items-start">
           
           {/* Badge supérieur de réassurance */}
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[9.5px] min-[360px]:text-[10px] min-[400px]:text-xs font-semibold bg-white/95 backdrop-blur-md border border-blue-200/90 text-[#0066FF] shadow-xs mb-3">
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[9px] min-[360px]:text-[9.5px] min-[400px]:text-[10px] font-semibold bg-white/95 backdrop-blur-md border border-blue-200/90 text-[#0066FF] shadow-xs mb-2.5">
             <span className="w-1.5 h-1.5 rounded-full bg-[#0066FF] animate-pulse" />
             <span>Votre réussite, notre priorité</span>
           </div>
 
           {/* Titre Principal percutant */}
-          <h1 className="text-[20px] min-[360px]:text-[22px] min-[400px]:text-[25px] font-extrabold text-slate-900 tracking-tight leading-[1.14]">
+          <h1 className="text-[19px] min-[360px]:text-[21px] min-[400px]:text-[23px] font-extrabold text-slate-900 tracking-tight leading-[1.14]">
             Réussis ton entretien <br />
             <span className="text-[#0066FF]">Campus France</span> <br />
             avec confiance.
           </h1>
 
           {/* Sous-titre soigné */}
-          <p className="text-[10.5px] min-[360px]:text-[11px] min-[400px]:text-xs text-slate-600 leading-relaxed mt-2.5 font-normal max-w-[220px]">
+          <p className="text-[10px] min-[360px]:text-[10.5px] min-[400px]:text-[11px] text-slate-600 leading-relaxed mt-2 font-normal">
             Entraînement pas à pas, feedbacks clairs et conseils personnalisés pour défendre votre projet d'études en France.
           </p>
 
           {/* Bouton CTA Premium */}
-          <div className="mt-4">
+          <div className="mt-3.5">
             <Link
               href="/auth/inscription"
-              className="inline-flex items-center gap-1.5 bg-[#0066FF] hover:bg-[#0052CC] text-white font-semibold text-[11px] min-[360px]:text-xs min-[400px]:text-sm px-4 py-2.5 rounded-full shadow-lg shadow-blue-500/25 hover:shadow-blue-500/35 transition-all group whitespace-nowrap"
+              className="inline-flex items-center gap-1.5 bg-[#0066FF] hover:bg-[#0052CC] text-white font-semibold text-[11px] min-[360px]:text-xs px-3.5 py-2.5 rounded-full shadow-lg shadow-blue-500/25 hover:shadow-blue-500/35 transition-all group whitespace-nowrap"
             >
               <span>Commencer ma préparation</span>
               <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
@@ -288,7 +291,7 @@ export default function HomePage() {
           </div>
 
           {/* Micro-preuve de confiance sous le bouton */}
-          <div className="flex items-center gap-1.5 text-[9px] min-[360px]:text-[9.5px] min-[400px]:text-[10.5px] text-slate-600 font-medium mt-3">
+          <div className="flex items-center gap-1.5 text-[9px] min-[360px]:text-[9.5px] text-slate-600 font-medium mt-2.5">
             <div className="w-3.5 h-3.5 rounded-full bg-blue-100 flex items-center justify-center text-[#0066FF] shrink-0">
               <Check className="w-2 h-2 stroke-[3]" />
             </div>
@@ -305,20 +308,21 @@ export default function HomePage() {
         {/* CALQUE 1 : Arrière-plan photographique intégral couvrant 100% de la Hero Section */}
         <div className="absolute inset-0 z-0 pointer-events-none select-none">
           <Image
-            src="/hero-master-panoramic.jpg"
-            alt="Campus France Préparation - Réussite"
+            src="/hero-authentic-paris-flipped-hd.jpg"
+            alt="Étudiante internationale à Paris préparant ses cours devant la Tour Eiffel"
             fill
             priority
-            className="object-cover object-right select-none"
+            unoptimized
+            className="object-cover object-center select-none"
             sizes="100vw"
           />
           {/* Dégradé doux de luminosité sur la gauche pour détacher la typographie avec un contraste parfait */}
-          <div className="absolute inset-y-0 left-0 w-full sm:w-[65%] md:w-[55%] lg:w-[48%] bg-gradient-to-r from-[#EFF3FE] via-[#EFF3FE]/92 sm:via-[#EFF3FE]/85 to-transparent z-10" />
+          <div className="absolute inset-y-0 left-0 w-full sm:w-[60%] md:w-[50%] lg:w-[44%] bg-gradient-to-r from-white via-white/90 sm:via-white/70 to-transparent z-10" />
         </div>
 
         {/* CALQUE 2 : Contenu éditorial de prestige */}
         <div className="relative z-20 max-w-7xl mx-auto px-6 lg:px-8 w-full">
-          <div className="w-[52%] lg:w-[48%] flex flex-col items-start">
+          <div className="w-[48%] lg:w-[43%] max-w-xl flex flex-col items-start">
             
             {/* Badge supérieur de réassurance avec puce vivante */}
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-white/95 backdrop-blur-md border border-blue-200/80 text-[#0066FF] shadow-xs mb-5">
@@ -385,6 +389,54 @@ export default function HomePage() {
           </div>
         </div>
 
+        {/* Badge flottant d'excellence sur la photo */}
+        <div className="hidden xl:flex items-center gap-3.5 bg-white/90 backdrop-blur-xl border border-white/80 p-4 rounded-2xl shadow-xl shadow-blue-500/10 absolute right-12 bottom-16 z-20">
+          <div className="w-11 h-11 rounded-xl bg-gradient-to-tr from-[#0066FF] to-[#38BDF8] flex items-center justify-center text-white shrink-0 shadow-md shadow-blue-500/25">
+            <Check className="w-6 h-6 stroke-[2.5]" />
+          </div>
+          <div>
+            <div className="text-xs font-extrabold text-slate-900">Avis Favorable Décroché</div>
+            <div className="text-[11px] text-[#0066FF] font-semibold">Admise à Sorbonne Université (Paris)</div>
+          </div>
+        </div>
+
+      </section>
+
+      {/* 2bis. LES 3 AVANTAGES CLÉS EN CARTES (Directement sous le Hero) */}
+      <section className="relative z-30 -mt-6 sm:-mt-8 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5 sm:gap-6 bg-white/95 backdrop-blur-xl p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-slate-200/90 shadow-xl shadow-slate-900/5">
+          
+          <div className="flex items-center sm:items-start gap-3.5 p-2 rounded-xl hover:bg-slate-50/80 transition-colors">
+            <div className="w-11 h-11 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center text-[#0066FF] shrink-0 shadow-xs">
+              <Mic className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-slate-900">S'entraîner comme en conditions réelles</h3>
+              <p className="text-xs text-slate-500 mt-1 leading-relaxed">Simulez l'entretien Campus France avec notre IA intelligente.</p>
+            </div>
+          </div>
+
+          <div className="flex items-center sm:items-start gap-3.5 p-2 rounded-xl hover:bg-slate-50/80 transition-colors">
+            <div className="w-11 h-11 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center text-[#0066FF] shrink-0 shadow-xs">
+              <TrendingUp className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-slate-900">Recevoir des conseils pour s'améliorer</h3>
+              <p className="text-xs text-slate-500 mt-1 leading-relaxed">Obtenez un feedback détaillé et stratégique sur vos réponses.</p>
+            </div>
+          </div>
+
+          <div className="flex items-center sm:items-start gap-3.5 p-2 rounded-xl hover:bg-slate-50/80 transition-colors">
+            <div className="w-11 h-11 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center text-[#0066FF] shrink-0 shadow-xs">
+              <Trophy className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-slate-900">Gagner en confiance</h3>
+              <p className="text-xs text-slate-500 mt-1 leading-relaxed">Présentez votre projet d'études avec clarté, prestance et assurance.</p>
+            </div>
+          </div>
+
+        </div>
       </section>
 
       {/* 3. BANDEAU DE STATISTIQUES & IMPACT MONDIAL (Autorité & Crédibilité) */}
@@ -922,83 +974,6 @@ export default function HomePage() {
 
         </div>
       </section>
-
-      {/* 10. FOOTER MONDIAL & RECONNU */}
-      <footer id="a-propos" className="bg-[#060D1E] text-slate-400 pt-12 pb-8 border-t border-slate-900 mt-auto w-full">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          
-          <div className="flex flex-col md:flex-row items-center justify-between gap-6 pb-8 border-b border-slate-800">
-            
-            {/* Logo Prépa Campus & Slogan */}
-            <div className="flex flex-col items-center md:items-start gap-1">
-              <Link href="/" className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-[#0066FF] to-[#38BDF8] flex items-center justify-center text-white">
-                  <GraduationCap className="w-5 h-5 text-white" />
-                </div>
-                <span className="text-xl font-bold text-white tracking-tight">
-                  Prépa <span className="text-[#2589FE]">Campus</span>
-                </span>
-              </Link>
-              <p className="text-xs text-slate-400 mt-1">
-                La référence de préparation intelligente aux entretiens Campus France.
-              </p>
-            </div>
-
-            {/* Navigation Liens Footer */}
-            <div className="flex items-center gap-8 text-xs sm:text-sm font-semibold text-slate-300">
-              <a href="#simulateur" className="hover:text-white transition">Simulateur</a>
-              <a href="#avantages" className="hover:text-white transition">Avantages</a>
-              <a href="#comment-ca-marche" className="hover:text-white transition">Méthode</a>
-              <a href="#faq" className="hover:text-white transition">FAQ</a>
-              <a href="mailto:contact@prepacampus.fr" className="hover:text-white transition">Support</a>
-            </div>
-
-            {/* Réseaux Sociaux */}
-            <div className="flex items-center gap-3 text-slate-400">
-              <a
-                href="https://youtube.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="p-2 hover:text-white transition hover:bg-slate-800 rounded-full"
-                aria-label="YouTube"
-              >
-                <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
-                  <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-                </svg>
-              </a>
-
-              <a
-                href="https://linkedin.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="p-2 hover:text-white transition hover:bg-slate-800 rounded-full"
-                aria-label="LinkedIn"
-              >
-                <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
-                  <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.46 10.9h2.78v8.37H6.46v-8.37M7.85 6.47a1.62 1.62 0 1 0 0 3.24 1.62 1.62 0 0 0 0-3.24z"/>
-                </svg>
-              </a>
-
-              <a
-                href="https://tiktok.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="p-2 hover:text-white transition hover:bg-slate-800 rounded-full"
-                aria-label="TikTok"
-              >
-                <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
-                  <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-1.01-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.24 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/>
-                </svg>
-              </a>
-            </div>
-          </div>
-
-          <div className="pt-6 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-3">
-            <p>© 2026 Prépa Campus. Plateforme indépendante d'entraînement à l'entretien officiel Campus France.</p>
-            <p className="text-[11px] text-slate-600">Conçu pour l'excellence académique internationale.</p>
-          </div>
-        </div>
-      </footer>
 
     </div>
   );
