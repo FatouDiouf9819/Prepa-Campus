@@ -110,7 +110,7 @@ export function Navbar() {
         <div className="fixed top-0 left-0 right-0 h-0.5 bg-[#0066FF] z-[9999999] animate-pulse" />
       )}
 
-      <header className="sticky top-0 z-40 w-full border-b border-blue-100/60 bg-[#F8F9FE]/95 backdrop-blur-md text-slate-800">
+      <header className="sticky top-0 z-40 w-full border-b border-white/10 bg-[#05070E]/90 backdrop-blur-xl text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between">
           {/* Logo & Marque */}
           <Link href="/" prefetch={true} className="flex items-center gap-2.5 group">
@@ -118,8 +118,8 @@ export function Navbar() {
               <GraduationCap className="w-5 h-5 text-white" />
             </div>
             <div>
-              <span className="font-extrabold text-slate-900 text-base tracking-tight block">
-                Prépa<span className="text-[#0066FF]">Campus</span>
+              <span className="font-extrabold text-white text-base tracking-tight block">
+                Prépa<span className="text-[#38BDF8]">Campus</span>
               </span>
               <span className="text-[10px] text-slate-400 block -mt-1 font-medium hidden sm:block">
                 {t('nav.tagline')}
@@ -143,8 +143,8 @@ export function Navbar() {
                   }}
                   className={`px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold transition flex items-center gap-1.5 ${
                     isActive
-                      ? 'bg-blue-50 text-[#0066FF] border border-blue-200/80 shadow-xs'
-                      : 'text-slate-600 hover:text-[#0066FF] hover:bg-white/80'
+                      ? 'bg-blue-500/20 text-[#38BDF8] border border-blue-500/30 shadow-xs'
+                      : 'text-slate-300 hover:text-white hover:bg-white/10'
                   }`}
                 >
                   {link.icon && <link.icon className="w-4 h-4" />}
@@ -157,14 +157,14 @@ export function Navbar() {
           {/* Section Droite Desktop */}
           <div className="hidden md:flex items-center gap-2">
             {/* Sélecteur de Langue FR / EN */}
-            <div className="flex items-center rounded-xl bg-slate-100/80 border border-slate-200/80 p-0.5 text-xs font-semibold mr-1">
+            <div className="flex items-center rounded-xl bg-[#121827] border border-white/10 p-0.5 text-xs font-semibold mr-1">
               <button
                 type="button"
                 onClick={() => setLanguage('fr')}
                 className={`px-2 py-1 rounded-lg transition text-[11px] font-bold ${
                   language === 'fr'
-                    ? 'bg-white text-[#0066FF] shadow-xs'
-                    : 'text-slate-500 hover:text-slate-800'
+                    ? 'bg-[#0066FF] text-white shadow-xs'
+                    : 'text-slate-400 hover:text-white'
                 }`}
                 title="Passer en Français"
               >
@@ -175,8 +175,8 @@ export function Navbar() {
                 onClick={() => setLanguage('en')}
                 className={`px-2 py-1 rounded-lg transition text-[11px] font-bold ${
                   language === 'en'
-                    ? 'bg-white text-[#0066FF] shadow-xs'
-                    : 'text-slate-500 hover:text-slate-800'
+                    ? 'bg-[#0066FF] text-white shadow-xs'
+                    : 'text-slate-400 hover:text-white'
                 }`}
                 title="Switch to English"
               >
@@ -188,15 +188,15 @@ export function Navbar() {
               <>
                 <Link
                   href="/profil"
-                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-white border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50 shadow-xs transition"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-white/5 border border-white/15 text-xs font-semibold text-slate-200 hover:bg-white/10 shadow-xs transition"
                 >
-                  <User className="w-3.5 h-3.5 text-[#0066FF]" />
+                  <User className="w-3.5 h-3.5 text-[#38BDF8]" />
                   {t('nav.profile')}
                 </Link>
                 <button
                   type="button"
                   onClick={handleSignOut}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-rose-50 text-slate-500 hover:text-rose-600 border border-slate-200 hover:border-rose-200 text-xs font-semibold shadow-xs transition"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/5 hover:bg-rose-500/10 text-slate-400 hover:text-rose-400 border border-white/15 hover:border-rose-500/30 text-xs font-semibold shadow-xs transition"
                   title={t('nav.signout')}
                 >
                   <LogOut className="w-3.5 h-3.5" />
@@ -207,7 +207,7 @@ export function Navbar() {
               <>
                 <Link
                   href="/auth/connexion"
-                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-white border border-slate-200 text-xs font-semibold text-slate-700 hover:text-slate-900 hover:bg-slate-50 shadow-xs transition"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-white/5 border border-white/15 text-xs font-semibold text-slate-200 hover:text-white hover:bg-white/10 shadow-xs transition"
                 >
                   <LogIn className="w-3.5 h-3.5 text-slate-400" />
                   {t('nav.login')}
@@ -225,14 +225,14 @@ export function Navbar() {
           {/* Section Droite Mobile : Langue + Avatar / Connexion + Menu Hamburger */}
           <div className="flex md:hidden items-center gap-2">
             {/* Toggle FR / EN rapide sur mobile */}
-            <div className="flex items-center rounded-lg bg-slate-100 border border-slate-200/80 p-0.5 text-[10px] font-bold">
+            <div className="flex items-center rounded-lg bg-[#121827] border border-white/10 p-0.5 text-[10px] font-bold">
               <button
                 type="button"
                 onClick={() => setLanguage('fr')}
                 className={`px-2 py-0.5 rounded transition ${
                   language === 'fr'
-                    ? 'bg-white text-[#0066FF] shadow-xs'
-                    : 'text-slate-500 hover:text-slate-800'
+                    ? 'bg-[#0066FF] text-white shadow-xs'
+                    : 'text-slate-400 hover:text-white'
                 }`}
               >
                 FR
@@ -242,8 +242,8 @@ export function Navbar() {
                 onClick={() => setLanguage('en')}
                 className={`px-2 py-0.5 rounded transition ${
                   language === 'en'
-                    ? 'bg-white text-[#0066FF] shadow-xs'
-                    : 'text-slate-500 hover:text-slate-800'
+                    ? 'bg-[#0066FF] text-white shadow-xs'
+                    : 'text-slate-400 hover:text-white'
                 }`}
               >
                 EN
@@ -252,15 +252,15 @@ export function Navbar() {
 
             {isAuthenticated ? (
               <Link href="/profil" className="relative group">
-                <div className="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center text-xs font-bold text-slate-700 shadow-xs">
-                  <User className="w-4 h-4 text-[#0066FF]" />
+                <div className="w-8 h-8 rounded-full bg-white/10 border border-white/15 flex items-center justify-center text-xs font-bold text-white shadow-xs">
+                  <User className="w-4 h-4 text-[#38BDF8]" />
                 </div>
-                <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-white" />
+                <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-[#05070E]" />
               </Link>
             ) : (
               <Link
                 href="/auth/connexion"
-                className="text-xs font-bold text-[#0066FF] hover:text-[#0052CC] px-1.5 py-1"
+                className="text-xs font-bold text-[#38BDF8] hover:text-white px-1.5 py-1"
               >
                 {t('nav.login')}
               </Link>
@@ -270,10 +270,10 @@ export function Navbar() {
             <button
               type="button"
               onClick={() => setMobileMenuOpen(true)}
-              className="p-1.5 rounded-xl bg-white border border-slate-200 text-slate-700 hover:text-slate-900 transition shadow-xs focus:outline-none"
+              className="p-1.5 rounded-xl bg-white/10 border border-white/15 text-white hover:bg-white/15 transition shadow-xs focus:outline-none"
               aria-label="Ouvrir le menu"
             >
-              <Menu className="w-5 h-5 text-slate-700" />
+              <Menu className="w-5 h-5 text-white" />
             </button>
           </div>
         </div>
@@ -290,13 +290,13 @@ export function Navbar() {
             bottom: 0,
             width: '100vw',
             height: '100dvh',
-            backgroundColor: '#F8F9FE',
+            backgroundColor: '#05070E',
             zIndex: 999999,
           }}
-          className="flex flex-col justify-between p-6 sm:p-8 overflow-y-auto text-slate-800 animate-in fade-in duration-200"
+          className="flex flex-col justify-between p-6 sm:p-8 overflow-y-auto text-white animate-in fade-in duration-200"
         >
           {/* En-tête du menu plein écran */}
-          <div className="relative z-10 w-full max-w-[310px] mx-auto flex items-center justify-between pb-4 border-b border-slate-200/80">
+          <div className="relative z-10 w-full max-w-[310px] mx-auto flex items-center justify-between pb-4 border-b border-white/10">
             <Link 
               href="/" 
               onClick={() => setMobileMenuOpen(false)}
@@ -305,18 +305,18 @@ export function Navbar() {
               <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#0066FF] to-[#38BDF8] flex items-center justify-center text-white shadow-md shadow-blue-500/25 group-hover:scale-105 transition-transform">
                 <GraduationCap className="w-4 h-4 text-white" />
               </div>
-              <span className="font-extrabold text-slate-900 text-base tracking-tight">
-                Prépa<span className="text-[#0066FF]">Campus</span>
+              <span className="font-extrabold text-white text-base tracking-tight">
+                Prépa<span className="text-[#38BDF8]">Campus</span>
               </span>
             </Link>
 
             <button
               type="button"
               onClick={() => setMobileMenuOpen(false)}
-              className="p-1.5 rounded-xl bg-white border border-slate-200 text-slate-500 hover:text-slate-900 shadow-xs transition"
+              className="p-1.5 rounded-xl bg-white/10 border border-white/15 text-slate-300 hover:text-white shadow-xs transition"
               aria-label="Fermer le menu"
             >
-              <X className="w-4 h-4 text-slate-700" />
+              <X className="w-4 h-4 text-white" />
             </button>
           </div>
 
@@ -339,21 +339,21 @@ export function Navbar() {
                   }}
                   className={`flex items-center justify-between px-5 py-3.5 rounded-2xl text-[15px] font-semibold transition active:scale-[0.98] ${
                     isActive
-                      ? 'bg-blue-50 text-[#0066FF] border border-blue-200/90 shadow-sm'
+                      ? 'bg-blue-500/20 text-[#38BDF8] border border-blue-500/30 shadow-sm'
                       : isTarget
-                      ? 'bg-white text-[#0066FF] border border-[#0066FF] shadow-sm'
-                      : 'text-slate-700 hover:bg-white hover:text-[#0066FF] border border-slate-200/80 bg-white/70 shadow-xs'
+                      ? 'bg-[#0066FF] text-white border border-[#38BDF8] shadow-sm'
+                      : 'text-slate-200 hover:bg-white/10 hover:text-white border border-white/10 bg-[#0D121F] shadow-xs'
                   }`}
                 >
                   <div className="flex items-center gap-3.5 pl-1">
-                    {link.icon && <link.icon className="w-4 h-4 text-[#0066FF] shrink-0" />}
+                    {link.icon && <link.icon className="w-4 h-4 text-[#38BDF8] shrink-0" />}
                     <span>{link.label}</span>
                   </div>
                   {isActive && (
-                    <span className="w-2 h-2 rounded-full bg-[#0066FF] mr-1" />
+                    <span className="w-2 h-2 rounded-full bg-[#38BDF8] mr-1" />
                   )}
                   {isTarget && !isActive && (
-                    <span className="w-3.5 h-3.5 border-2 border-[#0066FF] border-t-transparent rounded-full animate-spin mr-1" />
+                    <span className="w-3.5 h-3.5 border-2 border-[#38BDF8] border-t-transparent rounded-full animate-spin mr-1" />
                   )}
                 </Link>
               );
@@ -361,7 +361,7 @@ export function Navbar() {
           </div>
 
           {/* Pied du menu */}
-          <div className="relative z-10 w-full max-w-[315px] mx-auto pt-4 border-t border-slate-200/80">
+          <div className="relative z-10 w-full max-w-[315px] mx-auto pt-4 border-t border-white/10">
             {isAuthenticated ? (
               <div className="grid grid-cols-2 gap-2.5">
                 <Link
@@ -374,15 +374,15 @@ export function Navbar() {
                       setTimeout(() => setNavigatingTo(null), 800);
                     }
                   }}
-                  className="inline-flex items-center justify-center gap-1.5 py-3 rounded-xl bg-white border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50 shadow-xs transition"
+                  className="inline-flex items-center justify-center gap-1.5 py-3 rounded-xl bg-white/10 border border-white/15 text-xs font-semibold text-slate-200 hover:bg-white/15 shadow-xs transition"
                 >
-                  <User className="w-3.5 h-3.5 text-[#0066FF]" />
+                  <User className="w-3.5 h-3.5 text-[#38BDF8]" />
                   {t('nav.profile')}
                 </Link>
                 <button
                   type="button"
                   onClick={handleSignOut}
-                  className="inline-flex items-center justify-center gap-1.5 py-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-600 text-xs font-semibold hover:bg-rose-100 transition"
+                  className="inline-flex items-center justify-center gap-1.5 py-3 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-400 text-xs font-semibold hover:bg-rose-500/20 transition"
                 >
                   <LogOut className="w-3.5 h-3.5" />
                   {t('nav.signout')}
@@ -400,7 +400,7 @@ export function Navbar() {
                       setTimeout(() => setNavigatingTo(null), 800);
                     }
                   }}
-                  className="w-full text-center py-3 rounded-xl bg-white border border-slate-200 text-slate-700 text-xs font-bold hover:bg-slate-50 shadow-xs transition"
+                  className="w-full text-center py-3 rounded-xl bg-white/10 border border-white/15 text-white text-xs font-bold hover:bg-white/15 shadow-xs transition"
                 >
                   {t('nav.login')}
                 </Link>

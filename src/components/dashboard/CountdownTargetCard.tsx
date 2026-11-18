@@ -59,34 +59,34 @@ export function CountdownTargetCard() {
   };
 
   return (
-    <div className="bg-white border border-slate-200/90 rounded-3xl p-5 sm:p-6 shadow-sm">
+    <div className="bg-[#0D121F] border border-white/10 rounded-3xl p-5 sm:p-6 shadow-sm">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3.5">
-          <div className="w-10 h-10 rounded-2xl bg-blue-50 border border-blue-100 text-[#0066FF] flex items-center justify-center shrink-0">
+          <div className="w-10 h-10 rounded-2xl bg-blue-500/15 border border-blue-500/25 text-[#38BDF8] flex items-center justify-center shrink-0">
             <Calendar className="w-5 h-5" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-sm font-bold text-slate-900">
+              <h2 className="text-sm font-bold text-white">
                 {language === 'fr' ? 'Objectif Entretien Consulaire' : 'Consular Interview Goal'}
               </h2>
               {daysRemaining !== null && daysRemaining >= 0 && (
                 <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider ${
                   daysRemaining <= 3 
-                    ? 'bg-rose-50 text-rose-700 border border-rose-200' 
+                    ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30' 
                     : daysRemaining <= 7 
-                    ? 'bg-amber-50 text-amber-700 border border-amber-200' 
-                    : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                    ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' 
+                    : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
                 }`}>
                   {daysRemaining === 0 ? (language === 'fr' ? "Aujourd'hui" : 'Today') : `J-${daysRemaining}`}
                 </span>
               )}
             </div>
-            <p className="text-xs text-slate-500 mt-0.5">
+            <p className="text-xs text-slate-400 mt-0.5">
               {daysRemaining !== null && targetDateStr ? (
                 <>
                   {language === 'fr' ? 'Rendez-vous prévu le ' : 'Scheduled on '}
-                  <strong className="text-slate-800 font-bold">
+                  <strong className="text-slate-200 font-bold">
                     {new Date(targetDateStr).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric' })}
                   </strong>
                 </>
@@ -107,16 +107,16 @@ export function CountdownTargetCard() {
                 setInputDate(targetDateStr || new Date().toISOString().split('T')[0]);
                 setIsEditing(true);
               }}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-xs font-semibold text-slate-700 hover:text-slate-900 transition cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 text-xs font-semibold text-slate-200 hover:text-white transition cursor-pointer"
             >
-              <Edit2 className="w-3.5 h-3.5 text-[#0066FF]" />
+              <Edit2 className="w-3.5 h-3.5 text-[#38BDF8]" />
               <span>{targetDateStr ? (language === 'fr' ? 'Modifier' : 'Edit') : (language === 'fr' ? 'Fixer ma date' : 'Set date')}</span>
             </button>
           ) : (
             <button
               type="button"
               onClick={() => setIsEditing(false)}
-              className="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer"
+              className="p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition cursor-pointer"
               title={language === 'fr' ? 'Annuler' : 'Cancel'}
             >
               <X className="w-4 h-4" />
@@ -126,13 +126,13 @@ export function CountdownTargetCard() {
       </div>
 
       {isEditing && (
-        <form onSubmit={handleSaveDate} className="mt-4 pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center gap-2 animate-in fade-in duration-150">
+        <form onSubmit={handleSaveDate} className="mt-4 pt-4 border-t border-white/10 flex flex-col sm:flex-row items-center gap-2 animate-in fade-in duration-150">
           <input
             type="date"
             required
             value={inputDate}
             onChange={(e) => setInputDate(e.target.value)}
-            className="w-full sm:w-auto px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 text-xs focus:outline-none focus:bg-white focus:border-[#0066FF] focus:ring-2 focus:ring-blue-500/10 transition"
+            className="w-full sm:w-auto px-3.5 py-2 rounded-xl bg-[#121827] border border-white/15 text-white text-xs focus:outline-none focus:border-[#0066FF] focus:ring-2 focus:ring-blue-500/20 transition"
           />
           <div className="flex items-center gap-2 w-full sm:w-auto">
             <button
@@ -146,7 +146,7 @@ export function CountdownTargetCard() {
               <button
                 type="button"
                 onClick={handleClearDate}
-                className="w-full sm:w-auto px-3 py-2 rounded-xl bg-rose-50 border border-rose-200 text-rose-600 hover:bg-rose-100 text-xs font-semibold transition cursor-pointer"
+                className="w-full sm:w-auto px-3 py-2 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-400 hover:bg-rose-500/25 text-xs font-semibold transition cursor-pointer"
               >
                 {language === 'fr' ? 'Effacer' : 'Clear'}
               </button>

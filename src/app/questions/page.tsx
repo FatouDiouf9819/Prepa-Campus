@@ -93,20 +93,20 @@ export default function QuestionsLibraryPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8F9FE] flex flex-col text-slate-800 font-sans">
+    <div className="min-h-screen bg-[#05070E] flex flex-col text-slate-100 font-sans">
       <Navbar />
 
       <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 py-10 sm:py-14 space-y-6">
         {/* En-tête épuré et moderne */}
         <div className="text-center max-w-2xl mx-auto space-y-3">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 border border-blue-200/80 text-[#0066FF] text-xs font-semibold">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/15 border border-blue-500/30 text-[#38BDF8] text-xs font-semibold">
             <Sparkles className="w-3.5 h-3.5" />
             <span>{language === 'fr' ? 'Référentiel Consulaire Officiel 2025' : 'Official Consular Repository'}</span>
           </div>
-          <h1 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight">
+          <h1 className="text-2xl sm:text-4xl font-black text-white tracking-tight">
             {language === 'fr' ? '50 Questions Types & Modèles' : '50 Essential Interview Questions'}
           </h1>
-          <p className="text-xs sm:text-sm text-slate-600 leading-relaxed max-w-xl mx-auto">
+          <p className="text-xs sm:text-sm text-slate-400 leading-relaxed max-w-xl mx-auto">
             {language === 'fr' 
               ? 'Comprenez ce que le jury évalue réellement, déjouez les pièges éliminatoires et structurez vos réponses gagnantes.' 
               : 'Understand what examiners really evaluate, avoid disqualifying traps, and craft winning answers.'}
@@ -115,42 +115,42 @@ export default function QuestionsLibraryPage() {
 
         {/* Bannière de statut d'accès épurée */}
         {hasPremiumAccess ? (
-          <div className="p-4 sm:p-5 rounded-2xl bg-white border border-emerald-200 flex items-center justify-between gap-3 shadow-xs">
+          <div className="p-4 sm:p-5 rounded-2xl bg-[#0D121F] border border-emerald-500/30 flex items-center justify-between gap-3 shadow-xs">
             <div className="flex items-center gap-3">
-              <span className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+              <span className="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
                 <CheckCircle2 className="w-5 h-5" />
               </span>
               <div className="text-xs">
-                <span className="font-bold text-slate-900 block text-sm">
+                <span className="font-bold text-white block text-sm">
                   {language === 'fr' ? 'Accès Complet Débloqué' : 'Full Access Unlocked'}
                 </span>
-                <span className="text-slate-500 text-xs">
+                <span className="text-slate-400 text-xs">
                   {language === 'fr' 
                     ? 'Vous bénéficiez de l\'intégralité des 50 questions, intentions cachées et argumentaires modèles.' 
                     : 'You have unlimited access to all 50 questions, jury insights, and model answers.'}
                 </span>
               </div>
             </div>
-            <span className="hidden sm:inline-flex px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 border border-emerald-200 text-emerald-700">
+            <span className="hidden sm:inline-flex px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/15 border border-emerald-500/30 text-emerald-400">
               {language === 'fr' ? 'Pack Actif' : 'Active Pack'}
             </span>
           </div>
         ) : (
-          <div className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/90 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm">
+          <div className="p-4 sm:p-5 rounded-2xl bg-[#0D121F] border border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm">
             <div className="flex items-center gap-3.5">
-              <span className="w-10 h-10 rounded-2xl bg-blue-50 border border-blue-100 text-[#0066FF] flex items-center justify-center shrink-0">
+              <span className="w-10 h-10 rounded-2xl bg-blue-500/15 border border-blue-500/30 text-[#38BDF8] flex items-center justify-center shrink-0">
                 <Lock className="w-5 h-5" />
               </span>
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-bold text-slate-900">
+                  <span className="text-sm font-bold text-white">
                     {language === 'fr' ? 'Aperçu Libre Disponible' : 'Free Preview Available'}
                   </span>
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-[#0066FF] border border-blue-200">
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/15 text-[#38BDF8] border border-blue-500/30">
                     {language === 'fr' ? '2 questions offertes' : '2 free questions'}
                   </span>
                 </div>
-                <p className="text-xs text-slate-500 mt-0.5">
+                <p className="text-xs text-slate-400 mt-0.5">
                   {language === 'fr' 
                     ? 'Débloquez les 50 questions clés et réponses modèles avec le Pack Réussite ou Intensif.' 
                     : 'Unlock all 50 key questions and model answers with Success or Intensive Pack.'}
@@ -161,7 +161,7 @@ export default function QuestionsLibraryPage() {
             <button
               type="button"
               onClick={() => setRechargeModalOpen(true)}
-              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#0066FF] hover:bg-[#0052CC] text-white font-bold text-xs shadow-md shadow-blue-500/25 transition whitespace-nowrap active:scale-95 cursor-pointer"
+              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#0066FF] hover:bg-[#0052CC] text-white font-bold text-xs shadow-lg shadow-blue-500/25 transition whitespace-nowrap active:scale-95 cursor-pointer"
             >
               <Zap className="w-3.5 h-3.5" />
               <span>{language === 'fr' ? "Débloquer l'accès complet" : 'Unlock Full Access'}</span>
@@ -178,7 +178,7 @@ export default function QuestionsLibraryPage() {
               placeholder={language === 'fr' ? 'Rechercher une question, un thème (projet, garant, notes, plan B...)' : 'Search a question or theme (career, budget, grades, plan B...)'}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#0066FF] focus:ring-4 focus:ring-blue-500/10 shadow-xs transition"
+              className="w-full pl-10 pr-4 py-3 bg-[#0D121F] border border-white/10 rounded-xl text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-[#0066FF] focus:ring-4 focus:ring-blue-500/10 shadow-xs transition"
             />
           </div>
 
@@ -193,8 +193,8 @@ export default function QuestionsLibraryPage() {
                   onClick={() => setSelectedCategory(cat.id)}
                   className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition cursor-pointer ${
                     isActive
-                      ? 'bg-blue-50 border border-blue-200 text-[#0066FF] font-bold shadow-xs'
-                      : 'bg-white border border-slate-200 text-slate-600 hover:text-[#0066FF] hover:border-slate-300'
+                      ? 'bg-[#0066FF] text-white font-bold shadow-md shadow-blue-500/25'
+                      : 'bg-[#0D121F] border border-white/10 text-slate-300 hover:text-white hover:border-white/25'
                   }`}
                 >
                   {cat.label}
@@ -207,7 +207,7 @@ export default function QuestionsLibraryPage() {
         {/* Liste des questions */}
         <div className="space-y-2.5">
           {filteredQuestions.length === 0 ? (
-            <div className="p-8 text-center rounded-2xl bg-white border border-slate-200 text-slate-500 text-xs">
+            <div className="p-8 text-center rounded-2xl bg-[#0D121F] border border-white/10 text-slate-400 text-xs">
               {language === 'fr' ? 'Aucune question ne correspond à votre recherche.' : 'No questions match your search.'}
             </div>
           ) : (
@@ -221,8 +221,8 @@ export default function QuestionsLibraryPage() {
                   key={q.id}
                   className={`rounded-2xl transition-all border ${
                     isExpanded 
-                      ? 'bg-white border-blue-200 shadow-md' 
-                      : 'bg-white border-slate-200/90 hover:border-slate-300 shadow-xs'
+                      ? 'bg-[#0D121F] border-blue-500/50 shadow-lg shadow-blue-500/5' 
+                      : 'bg-[#0D121F] border-white/10 hover:border-white/20 shadow-xs'
                   }`}
                 >
                   <button
@@ -233,8 +233,8 @@ export default function QuestionsLibraryPage() {
                     <div className="flex items-start gap-3 min-w-0">
                       <span className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold shrink-0 mt-0.5 ${
                         isLockedForUser
-                          ? 'bg-slate-100 text-slate-500 border border-slate-200'
-                          : 'bg-blue-50 text-[#0066FF] border border-blue-100'
+                          ? 'bg-white/5 text-slate-400 border border-white/10'
+                          : 'bg-blue-500/15 text-[#38BDF8] border border-blue-500/30'
                       }`}>
                         {isLockedForUser ? <Lock className="w-3.5 h-3.5 text-slate-400" /> : String(idx + 1).padStart(2, '0')}
                       </span>
@@ -245,40 +245,40 @@ export default function QuestionsLibraryPage() {
                             {q.categoryLabel}
                           </span>
                           {isSampleFreeQuestion && !hasPremiumAccess && (
-                            <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-50 text-emerald-600 border border-emerald-200">
+                            <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
                               {language === 'fr' ? 'Exemple Libre' : 'Free Preview'}
                             </span>
                           )}
                           {isLockedForUser && (
-                            <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-slate-100 text-slate-500 border border-slate-200">
+                            <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-white/5 text-slate-400 border border-white/10">
                               {language === 'fr' ? 'Pack Requis' : 'Pack Required'}
                             </span>
                           )}
                         </div>
-                        <h2 className="text-xs sm:text-sm font-bold text-slate-900 leading-snug">
+                        <h2 className="text-xs sm:text-sm font-bold text-white leading-snug">
                           {q.question}
                         </h2>
                       </div>
                     </div>
 
                     <div className="text-slate-400 shrink-0 mt-1">
-                      {isExpanded ? <ChevronUp className="w-4 h-4 text-[#0066FF]" /> : <ChevronDown className="w-4 h-4" />}
+                      {isExpanded ? <ChevronUp className="w-4 h-4 text-[#38BDF8]" /> : <ChevronDown className="w-4 h-4" />}
                     </div>
                   </button>
 
                   {isExpanded && (
                     isLockedForUser ? (
                       /* Paywall épuré, compact et élégant */
-                      <div className="px-4 pb-4 pt-1 border-t border-slate-100">
-                        <div className="p-4 sm:p-6 rounded-2xl bg-slate-50 border border-slate-200 text-center space-y-3">
-                          <div className="w-10 h-10 rounded-2xl bg-blue-50 border border-blue-100 text-[#0066FF] mx-auto flex items-center justify-center">
+                      <div className="px-4 pb-4 pt-1 border-t border-white/10">
+                        <div className="p-4 sm:p-6 rounded-2xl bg-[#121827] border border-white/10 text-center space-y-3">
+                          <div className="w-10 h-10 rounded-2xl bg-blue-500/15 border border-blue-500/30 text-[#38BDF8] mx-auto flex items-center justify-center">
                             <Lock className="w-5 h-5" />
                           </div>
                           <div className="max-w-md mx-auto space-y-1">
-                            <h3 className="text-xs sm:text-sm font-bold text-slate-900">
+                            <h3 className="text-xs sm:text-sm font-bold text-white">
                               {language === 'fr' ? 'Réponse Modèle & Analyse Piège Réservées' : 'Model Answer & Trap Analysis Reserved'}
                             </h3>
-                            <p className="text-xs text-slate-500 leading-relaxed">
+                            <p className="text-xs text-slate-400 leading-relaxed">
                               {language === 'fr' 
                                 ? 'Cette question consulaire stratégique et son argumentation modèle sont débloquées avec le Pack Réussite ou Intensif.' 
                                 : 'This consular question and winning answer template are unlocked with the Success or Intensive Pack.'}
@@ -288,14 +288,14 @@ export default function QuestionsLibraryPage() {
                             <button
                               type="button"
                               onClick={() => setRechargeModalOpen(true)}
-                              className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-xl bg-[#0066FF] hover:bg-[#0052CC] text-white font-bold text-xs shadow-md shadow-blue-500/25 transition active:scale-95 cursor-pointer"
+                              className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-xl bg-[#0066FF] hover:bg-[#0052CC] text-white font-bold text-xs shadow-lg shadow-blue-500/25 transition active:scale-95 cursor-pointer"
                             >
                               <Zap className="w-3.5 h-3.5" />
                               <span>{language === 'fr' ? 'Débloquer (5 000 F / ~7,5 €)' : 'Unlock (5,000 CFA)'}</span>
                             </button>
                             <Link
                               href="/tarifs"
-                              className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 text-xs font-semibold shadow-xs transition"
+                              className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/10 text-white text-xs font-semibold shadow-xs transition"
                             >
                               {language === 'fr' ? 'Voir toutes les offres' : 'View all pricing packs'}
                             </Link>
@@ -304,45 +304,45 @@ export default function QuestionsLibraryPage() {
                       </div>
                     ) : (
                       /* Contenu complet débloqué épuré */
-                      <div className="px-4 pb-4 pt-1 border-t border-slate-100 space-y-2.5 text-xs">
+                      <div className="px-4 pb-4 pt-1 border-t border-white/10 space-y-2.5 text-xs">
                         {/* Intention du jury */}
-                        <div className="p-3.5 rounded-xl bg-blue-50/70 border border-blue-100 space-y-1">
-                          <div className="flex items-center gap-1.5 font-bold text-[#0066FF] text-[10px] uppercase tracking-wider">
+                        <div className="p-3.5 rounded-xl bg-blue-500/10 border border-blue-500/20 space-y-1">
+                          <div className="flex items-center gap-1.5 font-bold text-[#38BDF8] text-[10px] uppercase tracking-wider">
                             <Target className="w-3.5 h-3.5" />
                             <span>{language === 'fr' ? 'Ce que le jury vérifie' : 'What the jury tests'}</span>
                           </div>
-                          <p className="text-slate-700 text-xs leading-relaxed">
+                          <p className="text-slate-300 text-xs leading-relaxed">
                             {q.hiddenIntent}
                           </p>
                         </div>
 
                         {/* Piège fréquent */}
-                        <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 space-y-1">
-                          <div className="flex items-center gap-1.5 font-bold text-rose-700 text-[10px] uppercase tracking-wider">
-                            <AlertTriangle className="w-3.5 h-3.5 text-rose-500" />
+                        <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-300 space-y-1">
+                          <div className="flex items-center gap-1.5 font-bold text-rose-400 text-[10px] uppercase tracking-wider">
+                            <AlertTriangle className="w-3.5 h-3.5 text-rose-400" />
                             <span>{language === 'fr' ? 'Le piège éliminatoire à éviter' : 'Disqualifying trap to avoid'}</span>
                           </div>
-                          <p className="text-xs text-rose-900/90 leading-relaxed">
+                          <p className="text-xs text-rose-200/90 leading-relaxed">
                             {q.trapToAvoid}
                           </p>
                         </div>
 
                         {/* Réponse recommandée */}
-                        <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 space-y-1">
-                          <div className="flex items-center gap-1.5 font-bold text-emerald-700 text-[10px] uppercase tracking-wider">
-                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                        <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 space-y-1">
+                          <div className="flex items-center gap-1.5 font-bold text-emerald-400 text-[10px] uppercase tracking-wider">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
                             <span>{language === 'fr' ? 'Argumentation modèle recommandée' : 'Recommended model answer'}</span>
                           </div>
-                          <p className="text-slate-800 text-xs italic leading-relaxed">
+                          <p className="text-slate-200 text-xs italic leading-relaxed">
                             « {q.recommendedResponse} »
                           </p>
                         </div>
 
                         {/* Règle d'or */}
-                        <div className="flex items-start gap-2 pt-1 px-1 text-xs text-slate-500">
-                          <Lightbulb className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                        <div className="flex items-start gap-2 pt-1 px-1 text-xs text-slate-400">
+                          <Lightbulb className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
                           <span>
-                            <strong className="text-slate-800 font-bold">{language === 'fr' ? 'Règle d\'or :' : 'Golden Rule:'}</strong> {q.keyAdvice}
+                            <strong className="text-white font-bold">{language === 'fr' ? 'Règle d\'or :' : 'Golden Rule:'}</strong> {q.keyAdvice}
                           </span>
                         </div>
                       </div>
@@ -355,12 +355,12 @@ export default function QuestionsLibraryPage() {
         </div>
 
         {/* Appel à l'action simulation épuré */}
-        <div className="p-6 sm:p-7 rounded-3xl bg-white border border-slate-200/90 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-5">
+        <div className="p-6 sm:p-7 rounded-3xl bg-[#0D121F] border border-white/10 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-5">
           <div className="text-center sm:text-left">
-            <h2 className="text-base sm:text-lg font-bold text-slate-900">
+            <h2 className="text-base sm:text-lg font-bold text-white">
               {language === 'fr' ? 'Prêt(e) à tester vos réponses à l\'oral ?' : 'Ready to practice your answers aloud?'}
             </h2>
-            <p className="text-xs text-slate-500 mt-1">
+            <p className="text-xs text-slate-400 mt-1">
               {language === 'fr' 
                 ? 'Passez une simulation de 5 minutes face à l\'examinatrice IA vocale avec rapport instantané.' 
                 : 'Take a 5-minute practice interview with the Voice AI jury and get an instant report.'}
@@ -368,7 +368,7 @@ export default function QuestionsLibraryPage() {
           </div>
           <Link
             href="/entretien/preparation"
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[#0066FF] hover:bg-[#0052CC] text-white font-bold text-xs sm:text-sm shadow-md shadow-blue-500/25 transition whitespace-nowrap active:scale-95"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[#0066FF] hover:bg-[#0052CC] text-white font-bold text-xs sm:text-sm shadow-lg shadow-blue-500/25 transition whitespace-nowrap active:scale-95"
           >
             <span>{language === 'fr' ? 'Démarrer un entretien' : 'Start an interview'}</span>
             <ArrowRight className="w-4 h-4" />

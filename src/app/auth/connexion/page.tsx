@@ -131,9 +131,9 @@ function ConnexionForm() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8F9FE] flex flex-col justify-center py-10 sm:py-16 px-4 sm:px-6 lg:px-8 text-slate-800 font-sans relative">
+    <div className="min-h-screen bg-[#05070E] flex flex-col justify-center py-10 sm:py-16 px-4 sm:px-6 lg:px-8 text-slate-100 font-sans relative">
       {/* Halo lumineux d'arrière-plan */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-96 bg-gradient-to-b from-blue-100/60 to-transparent blur-3xl pointer-events-none -z-10" />
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-96 bg-gradient-to-b from-blue-600/15 to-transparent blur-3xl pointer-events-none -z-10" />
 
       <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10">
         {/* Logo PrépaCampus */}
@@ -141,17 +141,17 @@ function ConnexionForm() {
           <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-[#0066FF] to-[#38BDF8] flex items-center justify-center text-white shadow-lg shadow-blue-500/25 group-hover:scale-105 transition-transform">
             <GraduationCap className="w-6 h-6" />
           </div>
-          <span className="font-extrabold text-slate-900 text-2xl tracking-tight">
-            Prépa<span className="text-[#0066FF]">Campus</span>
+          <span className="font-extrabold text-white text-2xl tracking-tight">
+            Prépa<span className="text-[#38BDF8]">Campus</span>
           </span>
         </Link>
 
         {/* Titre & Sous-titre */}
         <div className="text-center">
-          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
             {language === 'fr' ? 'Connexion candidat' : 'Candidate sign in'}
           </h1>
-          <p className="mt-2 text-xs sm:text-sm text-slate-500 max-w-sm mx-auto">
+          <p className="mt-2 text-xs sm:text-sm text-slate-400 max-w-sm mx-auto">
             {language === 'fr' 
               ? 'Accédez à vos simulations d\'entretien et vos bilans personnalisés.'
               : 'Access your interview simulations and personalized feedback.'}
@@ -160,10 +160,10 @@ function ConnexionForm() {
       </div>
 
       <div className="mt-7 sm:mx-auto sm:w-full sm:max-w-md relative z-10">
-        <div className="bg-white border border-slate-200/80 rounded-3xl p-6 sm:p-8 shadow-xl shadow-blue-500/5">
+        <div className="bg-[#0D121F] border border-white/10 rounded-3xl p-6 sm:p-8 shadow-2xl">
           {errorMessage && (
-            <div className="mb-5 p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-xs sm:text-sm flex items-start gap-2.5">
-              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-rose-500" />
+            <div className="mb-5 p-3.5 rounded-2xl bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs sm:text-sm flex items-start gap-2.5">
+              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-rose-400" />
               <span className="leading-relaxed">{errorMessage}</span>
             </div>
           )}
@@ -173,10 +173,10 @@ function ConnexionForm() {
             type="button"
             onClick={handleGoogleSignIn}
             disabled={googleLoading || loading}
-            className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-semibold text-xs sm:text-sm shadow-sm transition-all hover:border-slate-300 disabled:opacity-50 group"
+            className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/15 text-white font-semibold text-xs sm:text-sm shadow-sm transition-all hover:border-white/25 disabled:opacity-50 group"
           >
             {googleLoading ? (
-              <Loader2 className="w-4 h-4 animate-spin text-[#0066FF]" />
+              <Loader2 className="w-4 h-4 animate-spin text-[#38BDF8]" />
             ) : (
               <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
                 <path
@@ -202,10 +202,10 @@ function ConnexionForm() {
 
           <div className="relative my-5">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-slate-200" />
+              <div className="w-full border-t border-white/10" />
             </div>
             <div className="relative flex justify-center text-xs">
-              <span className="bg-white px-3 text-slate-400 font-medium uppercase tracking-wider text-[10px]">
+              <span className="bg-[#0D121F] px-3 text-slate-400 font-medium uppercase tracking-wider text-[10px]">
                 {language === 'fr' ? 'ou avec votre email' : 'or with email'}
               </span>
             </div>
@@ -213,7 +213,7 @@ function ConnexionForm() {
 
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1.5">
+              <label className="block text-xs font-bold text-slate-300 mb-1.5">
                 {language === 'fr' ? 'Adresse email' : 'Email address'}
               </label>
               <div className="relative">
@@ -224,13 +224,13 @@ function ConnexionForm() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="etudiant@exemple.com"
-                  className="w-full pl-10 pr-3.5 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs sm:text-sm focus:outline-none focus:bg-white focus:border-[#0066FF] focus:ring-4 focus:ring-blue-500/10 transition-all placeholder:text-slate-400 font-medium"
+                  className="w-full pl-10 pr-3.5 py-3 rounded-xl bg-[#121827] border border-white/15 text-white text-xs sm:text-sm focus:outline-none focus:bg-[#151C2D] focus:border-[#0066FF] focus:ring-2 focus:ring-blue-500/20 transition-all placeholder:text-slate-500 font-medium"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1.5">
+              <label className="block text-xs font-bold text-slate-300 mb-1.5">
                 {language === 'fr' ? 'Mot de passe' : 'Password'}
               </label>
               <div className="relative">
@@ -241,7 +241,7 @@ function ConnexionForm() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full pl-10 pr-3.5 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs sm:text-sm focus:outline-none focus:bg-white focus:border-[#0066FF] focus:ring-4 focus:ring-blue-500/10 transition-all placeholder:text-slate-400 font-medium"
+                  className="w-full pl-10 pr-3.5 py-3 rounded-xl bg-[#121827] border border-white/15 text-white text-xs sm:text-sm focus:outline-none focus:bg-[#151C2D] focus:border-[#0066FF] focus:ring-2 focus:ring-blue-500/20 transition-all placeholder:text-slate-500 font-medium"
                 />
               </div>
             </div>
@@ -249,7 +249,7 @@ function ConnexionForm() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full mt-2 inline-flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-xl bg-[#0066FF] hover:bg-[#0052CC] text-white font-bold text-sm shadow-lg shadow-blue-500/25 hover:shadow-blue-500/35 transition-all hover:-translate-y-0.5 disabled:opacity-50 cursor-pointer"
+              className="w-full mt-2 inline-flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-xl bg-[#0066FF] hover:bg-[#0052CC] text-white font-bold text-sm shadow-lg shadow-blue-500/30 hover:shadow-blue-500/40 transition-all hover:-translate-y-0.5 disabled:opacity-50 cursor-pointer"
             >
               {loading ? (
                 <>
@@ -266,12 +266,12 @@ function ConnexionForm() {
           </form>
 
           {/* Lien vers Inscription */}
-          <div className="mt-6 pt-5 border-t border-slate-100 text-center">
-            <p className="text-xs text-slate-500">
+          <div className="mt-6 pt-5 border-t border-white/10 text-center">
+            <p className="text-xs text-slate-400">
               {language === 'fr' ? 'Pas encore de compte ? ' : "Don't have an account yet? "}
               <Link
                 href={`/auth/inscription${redirectTo !== '/dashboard' ? `?redirectTo=${encodeURIComponent(redirectTo)}` : ''}`}
-                className="text-[#0066FF] hover:text-[#0052CC] font-bold hover:underline transition"
+                className="text-[#38BDF8] hover:text-white font-bold hover:underline transition"
               >
                 {language === 'fr' ? 'Créer mon compte (1ère simulation offerte)' : 'Create account (1st simulation free)'}
               </Link>
@@ -282,7 +282,7 @@ function ConnexionForm() {
         {/* Badges de confiance sous la boîte */}
         <div className="mt-6 flex items-center justify-center gap-6 text-[11px] text-slate-400">
           <div className="flex items-center gap-1.5">
-            <ShieldCheck className="w-4 h-4 text-emerald-500" />
+            <ShieldCheck className="w-4 h-4 text-emerald-400" />
             <span>Accès sécurisé 256-bit</span>
           </div>
           <div className="flex items-center gap-1.5">
@@ -298,9 +298,9 @@ function ConnexionForm() {
 export default function ConnexionPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-[#F8F9FE] flex flex-col items-center justify-center text-[#0066FF] gap-3">
+      <div className="min-h-screen bg-[#05070E] flex flex-col items-center justify-center text-[#38BDF8] gap-3">
         <Loader2 className="w-8 h-8 animate-spin" />
-        <span className="text-xs font-medium text-slate-500">Chargement de la page...</span>
+        <span className="text-xs font-medium text-slate-400">Chargement de la page...</span>
       </div>
     }>
       <ConnexionForm />

@@ -168,9 +168,9 @@ function InscriptionForm() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8F9FE] flex flex-col justify-center py-8 sm:py-12 px-4 sm:px-6 lg:px-8 text-slate-800 font-sans relative">
+    <div className="min-h-screen bg-[#05070E] flex flex-col justify-center py-8 sm:py-12 px-4 sm:px-6 lg:px-8 text-slate-100 font-sans relative">
       {/* Halo lumineux d'arrière-plan */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-96 bg-gradient-to-b from-blue-100/60 to-transparent blur-3xl pointer-events-none -z-10" />
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-96 bg-gradient-to-b from-blue-600/15 to-transparent blur-3xl pointer-events-none -z-10" />
 
       <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10">
         {/* Logo PrépaCampus */}
@@ -178,21 +178,21 @@ function InscriptionForm() {
           <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#0066FF] to-[#38BDF8] flex items-center justify-center text-white shadow-md shadow-blue-500/25 group-hover:scale-105 transition-transform">
             <GraduationCap className="w-5 h-5" />
           </div>
-          <span className="font-extrabold text-slate-900 text-xl sm:text-2xl tracking-tight">
-            Prépa<span className="text-[#0066FF]">Campus</span>
+          <span className="font-extrabold text-white text-xl sm:text-2xl tracking-tight">
+            Prépa<span className="text-[#38BDF8]">Campus</span>
           </span>
         </Link>
 
         {/* Titre & Sous-titre */}
         <div className="text-center">
-          <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-blue-50 border border-blue-200/60 text-[#0066FF] text-[11px] sm:text-xs font-semibold mb-2">
+          <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-blue-500/15 border border-blue-500/30 text-[#38BDF8] text-[11px] sm:text-xs font-semibold mb-2">
             <Sparkles className="w-3 h-3" />
             <span>1ère simulation d'entretien offerte</span>
           </div>
-          <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+          <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight">
             {language === 'fr' ? 'Créer votre compte' : 'Create your account'}
           </h1>
-          <p className="mt-1 text-xs text-slate-500 max-w-sm mx-auto">
+          <p className="mt-1 text-xs text-slate-400 max-w-sm mx-auto">
             {language === 'fr'
               ? 'Préparez votre entretien Campus France avec le simulateur IA vocal.'
               : 'Prepare for your Campus France interview with the AI voice simulator.'}
@@ -201,11 +201,11 @@ function InscriptionForm() {
       </div>
 
       <div className="mt-5 sm:mx-auto sm:w-full sm:max-w-md relative z-10">
-        <div className="bg-white border border-slate-200/80 rounded-2xl sm:rounded-3xl p-5 sm:p-7 shadow-xl shadow-blue-500/5">
+        <div className="bg-[#0D121F] border border-white/10 rounded-2xl sm:rounded-3xl p-5 sm:p-7 shadow-2xl">
           {currentUserEmail && (
-            <div className="mb-5 p-3 rounded-2xl bg-blue-50/80 border border-blue-200/70 text-xs text-blue-900 flex items-center justify-between gap-2 shadow-sm">
+            <div className="mb-5 p-3 rounded-2xl bg-blue-950/40 border border-blue-800/40 text-xs text-blue-200 flex items-center justify-between gap-2 shadow-sm">
               <div className="flex items-center gap-2 min-w-0">
-                <div className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
+                <div className="w-2 h-2 rounded-full bg-emerald-400 shrink-0" />
                 <span className="truncate text-xs font-medium">
                   {language === 'fr' 
                     ? `Connecté en tant que ${currentUserEmail}` 
@@ -222,18 +222,18 @@ function InscriptionForm() {
           )}
 
           {errorMessage && (
-            <div className="mb-5 p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-xs sm:text-sm flex items-start gap-2.5">
-              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-rose-500" />
+            <div className="mb-5 p-3.5 rounded-2xl bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs sm:text-sm flex items-start gap-2.5">
+              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-rose-400" />
               <span className="leading-relaxed">{errorMessage}</span>
             </div>
           )}
 
           {successMessage && (
-            <div className="mb-5 p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs sm:text-sm flex items-start gap-3">
-              <CheckCircle2 className="w-5 h-5 shrink-0 mt-0.5 text-emerald-600" />
+            <div className="mb-5 p-4 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-200 text-xs sm:text-sm flex items-start gap-3">
+              <CheckCircle2 className="w-5 h-5 shrink-0 mt-0.5 text-emerald-400" />
               <div className="space-y-1">
-                <p className="font-bold">{language === 'fr' ? 'Compte créé avec succès !' : 'Account created!'}</p>
-                <p className="text-emerald-700 leading-relaxed">{successMessage}</p>
+                <p className="font-bold text-white">{language === 'fr' ? 'Compte créé avec succès !' : 'Account created!'}</p>
+                <p className="text-emerald-300 leading-relaxed">{successMessage}</p>
               </div>
             </div>
           )}
@@ -245,10 +245,10 @@ function InscriptionForm() {
                 type="button"
                 onClick={handleGoogleSignUp}
                 disabled={googleLoading || loading}
-                className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-semibold text-xs sm:text-sm shadow-sm transition-all hover:border-slate-300 disabled:opacity-50 group"
+                className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/15 text-white font-semibold text-xs sm:text-sm shadow-sm transition-all hover:border-white/25 disabled:opacity-50 group"
               >
                 {googleLoading ? (
-                  <Loader2 className="w-4 h-4 animate-spin text-[#0066FF]" />
+                  <Loader2 className="w-4 h-4 animate-spin text-[#38BDF8]" />
                 ) : (
                   <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
                     <path
@@ -274,10 +274,10 @@ function InscriptionForm() {
 
               <div className="relative my-4">
                 <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-slate-200" />
+                  <div className="w-full border-t border-white/10" />
                 </div>
                 <div className="relative flex justify-center text-xs">
-                  <span className="bg-white px-3 text-slate-400 font-medium uppercase tracking-wider text-[10px]">
+                  <span className="bg-[#0D121F] px-3 text-slate-400 font-medium uppercase tracking-wider text-[10px]">
                     {language === 'fr' ? 'ou par e-mail' : 'or with email'}
                   </span>
                 </div>
@@ -285,7 +285,7 @@ function InscriptionForm() {
 
               <form onSubmit={handleRegister} className="space-y-3 sm:space-y-3.5">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                  <label className="block text-xs font-bold text-slate-300 mb-1">
                     {language === 'fr' ? 'Adresse email' : 'Email address'}
                   </label>
                   <div className="relative">
@@ -296,13 +296,13 @@ function InscriptionForm() {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="etudiant@exemple.com"
-                      className="w-full pl-10 pr-3.5 py-2.5 sm:py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs sm:text-sm focus:outline-none focus:bg-white focus:border-[#0066FF] focus:ring-4 focus:ring-blue-500/10 transition-all placeholder:text-slate-400 font-medium"
+                      className="w-full pl-10 pr-3.5 py-2.5 sm:py-3 rounded-xl bg-[#121827] border border-white/15 text-white text-xs sm:text-sm focus:outline-none focus:bg-[#151C2D] focus:border-[#0066FF] focus:ring-2 focus:ring-blue-500/20 transition-all placeholder:text-slate-500 font-medium"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                  <label className="block text-xs font-bold text-slate-300 mb-1">
                     {language === 'fr' ? 'Mot de passe (6 caractères minimum)' : 'Password (minimum 6 characters)'}
                   </label>
                   <div className="relative">
@@ -313,13 +313,13 @@ function InscriptionForm() {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="••••••••"
-                      className="w-full pl-10 pr-3.5 py-2.5 sm:py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs sm:text-sm focus:outline-none focus:bg-white focus:border-[#0066FF] focus:ring-4 focus:ring-blue-500/10 transition-all placeholder:text-slate-400 font-medium"
+                      className="w-full pl-10 pr-3.5 py-2.5 sm:py-3 rounded-xl bg-[#121827] border border-white/15 text-white text-xs sm:text-sm focus:outline-none focus:bg-[#151C2D] focus:border-[#0066FF] focus:ring-2 focus:ring-blue-500/20 transition-all placeholder:text-slate-500 font-medium"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                  <label className="block text-xs font-bold text-slate-300 mb-1">
                     {language === 'fr' ? 'Confirmer le mot de passe' : 'Confirm password'}
                   </label>
                   <div className="relative">
@@ -330,23 +330,23 @@ function InscriptionForm() {
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       placeholder="••••••••"
-                      className="w-full pl-10 pr-3.5 py-2.5 sm:py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs sm:text-sm focus:outline-none focus:bg-white focus:border-[#0066FF] focus:ring-4 focus:ring-blue-500/10 transition-all placeholder:text-slate-400 font-medium"
+                      className="w-full pl-10 pr-3.5 py-2.5 sm:py-3 rounded-xl bg-[#121827] border border-white/15 text-white text-xs sm:text-sm focus:outline-none focus:bg-[#151C2D] focus:border-[#0066FF] focus:ring-2 focus:ring-blue-500/20 transition-all placeholder:text-slate-500 font-medium"
                     />
                   </div>
                 </div>
 
                 {/* Avantages inclus */}
                 <div className="pt-0.5 pb-0.5 space-y-1">
-                  <div className="flex items-center gap-2 text-[11px] text-slate-600">
-                    <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                  <div className="flex items-center gap-2 text-[11px] text-slate-300">
+                    <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
                     <span>Première simulation vocale offerte</span>
                   </div>
-                  <div className="flex items-center gap-2 text-[11px] text-slate-600">
-                    <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                  <div className="flex items-center gap-2 text-[11px] text-slate-300">
+                    <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
                     <span>Questions officielles Campus France 2025</span>
                   </div>
-                  <div className="flex items-center gap-2 text-[11px] text-slate-600">
-                    <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                  <div className="flex items-center gap-2 text-[11px] text-slate-300">
+                    <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
                     <span>Sans engagement ni carte bancaire</span>
                   </div>
                 </div>
@@ -355,7 +355,7 @@ function InscriptionForm() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full mt-1.5 inline-flex items-center justify-center gap-2.5 px-6 py-3 rounded-xl bg-[#0066FF] hover:bg-[#0052CC] text-white font-bold text-xs sm:text-sm shadow-lg shadow-blue-500/25 hover:shadow-blue-500/35 transition-all hover:-translate-y-0.5 disabled:opacity-50 cursor-pointer"
+                  className="w-full mt-1.5 inline-flex items-center justify-center gap-2.5 px-6 py-3 rounded-xl bg-[#0066FF] hover:bg-[#0052CC] text-white font-bold text-xs sm:text-sm shadow-lg shadow-blue-500/30 hover:shadow-blue-500/40 transition-all hover:-translate-y-0.5 disabled:opacity-50 cursor-pointer"
                 >
                   {loading ? (
                     <>
@@ -374,12 +374,12 @@ function InscriptionForm() {
           )}
 
           {/* Lien vers Connexion */}
-          <div className="mt-6 pt-5 border-t border-slate-100 text-center">
-            <p className="text-xs text-slate-500">
+          <div className="mt-6 pt-5 border-t border-white/10 text-center">
+            <p className="text-xs text-slate-400">
               {language === 'fr' ? 'Vous avez déjà un compte ? ' : 'Already have an account? '}
               <Link
                 href={`/auth/connexion${redirectTo !== '/dashboard' ? `?redirectTo=${encodeURIComponent(redirectTo)}` : ''}`}
-                className="text-[#0066FF] hover:text-[#0052CC] font-bold hover:underline transition"
+                className="text-[#38BDF8] hover:text-white font-bold hover:underline transition"
               >
                 {language === 'fr' ? 'Se connecter' : 'Sign In'}
               </Link>
@@ -390,7 +390,7 @@ function InscriptionForm() {
         {/* Badges de confiance sous la boîte */}
         <div className="mt-6 flex items-center justify-center gap-6 text-[11px] text-slate-400">
           <div className="flex items-center gap-1.5">
-            <ShieldCheck className="w-4 h-4 text-emerald-500" />
+            <ShieldCheck className="w-4 h-4 text-emerald-400" />
             <span>Données protégées & RGPD</span>
           </div>
           <div className="flex items-center gap-1.5">
@@ -406,9 +406,9 @@ function InscriptionForm() {
 export default function InscriptionPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-[#F8F9FE] flex flex-col items-center justify-center text-[#0066FF] gap-3">
+      <div className="min-h-screen bg-[#05070E] flex flex-col items-center justify-center text-[#38BDF8] gap-3">
         <Loader2 className="w-8 h-8 animate-spin" />
-        <span className="text-xs font-medium text-slate-500">Chargement de la page...</span>
+        <span className="text-xs font-medium text-slate-400">Chargement de la page...</span>
       </div>
     }>
       <InscriptionForm />

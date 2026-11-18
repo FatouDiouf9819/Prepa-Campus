@@ -9,12 +9,12 @@ export const metadata = {
 
 export default function ProfilPage() {
   return (
-    <div className="min-h-screen bg-[#F8F9FE] flex flex-col text-slate-800 font-sans">
+    <div className="min-h-screen bg-[#05070E] flex flex-col text-slate-100 font-sans">
       <Navbar />
       <main className="flex-1 py-6">
         <AcademicProfileForm />
       </main>
-      <footer className="border-t border-slate-200/80 py-6 text-center text-xs text-slate-400 bg-[#F8F9FE]">
+      <footer className="border-t border-white/10 py-6 text-center text-xs text-slate-500 bg-[#05070E]">
         <p>PrépaCampus — Service d&apos;entraînement pédagogique indépendant aux entretiens Campus France.</p>
       </footer>
     </div>

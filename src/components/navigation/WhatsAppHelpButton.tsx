@@ -186,14 +186,14 @@ export function WhatsAppHelpButton({ className = '', isInterviewActive = false }
             ...(isLeftSide ? { left: 0 } : { right: 0 }),
             ...(isTopHalf ? { top: 'calc(100% + 12px)' } : { bottom: 'calc(100% + 12px)' }),
           }}
-          className="w-80 max-w-[calc(100vw-2rem)] rounded-3xl bg-white border border-slate-200/90 p-5 shadow-2xl shadow-blue-500/10 backdrop-blur-xl animate-in fade-in duration-200 text-slate-800"
+          className="w-80 max-w-[calc(100vw-2rem)] rounded-3xl bg-[#0D121F] border border-white/10 p-5 shadow-2xl shadow-black/80 backdrop-blur-xl animate-in fade-in duration-200 text-slate-100"
         >
           <div className="flex items-start justify-between gap-3 mb-2.5">
-            <div className="flex items-center gap-2 text-emerald-600">
-              <div className="w-8 h-8 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center">
-                <MessageCircle className="w-4 h-4 text-emerald-600" />
+            <div className="flex items-center gap-2 text-emerald-400">
+              <div className="w-8 h-8 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center">
+                <MessageCircle className="w-4 h-4 text-emerald-400" />
               </div>
-              <span className="font-bold text-xs text-slate-900">Support & Entraide</span>
+              <span className="font-bold text-xs text-white">Support & Entraide</span>
             </div>
             <button
               type="button"
@@ -201,14 +201,14 @@ export function WhatsAppHelpButton({ className = '', isInterviewActive = false }
                 e.stopPropagation();
                 setIsOpen(false);
               }}
-              className="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition"
+              className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition cursor-pointer"
               aria-label="Fermer l'aide"
             >
               <X className="w-4 h-4" />
             </button>
           </div>
 
-          <p className="text-xs text-slate-600 leading-relaxed mb-4">
+          <p className="text-xs text-slate-300 leading-relaxed mb-4">
             {CONTACT_CONFIG.helpText}
           </p>
 
@@ -217,15 +217,15 @@ export function WhatsAppHelpButton({ className = '', isInterviewActive = false }
               href={whatsappUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs shadow-lg shadow-emerald-500/20 transition transform hover:-translate-y-0.5"
+              className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs shadow-lg shadow-emerald-500/20 transition transform hover:-translate-y-0.5 cursor-pointer"
             >
               <MessageCircle className="w-4 h-4" />
               {CONTACT_CONFIG.actionLabel}
               <ExternalLink className="w-3.5 h-3.5 ml-0.5 opacity-80" />
             </a>
           ) : (
-            <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-[11px] text-amber-800">
-              <p className="text-amber-900 font-medium mb-1">Assistance en cours de configuration</p>
+            <div className="p-3 rounded-xl bg-amber-500/15 border border-amber-500/30 text-[11px] text-amber-200">
+              <p className="text-amber-300 font-medium mb-1">Assistance en cours de configuration</p>
               <p>Numéro d&apos;assistance non défini dans la configuration de contact.</p>
             </div>
           )}

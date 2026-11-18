@@ -320,13 +320,13 @@ export default function HistoriquePage() {
   ).length;
 
   return (
-    <div className="min-h-screen bg-[#F8F9FE] flex flex-col text-slate-800 font-sans">
+    <div className="min-h-screen bg-[#05070E] flex flex-col text-slate-100 font-sans">
       <Navbar />
 
       <main className="flex-1 max-w-lg w-full mx-auto px-4 py-8 space-y-5">
         {/* Titre Principal conforme au mockup smartphone */}
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
             {language === 'fr' ? 'Cockpit Pédagogique' : 'Learning Cockpit'}
           </h1>
 
@@ -334,11 +334,11 @@ export default function HistoriquePage() {
           <div className="flex items-center gap-1.5">
             <button
               onClick={() => setIsMemoOpen(true)}
-              className="p-2.5 rounded-xl bg-white border border-slate-200 hover:border-slate-300 text-[#0066FF] transition shadow-xs cursor-pointer"
+              className="p-2.5 rounded-xl bg-[#0D121F] border border-white/10 hover:border-white/20 text-[#38BDF8] transition shadow-xs cursor-pointer"
               title={language === 'fr' ? 'Fiche Réflexe Jour J' : 'Interview Cheat Sheet'}
               aria-label="Fiche Réflexe"
             >
-              <BookOpen className="w-4 h-4 text-[#0066FF]" />
+              <BookOpen className="w-4 h-4 text-[#38BDF8]" />
             </button>
             <Link
               href="/entretien/preparation"
@@ -353,16 +353,16 @@ export default function HistoriquePage() {
 
         {/* Bannière Mode Démonstration si activé */}
         {isDemoMode && (
-          <div className="p-3.5 rounded-2xl bg-blue-50 border border-blue-200 text-[#0066FF] text-xs flex items-center justify-between gap-3 shadow-xs">
+          <div className="p-3.5 rounded-2xl bg-[#0D121F] border border-blue-500/30 text-[#38BDF8] text-xs flex items-center justify-between gap-3 shadow-xs">
             <div className="flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-[#0066FF] shrink-0" />
-              <span className="font-bold text-[#0066FF]">
+              <Sparkles className="w-4 h-4 text-[#38BDF8] shrink-0" />
+              <span className="font-bold text-[#38BDF8]">
                 {language === 'fr' ? 'Mode Démonstration Actif' : 'Interactive Demo Mode Active'}
               </span>
             </div>
             <button
               onClick={() => setIsDemoMode(false)}
-              className="px-3 py-1 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-[11px] font-semibold transition"
+              className="px-3 py-1 rounded-xl bg-white/10 hover:bg-white/15 border border-white/10 text-white text-[11px] font-semibold transition cursor-pointer"
             >
               {language === 'fr' ? 'Mes données' : 'My data'}
             </button>
@@ -383,10 +383,10 @@ export default function HistoriquePage() {
                 <button
                   key={pill.id}
                   onClick={() => setSelectedFilter(pill.id)}
-                  className={`px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition ${
+                  className={`px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition cursor-pointer ${
                     isActive
-                      ? 'bg-cyan-500/10 border border-cyan-500/40 text-cyan-300'
-                      : 'bg-[#0e0e0e] border border-neutral-800 text-neutral-300 hover:text-white hover:border-neutral-700'
+                      ? 'bg-[#0066FF] text-white font-bold shadow-md shadow-blue-500/25'
+                      : 'bg-[#0D121F] border border-white/10 text-slate-300 hover:text-white hover:border-white/20'
                   }`}
                 >
                   {pill.label}
@@ -398,15 +398,15 @@ export default function HistoriquePage() {
 
         {/* Liste des Cartes de Simulations */}
         {loading ? (
-          <div className="py-20 flex flex-col items-center justify-center text-cyan-400 gap-3">
+          <div className="py-20 flex flex-col items-center justify-center text-[#38BDF8] gap-3">
             <Loader2 className="w-8 h-8 animate-spin" />
-            <span className="text-xs text-neutral-400">
+            <span className="text-xs text-slate-400">
               {language === 'fr' ? 'Chargement de votre cockpit...' : 'Loading your cockpit...'}
             </span>
           </div>
         ) : currentSessions.length === 0 ? (
-          <div className="bg-[#0e0e0e] border border-neutral-800 rounded-3xl p-8 text-center shadow-lg space-y-6">
-            <div className="w-12 h-12 rounded-2xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center mx-auto">
+          <div className="bg-[#0D121F] border border-white/10 rounded-3xl p-8 text-center shadow-lg space-y-6">
+            <div className="w-12 h-12 rounded-2xl bg-blue-500/15 text-[#38BDF8] flex items-center justify-center mx-auto">
               <Sparkles className="w-6 h-6" />
             </div>
             
@@ -414,7 +414,7 @@ export default function HistoriquePage() {
               <h2 className="text-lg font-bold text-white">
                 {language === 'fr' ? 'Aucune simulation enregistrée' : 'No recorded sessions yet'}
               </h2>
-              <p className="text-xs text-neutral-400 max-w-xs mx-auto leading-relaxed">
+              <p className="text-xs text-slate-400 max-w-xs mx-auto leading-relaxed">
                 {language === 'fr' 
                   ? 'Votre cockpit s\'enrichira automatiquement dès votre premier entretien avec le simulateur IA.'
                   : 'Your cockpit will automatically update as soon as you complete your first AI voice interview.'}
@@ -424,7 +424,7 @@ export default function HistoriquePage() {
             <div className="flex flex-col gap-2.5 pt-2">
               <Link
                 href="/entretien/preparation"
-                className="w-full inline-flex items-center justify-center gap-2 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white font-bold text-xs shadow-xl shadow-blue-500/25 transition"
+                className="w-full inline-flex items-center justify-center gap-2 py-3 rounded-xl bg-[#0066FF] hover:bg-[#0052CC] text-white font-bold text-xs shadow-lg shadow-blue-500/25 transition"
               >
                 {language === 'fr' ? 'Lancer mon premier entretien' : 'Start my first interview'}
                 <ArrowRight className="w-4 h-4" />
@@ -432,9 +432,9 @@ export default function HistoriquePage() {
 
               <button
                 onClick={() => setIsDemoMode(true)}
-                className="w-full inline-flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[#0e0e0e] border border-cyan-500/30 hover:border-cyan-400 text-cyan-300 font-bold text-xs transition"
+                className="w-full inline-flex items-center justify-center gap-2 py-2.5 rounded-xl bg-white/10 border border-white/10 hover:bg-white/15 text-white font-bold text-xs transition cursor-pointer"
               >
-                <Eye className="w-4 h-4 text-cyan-400" />
+                <Eye className="w-4 h-4 text-[#38BDF8]" />
                 {language === 'fr' ? 'Voir la démonstration interactive' : 'View interactive demo'}
               </button>
             </div>
@@ -456,15 +456,15 @@ export default function HistoriquePage() {
                     disabled={activeCardIndex === 0}
                     className={`p-1.5 rounded-xl border text-xs transition ${
                       activeCardIndex === 0
-                        ? 'opacity-30 border-neutral-800 text-neutral-600 cursor-not-allowed'
-                        : 'border-neutral-800 bg-[#0e0e0e] text-cyan-400 hover:border-cyan-500/40 active:scale-95'
+                        ? 'opacity-30 border-white/10 text-slate-600 cursor-not-allowed'
+                        : 'border-white/10 bg-[#0D121F] text-[#38BDF8] hover:border-white/25 active:scale-95'
                     }`}
                     aria-label="Rapport précédent"
                   >
                     <ChevronLeft className="w-3.5 h-3.5" />
                   </button>
 
-                  <span className="text-[11px] font-bold text-neutral-400 px-1">
+                  <span className="text-[11px] font-bold text-slate-400 px-1">
                     {activeCardIndex + 1} / {currentSessions.length}
                   </span>
 
@@ -474,8 +474,8 @@ export default function HistoriquePage() {
                     disabled={activeCardIndex === currentSessions.length - 1}
                     className={`p-1.5 rounded-xl border text-xs transition ${
                       activeCardIndex === currentSessions.length - 1
-                        ? 'opacity-30 border-neutral-800 text-neutral-600 cursor-not-allowed'
-                        : 'border-neutral-800 bg-[#0e0e0e] text-cyan-400 hover:border-cyan-500/40 active:scale-95'
+                        ? 'opacity-30 border-white/10 text-slate-600 cursor-not-allowed'
+                        : 'border-white/10 bg-[#0D121F] text-[#38BDF8] hover:border-white/25 active:scale-95'
                     }`}
                     aria-label="Rapport suivant"
                   >
@@ -506,22 +506,22 @@ export default function HistoriquePage() {
                 return (
                   <div
                     key={session.id}
-                    className="w-full shrink-0 snap-center bg-[#0e0e0e] border border-neutral-800 rounded-3xl p-4 sm:p-5 shadow-xl space-y-4 transition"
+                    className="w-full shrink-0 snap-center bg-[#0D121F] border border-white/10 rounded-3xl p-4 sm:p-5 shadow-xl space-y-4 transition"
                   >
                     {/* Header de la carte : Numéro du rapport + Statut */}
-                    <div className="flex items-center justify-between pb-2 border-b border-neutral-850 text-xs">
+                    <div className="flex items-center justify-between pb-2 border-b border-white/10 text-xs">
                       <span className="font-bold text-white flex items-center gap-2">
-                        <span className="w-5 h-5 rounded-lg bg-cyan-500/10 text-cyan-400 font-extrabold text-[11px] flex items-center justify-center">
+                        <span className="w-5 h-5 rounded-lg bg-blue-500/15 text-[#38BDF8] font-extrabold text-[11px] flex items-center justify-center">
                           {index + 1}
                         </span>
                         Rapport d&apos;entretien #{index + 1}
                       </span>
                       <span className={`text-[11px] px-2.5 py-0.5 rounded-full font-semibold border ${
                         isCompleted
-                          ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300'
+                          ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400'
                           : isInterrupted
-                          ? 'bg-cyan-500/10 border-cyan-500/30 text-cyan-300'
-                          : 'bg-neutral-900 border-neutral-800 text-neutral-400'
+                          ? 'bg-blue-500/15 border-blue-500/30 text-[#38BDF8]'
+                          : 'bg-white/5 border-white/10 text-slate-400'
                       }`}>
                         {isCompleted ? 'Complet' : isInterrupted ? 'En cours' : 'Non complété'}
                       </span>
@@ -549,7 +549,7 @@ export default function HistoriquePage() {
                           <button
                             type="button"
                             onClick={() => setIsCreditModalOpen(true)}
-                            className="flex-1 py-3 px-3 rounded-xl bg-amber-600/80 hover:bg-amber-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-lg shadow-amber-500/20 transition active:scale-[0.99]"
+                            className="flex-1 py-3 px-3 rounded-xl bg-amber-600/80 hover:bg-amber-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-lg shadow-amber-500/20 transition active:scale-[0.99] cursor-pointer"
                           >
                             <Sparkles className="w-4 h-4 shrink-0" />
                             <span>{language === 'fr' ? 'Recharger pour reprendre' : 'Recharge to resume'}</span>
@@ -557,7 +557,7 @@ export default function HistoriquePage() {
                         ) : (
                           <Link
                             href={`/entretien?sessionId=${session.id}`}
-                            className="flex-1 py-3 px-3 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-lg shadow-cyan-500/20 transition active:scale-[0.99]"
+                            className="flex-1 py-3 px-3 rounded-xl bg-[#0066FF] hover:bg-[#0052CC] text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-lg shadow-blue-500/20 transition active:scale-[0.99]"
                           >
                             <Play className="w-4 h-4 shrink-0" />
                             <span>{language === 'fr' ? 'Reprendre' : 'Resume'}</span>
@@ -566,7 +566,7 @@ export default function HistoriquePage() {
                         <button
                           type="button"
                           onClick={() => setSessionToDelete(session)}
-                          className="px-3.5 py-3 rounded-xl bg-rose-950/40 border border-rose-800/40 hover:bg-rose-900/60 text-rose-300 font-semibold text-xs flex items-center gap-1.5 transition active:scale-95"
+                          className="px-3.5 py-3 rounded-xl bg-rose-950/40 border border-rose-800/40 hover:bg-rose-900/60 text-rose-300 font-semibold text-xs flex items-center gap-1.5 transition active:scale-95 cursor-pointer"
                           title={language === 'fr' ? 'Abandonner et supprimer cet entretien' : 'Discard and delete interview'}
                         >
                           <Trash2 className="w-4 h-4 shrink-0 text-rose-400" />
@@ -575,14 +575,14 @@ export default function HistoriquePage() {
                       </div>
                     ) : isDeadSession ? (
                       /* Session expirée ou abandonnée : nettoyage */
-                      <div className="flex items-center justify-between gap-2 p-2 rounded-xl bg-neutral-900/60 border border-neutral-800">
-                        <span className="text-[11px] text-neutral-400">
+                      <div className="flex items-center justify-between gap-2 p-2 rounded-xl bg-[#121827] border border-white/10">
+                        <span className="text-[11px] text-slate-400">
                           Session interrompue ou expirée
                         </span>
                         <button
                           type="button"
                           onClick={() => setSessionToDelete(session)}
-                          className="px-3 py-1.5 rounded-lg bg-rose-950/40 border border-rose-800/40 hover:bg-rose-900/60 text-rose-300 font-semibold text-xs flex items-center gap-1.5 transition active:scale-95"
+                          className="px-3 py-1.5 rounded-lg bg-rose-950/40 border border-rose-800/40 hover:bg-rose-900/60 text-rose-300 font-semibold text-xs flex items-center gap-1.5 transition active:scale-95 cursor-pointer"
                           title={language === 'fr' ? 'Supprimer cet entretien' : 'Delete interview'}
                         >
                           <Trash2 className="w-3.5 h-3.5 text-rose-400" />
@@ -598,7 +598,7 @@ export default function HistoriquePage() {
                             setIsComparisonOpen(true);
                           }
                         }}
-                        className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white font-bold text-sm flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20 transition active:scale-[0.99]"
+                        className="w-full py-3.5 px-4 rounded-xl bg-[#0066FF] hover:bg-[#0052CC] text-white font-bold text-sm flex items-center justify-center gap-2 shadow-lg shadow-blue-500/25 transition active:scale-[0.99]"
                       >
                         <span>Voir le rapport</span>
                         <span className="text-base font-bold">↗</span>
@@ -606,15 +606,15 @@ export default function HistoriquePage() {
                     )}
 
                     {/* Ligne d'informations & actions discrètes */}
-                    <div className="flex items-center justify-between text-[11px] text-neutral-400 pt-2 border-t border-neutral-850">
+                    <div className="flex items-center justify-between text-[11px] text-slate-400 pt-2 border-t border-white/10">
                       <div className="flex items-center gap-2">
-                        <span className="flex items-center gap-1 font-medium text-neutral-300">
-                          <Calendar className="w-3.5 h-3.5 text-cyan-400" />
+                        <span className="flex items-center gap-1 font-medium text-slate-300">
+                          <Calendar className="w-3.5 h-3.5 text-[#38BDF8]" />
                           {formatDate(session.started_at)}
                         </span>
                         <span>•</span>
                         <span className="flex items-center gap-1">
-                          <Clock className="w-3 h-3 text-neutral-500" />
+                          <Clock className="w-3 h-3 text-slate-500" />
                           {formatDuration(session.duration_seconds)}
                         </span>
                       </div>
@@ -626,7 +626,7 @@ export default function HistoriquePage() {
                               setComparisonTargetSessionId(session.id);
                               setIsComparisonOpen(true);
                             }}
-                            className="p-1.5 rounded-lg hover:bg-neutral-800 text-neutral-400 hover:text-cyan-400 transition"
+                            className="p-1.5 rounded-lg hover:bg-white/10 text-slate-400 hover:text-[#38BDF8] transition cursor-pointer"
                             title="Comparer avec une autre simulation"
                           >
                             <GitCompare className="w-3.5 h-3.5" />
@@ -634,7 +634,7 @@ export default function HistoriquePage() {
                         )}
                         <button
                           onClick={() => setSessionToDelete(session)}
-                          className="p-1.5 rounded-lg hover:bg-rose-950/30 hover:text-rose-400 text-neutral-500 transition"
+                          className="p-1.5 rounded-lg hover:bg-rose-950/30 hover:text-rose-400 text-slate-500 transition cursor-pointer"
                           title="Supprimer la session"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -654,16 +654,16 @@ export default function HistoriquePage() {
                     <button
                       key={idx}
                       onClick={() => scrollToIndex(idx)}
-                      className={`transition-all duration-300 rounded-full ${
+                      className={`transition-all duration-300 rounded-full cursor-pointer ${
                         activeCardIndex === idx
-                          ? 'w-6 h-2 bg-gradient-to-r from-blue-500 to-cyan-400 shadow-[0_0_8px_#22d3ee]'
-                          : 'w-2 h-2 bg-neutral-700 hover:bg-neutral-600'
+                          ? 'w-6 h-2 bg-[#0066FF] shadow-[0_0_8px_#0066FF]'
+                          : 'w-2 h-2 bg-slate-700 hover:bg-slate-600'
                       }`}
                       aria-label={`Aller au rapport ${idx + 1}`}
                     />
                   ))}
                 </div>
-                <p className="text-[11px] text-neutral-400 font-medium">
+                <p className="text-[11px] text-slate-400 font-medium">
                   👉 Glissez vers la gauche ou la droite pour voir les autres rapports
                 </p>
               </div>
@@ -689,9 +689,9 @@ export default function HistoriquePage() {
 
       {/* Feature D : Boîte de dialogue de confirmation de suppression */}
       {sessionToDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 max-w-md w-full space-y-4 shadow-2xl">
-            <div className="w-12 h-12 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-400 flex items-center justify-center">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+          <div className="bg-[#0D121F] border border-white/10 rounded-3xl p-6 max-w-md w-full space-y-4 shadow-2xl">
+            <div className="w-12 h-12 rounded-2xl bg-rose-500/15 border border-rose-500/20 text-rose-400 flex items-center justify-center">
               <Trash2 className="w-6 h-6" />
             </div>
             <div>
@@ -700,21 +700,21 @@ export default function HistoriquePage() {
               </h3>
               <p className="text-xs text-slate-400 mt-1 leading-relaxed">
                 Êtes-vous sûr de vouloir supprimer la simulation du{' '}
-                <strong>{formatDate(sessionToDelete.started_at)}</strong> ? Cette action est irréversible.
+                <strong className="text-white">{formatDate(sessionToDelete.started_at)}</strong> ? Cette action est irréversible.
               </p>
             </div>
             <div className="flex items-center justify-end gap-3 pt-2">
               <button
                 onClick={() => setSessionToDelete(null)}
                 disabled={deletingSessionId !== null}
-                className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 transition"
+                className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-xs font-semibold text-slate-200 transition cursor-pointer"
               >
                 Annuler
               </button>
               <button
                 onClick={() => handleDeleteSession(sessionToDelete.id)}
                 disabled={deletingSessionId !== null}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-xs font-bold text-white transition shadow-md"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-xs font-bold text-white transition shadow-md cursor-pointer"
               >
                 {deletingSessionId ? (
                   <>
@@ -740,7 +740,7 @@ export default function HistoriquePage() {
         }}
       />
 
-      <footer className="border-t border-slate-200/80 py-6 text-center text-xs text-slate-400 bg-[#F8F9FE]">
+      <footer className="border-t border-white/10 py-6 text-center text-xs text-slate-500 bg-[#05070E]">
         <p>
           {language === 'fr' 
             ? 'PrépaCampus — Cockpit Pédagogique Mobile-First.' 
