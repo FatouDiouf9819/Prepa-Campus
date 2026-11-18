@@ -519,39 +519,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 3. BANDEAU DE STATISTIQUES & IMPACT MONDIAL (Autorité & Crédibilité) */}
-      <section className="bg-white border-y border-slate-200/80 py-8 relative z-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center divide-x-0 md:divide-x divide-slate-100">
-            
-            <div className="flex flex-col items-center p-2">
-              <span className="text-3xl sm:text-4xl font-extrabold text-[#0066FF] tracking-tight">98%</span>
-              <span className="text-xs sm:text-sm font-semibold text-slate-900 mt-1">Taux de réussite officiel</span>
-              <span className="text-[11px] text-slate-500">Avis favorable dès la 1ère tentative</span>
-            </div>
-
-            <div className="flex flex-col items-center p-2">
-              <span className="text-3xl sm:text-4xl font-extrabold text-[#0066FF] tracking-tight">+1 500</span>
-              <span className="text-xs sm:text-sm font-semibold text-slate-900 mt-1">Étudiants accompagnés</span>
-              <span className="text-[11px] text-slate-500">Dans plus de 35 pays partenaires</span>
-            </div>
-
-            <div className="flex flex-col items-center p-2">
-              <span className="text-3xl sm:text-4xl font-extrabold text-[#0066FF] tracking-tight">50+</span>
-              <span className="text-xs sm:text-sm font-semibold text-slate-900 mt-1">Questions types décryptées</span>
-              <span className="text-[11px] text-slate-500">Avec les réponses attendues</span>
-            </div>
-
-            <div className="flex flex-col items-center p-2">
-              <span className="text-3xl sm:text-4xl font-extrabold text-[#0066FF] tracking-tight">&lt; 30s</span>
-              <span className="text-xs sm:text-sm font-semibold text-slate-900 mt-1">Feedbacks IA instantanés</span>
-              <span className="text-[11px] text-slate-500">Analyse détaillée et note sur 20</span>
-            </div>
-
-          </div>
-        </div>
-      </section>
-
       {/* 4. SHOWCASE INTERACTIF : Découvrez la simulation IA en action */}
       <section id="simulateur" className="py-14 sm:py-20 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
         
