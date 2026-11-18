@@ -34,6 +34,48 @@ function InscriptionForm() {
   const [googleLoading, setGoogleLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [resendLoading, setResendLoading] = useState(false);
+  const [resendStatus, setResendStatus] = useState<string | null>(null);
+
+  const handleResendConfirmation = async () => {
+    if (!email.trim()) return;
+    setResendLoading(true);
+    setResendStatus(null);
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: email.trim(),
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(redirectTo)}`,
+        },
+      });
+
+      if (error) {
+        setResendStatus(
+          error.message.includes('rate_limit')
+            ? (language === 'fr'
+                ? 'Veuillez patienter quelques instants avant de redemander un e-mail.'
+                : 'Please wait a few moments before requesting another email.')
+            : error.message
+        );
+      } else {
+        setResendStatus(
+          language === 'fr'
+            ? 'Un nouvel e-mail de confirmation vient de vous être envoyé. Vérifiez également vos Spams.'
+            : 'A new confirmation email has been sent. Please check your Spam folder.'
+        );
+      }
+    } catch {
+      setResendStatus(
+        language === 'fr'
+          ? "Erreur lors de l'envoi de l'e-mail."
+          : 'Failed to send email.'
+      );
+    } finally {
+      setResendLoading(false);
+    }
+  };
 
   useEffect(() => {
     async function checkExistingSession() {
@@ -229,11 +271,70 @@ function InscriptionForm() {
           )}
 
           {successMessage && (
-            <div className="mb-5 p-4 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-200 text-xs sm:text-sm flex items-start gap-3">
-              <CheckCircle2 className="w-5 h-5 shrink-0 mt-0.5 text-emerald-400" />
-              <div className="space-y-1">
-                <p className="font-bold text-white">{language === 'fr' ? 'Compte créé avec succès !' : 'Account created!'}</p>
-                <p className="text-emerald-300 leading-relaxed">{successMessage}</p>
+            <div className="space-y-4">
+              <div className="p-5 rounded-2xl bg-[#0D121F] border border-emerald-500/30 text-xs sm:text-sm space-y-3 shadow-lg">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
+                    <Mail className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-white text-sm sm:text-base">
+                      {language === 'fr' ? 'Vérifiez votre boîte e-mail' : 'Check your inbox'}
+                    </h3>
+                    <p className="text-slate-400 text-xs">
+                      {language === 'fr' ? 'Lien de confirmation envoyé à :' : 'Confirmation link sent to:'}{' '}
+                      <strong className="text-white font-semibold">{email}</strong>
+                    </p>
+                  </div>
+                </div>
+
+                <div className="p-3.5 rounded-xl bg-[#121827] border border-white/10 text-xs text-slate-300 space-y-2 leading-relaxed">
+                  <p>
+                    {language === 'fr'
+                      ? 'Cliquez sur le lien reçu pour activer votre compte et débloquer immédiatement votre simulation offerte.'
+                      : 'Click the link in the email to activate your account and access your free simulation.'}
+                  </p>
+                  <p className="text-amber-300/90 flex items-center gap-1.5 font-medium">
+                    <span>⚠️</span>
+                    <span>
+                      {language === 'fr'
+                        ? 'Pensez à vérifier votre dossier Spam / Courrier indésirable si vous ne le voyez pas dans les 2 minutes.'
+                        : 'Be sure to check your Spam / Junk folder if you do not see it within 2 minutes.'}
+                    </span>
+                  </p>
+                </div>
+
+                {resendStatus && (
+                  <p className="text-xs text-cyan-300 p-2.5 rounded-lg bg-blue-500/10 border border-blue-500/20">
+                    {resendStatus}
+                  </p>
+                )}
+
+                <div className="flex flex-col sm:flex-row items-center gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={handleResendConfirmation}
+                    disabled={resendLoading}
+                    className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 text-white font-semibold text-xs transition active:scale-95 disabled:opacity-50 cursor-pointer"
+                  >
+                    {resendLoading ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        <span>Envoi...</span>
+                      </>
+                    ) : (
+                      <span>Renvoyer l&apos;e-mail</span>
+                    )}
+                  </button>
+
+                  <Link
+                    href={`/auth/connexion?redirectTo=${encodeURIComponent(redirectTo)}`}
+                    className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#0066FF] hover:bg-[#0052CC] text-white font-bold text-xs shadow-md transition active:scale-95"
+                  >
+                    <span>{language === 'fr' ? 'Accéder à la connexion' : 'Go to login'}</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </Link>
+                </div>
               </div>
             </div>
           )}

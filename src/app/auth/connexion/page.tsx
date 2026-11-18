@@ -10,6 +10,7 @@ import {
   ArrowRight, 
   Loader2, 
   AlertCircle, 
+  CheckCircle2,
   ShieldCheck, 
   Sparkles,
   Star 
@@ -29,6 +30,9 @@ function ConnexionForm() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [resendLoading, setResendLoading] = useState(false);
+  const [resendSuccess, setResendSuccess] = useState<string | null>(null);
+  const [showResend, setShowResend] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(
     authCallbackError === 'auth_callback_failed'
       ? (language === 'fr'
@@ -36,6 +40,46 @@ function ConnexionForm() {
           : 'Google sign-in failed or was interrupted. Please try again or sign in with your email.')
       : null
   );
+
+  const handleResendConfirmation = async () => {
+    if (!email.trim()) return;
+    setResendLoading(true);
+    setResendSuccess(null);
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: email.trim(),
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(redirectTo)}`,
+        },
+      });
+
+      if (error) {
+        setErrorMessage(
+          error.message.includes('rate_limit')
+            ? (language === 'fr'
+                ? 'Veuillez patienter quelques instants avant de redemander un e-mail.'
+                : 'Please wait a moment before requesting another email.')
+            : error.message
+        );
+      } else {
+        setResendSuccess(
+          language === 'fr'
+            ? 'Un nouvel e-mail de confirmation vient de vous être envoyé. Vérifiez également vos Spams.'
+            : 'A new confirmation email has been sent. Please also check your Spam folder.'
+        );
+      }
+    } catch {
+      setErrorMessage(
+        language === 'fr'
+          ? "Erreur lors de l'envoi de l'e-mail."
+          : 'Failed to send confirmation email.'
+      );
+    } finally {
+      setResendLoading(false);
+    }
+  };
 
   const handleGoogleSignIn = async () => {
     setGoogleLoading(true);
@@ -99,8 +143,14 @@ function ConnexionForm() {
       if (isTimedOut) return;
 
       if (error) {
+        const isNotConfirmed = error.message?.toLowerCase().includes('email not confirmed');
+        setShowResend(isNotConfirmed);
         setErrorMessage(
-          error.message === 'Invalid login credentials'
+          isNotConfirmed
+            ? (language === 'fr'
+                ? "Votre adresse email n'est pas encore confirmée. Veuillez vérifier votre boîte de réception et vos courriers indésirables (Spams) pour cliquer sur le lien d'activation."
+                : "Your email address has not been confirmed yet. Please check your inbox and spam folder to click the confirmation link.")
+            : error.message === 'Invalid login credentials'
             ? (language === 'fr'
                 ? 'Identifiants incorrects. Vérifiez votre adresse email et votre mot de passe.'
                 : 'Invalid login credentials. Please check your email and password.')
@@ -162,9 +212,37 @@ function ConnexionForm() {
       <div className="mt-7 sm:mx-auto sm:w-full sm:max-w-md relative z-10">
         <div className="bg-[#0D121F] border border-white/10 rounded-3xl p-6 sm:p-8 shadow-2xl">
           {errorMessage && (
-            <div className="mb-5 p-3.5 rounded-2xl bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs sm:text-sm flex items-start gap-2.5">
-              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-rose-400" />
-              <span className="leading-relaxed">{errorMessage}</span>
+            <div className="mb-5 p-3.5 rounded-2xl bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs sm:text-sm space-y-2.5">
+              <div className="flex items-start gap-2.5">
+                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-rose-400" />
+                <span className="leading-relaxed">{errorMessage}</span>
+              </div>
+              {showResend && (
+                <div className="pt-1 pl-6.5">
+                  <button
+                    type="button"
+                    onClick={handleResendConfirmation}
+                    disabled={resendLoading}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/30 text-[#38BDF8] text-xs font-semibold transition active:scale-95 cursor-pointer disabled:opacity-50"
+                  >
+                    {resendLoading ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        <span>Envoi en cours...</span>
+                      </>
+                    ) : (
+                      <span>Renvoyer l&apos;e-mail de confirmation</span>
+                    )}
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {resendSuccess && (
+            <div className="mb-5 p-3.5 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-200 text-xs sm:text-sm flex items-start gap-2.5">
+              <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5 text-emerald-400" />
+              <span className="leading-relaxed">{resendSuccess}</span>
             </div>
           )}
 
