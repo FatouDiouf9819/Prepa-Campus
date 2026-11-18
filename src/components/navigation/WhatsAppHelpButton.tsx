@@ -239,9 +239,8 @@ export function WhatsAppHelpButton({ className = '', isInterviewActive = false }
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerUp}
-        className={`group flex items-center justify-center p-3 sm:px-4 sm:py-3 rounded-full bg-emerald-500 hover:bg-emerald-400 text-white font-semibold text-xs shadow-2xl shadow-emerald-500/40 ring-2 ring-emerald-400/40 transition-transform ${
-          isDragging ? 'cursor-grabbing scale-105 shadow-emerald-500/60 ring-emerald-300' : 'cursor-grab hover:scale-105 active:scale-95'
-        }`}
+        className={`group flex items-center justify-center p-3 sm:px-4 sm:py-3 rounded-full bg-emerald-500 hover:bg-emerald-400 text-white font-semibold text-xs shadow-2xl shadow-emerald-500/40 ring-2 ring-emerald-400/40 transition-transform ${isDragging ? 'cursor-grabbing scale-105 shadow-emerald-500/60 ring-emerald-300' : 'cursor-grab hover:scale-105 active:scale-95'
+          }`}
         aria-label="Déplacer le bouton ou ouvrir le support WhatsApp"
         title="Maintenez appuyé pour déplacer comme sur iPhone, ou touchez pour ouvrir"
       >

@@ -342,6 +342,7 @@ export default function HistoriquePage() {
             </button>
             <Link
               href="/entretien/preparation"
+              prefetch={true}
               className="p-2.5 rounded-xl bg-[#0066FF] hover:bg-[#0052CC] text-white transition shadow-md shadow-blue-500/25"
               title={language === 'fr' ? 'Nouvelle simulation' : 'New simulation'}
               aria-label="Nouvelle simulation"
@@ -424,6 +425,7 @@ export default function HistoriquePage() {
             <div className="flex flex-col gap-2.5 pt-2">
               <Link
                 href="/entretien/preparation"
+                prefetch={true}
                 className="w-full inline-flex items-center justify-center gap-2 py-3 rounded-xl bg-[#0066FF] hover:bg-[#0052CC] text-white font-bold text-xs shadow-lg shadow-blue-500/25 transition"
               >
                 {language === 'fr' ? 'Lancer mon premier entretien' : 'Start my first interview'}

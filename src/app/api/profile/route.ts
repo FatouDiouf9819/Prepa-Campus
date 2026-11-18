@@ -120,7 +120,30 @@ export async function POST(request: NextRequest) {
   const { controller, cleanup } = createTimeoutSignal(TIMEOUTS.DB_QUERY_MS);
 
   try {
-    const body = await request.json();
+    const rawBody = await request.json();
+
+    // Prétraitement tolérant : nettoyer les vœux et pré-sérialiser pour synchronisation
+    const rawWishes = Array.isArray(rawBody.targetWishes) ? rawBody.targetWishes : [];
+    const cleanedWishes = rawWishes.filter(
+      (w: any) =>
+        (typeof w?.programName === 'string' && w.programName.trim().length > 0) ||
+        (typeof w?.institutionName === 'string' && w.institutionName.trim().length > 0)
+    );
+    const serialized = wishesToSerializedText(cleanedWishes);
+
+    const body = {
+      ...rawBody,
+      countryResidence: (rawBody.countryResidence || 'Sénégal').trim(),
+      academicStatus: rawBody.academicStatus || 'STUDYING',
+      currentDiploma: (rawBody.currentDiploma || '').trim(),
+      fieldOfStudy: (rawBody.fieldOfStudy || '').trim(),
+      targetWishes: cleanedWishes.length > 0 ? cleanedWishes : (rawBody.targetWishes || []),
+      targetPrograms: (rawBody.targetPrograms || '').trim() || serialized.targetPrograms || '',
+      targetInstitutions: (rawBody.targetInstitutions || '').trim() || serialized.targetInstitutions || '',
+      reasonsForPrograms: (rawBody.reasonsForPrograms || rawBody.reasonFrance || '').trim(),
+      reasonFrance: (rawBody.reasonFrance || rawBody.reasonsForPrograms || '').trim(),
+      professionalGoal: (rawBody.professionalGoal || '').trim(),
+    };
 
     // Vérifier si c'est une soumission finale ou une sauvegarde de brouillon
     const isFinalSubmission = body.isCompleted === true;

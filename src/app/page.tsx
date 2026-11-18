@@ -207,7 +207,8 @@ export default function HomePage() {
             {isAuthenticated ? (
               <div className="flex items-center gap-2.5">
                 <Link
-                  href="/tableau-de-bord"
+                  href="/dashboard"
+                  prefetch={true}
                   className="inline-flex items-center gap-2 bg-[#0066FF] hover:bg-[#0052CC] text-white text-xs sm:text-sm font-semibold px-4 sm:px-5 py-2.5 rounded-full shadow-md shadow-blue-500/20 transition-all hover:-translate-y-0.5"
                 >
                   <LayoutDashboard className="w-4 h-4" />
@@ -225,6 +226,7 @@ export default function HomePage() {
               <div className="flex items-center gap-2 sm:gap-3">
                 <Link
                   href="/auth/connexion"
+                  prefetch={true}
                   className="inline-flex items-center gap-1.5 border border-white/15 bg-white/5 hover:bg-white/10 text-white text-xs sm:text-sm font-semibold px-3.5 sm:px-4 py-2 rounded-full backdrop-blur-md transition"
                 >
                   <User className="w-3.5 h-3.5 text-slate-300" />
@@ -232,6 +234,7 @@ export default function HomePage() {
                 </Link>
                 <Link
                   href="/auth/inscription"
+                  prefetch={true}
                   className="inline-flex items-center gap-1.5 bg-[#0066FF] hover:bg-[#0052CC] text-white text-xs sm:text-sm font-semibold px-4 sm:px-5 py-2 sm:py-2.5 rounded-full shadow-lg shadow-blue-500/30 hover:shadow-blue-500/40 transition-all hover:-translate-y-0.5"
                 >
                   <span>Créer mon compte</span>
@@ -297,22 +300,51 @@ export default function HomePage() {
               FAQ
             </a>
             <div className="pt-3 border-t border-white/10 space-y-2">
-              <Link
-                href="/auth/connexion"
-                onClick={() => setMobileMenuOpen(false)}
-                className="w-full flex items-center justify-center gap-2 border border-white/15 text-white text-sm font-semibold py-2.5 rounded-full hover:bg-white/10 transition"
-              >
-                <User className="w-4 h-4" />
-                <span>Se connecter</span>
-              </Link>
-              <Link
-                href="/auth/inscription"
-                onClick={() => setMobileMenuOpen(false)}
-                className="w-full flex items-center justify-center gap-2 bg-[#0066FF] hover:bg-[#0052CC] text-white text-sm font-semibold py-2.5 rounded-full transition shadow-lg shadow-blue-500/30"
-              >
-                <span>Créer mon compte</span>
-                <ArrowRight className="w-4 h-4" />
-              </Link>
+              {isAuthenticated ? (
+                <>
+                  <Link
+                    href="/dashboard"
+                    prefetch={true}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="w-full flex items-center justify-center gap-2 bg-[#0066FF] hover:bg-[#0052CC] text-white text-sm font-semibold py-2.5 rounded-full transition shadow-lg shadow-blue-500/30"
+                  >
+                    <LayoutDashboard className="w-4 h-4" />
+                    <span>Mon tableau de bord</span>
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      handleSignOut();
+                    }}
+                    className="w-full flex items-center justify-center gap-2 border border-white/15 text-slate-300 hover:text-white text-sm font-semibold py-2.5 rounded-full hover:bg-white/10 transition"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    <span>Se déconnecter</span>
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link
+                    href="/auth/connexion"
+                    prefetch={true}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="w-full flex items-center justify-center gap-2 border border-white/15 text-white text-sm font-semibold py-2.5 rounded-full hover:bg-white/10 transition"
+                  >
+                    <User className="w-4 h-4" />
+                    <span>Se connecter</span>
+                  </Link>
+                  <Link
+                    href="/auth/inscription"
+                    prefetch={true}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="w-full flex items-center justify-center gap-2 bg-[#0066FF] hover:bg-[#0052CC] text-white text-sm font-semibold py-2.5 rounded-full transition shadow-lg shadow-blue-500/30"
+                  >
+                    <span>Créer mon compte</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         )}

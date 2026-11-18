@@ -150,94 +150,92 @@ export function AcademicProfileForm() {
     };
   }, []);
 
-  // Validation d'une étape donnée
-  const validateStep = (step: ProfileStep): boolean => {
-    setErrors({});
-    let result;
+  // Vérification pure des erreurs d'une étape donnée
+  const checkStepErrors = (step: ProfileStep, data: AcademicProfileData): Record<string, string> => {
+    const stepErrors: Record<string, string> = {};
 
     switch (step) {
-      case 1:
-        result = Step1Schema.safeParse({
-          countryResidence: formData.countryResidence,
-          academicStatus: formData.academicStatus || 'STUDYING',
-          currentDiploma: formData.currentDiploma,
-          fieldOfStudy: formData.fieldOfStudy,
-          currentInstitution: formData.currentInstitution,
-          studyParticularities: formData.studyParticularities,
-        });
-        break;
-      case 2: {
-        const wishes = formData.targetWishes || [];
-        const stepErrors: Record<string, string> = {};
+      case 1: {
+        const country = (data.countryResidence || '').trim();
+        const diploma = (data.currentDiploma || '').trim();
+        const field = (data.fieldOfStudy || '').trim();
 
-        // 1. Vérifier si au moins un vœu complet est renseigné
-        const validWishes = wishes.filter(
-          (w) => w.programName.trim().length >= 3 && w.institutionName.trim().length >= 3
-        );
-
-        if (validWishes.length === 0) {
-          stepErrors.targetWishes = 'Veuillez renseigner au moins un vœu de formation complet (formation et établissement).';
+        if (country.length < 2) {
+          stepErrors.countryResidence = 'Le pays de résidence est obligatoire.';
         }
-
-        // 2. Vérifier les champs manquants par vœu sans écraser la saisie
-        wishes.forEach((w, idx) => {
-          const prog = w.programName.trim();
-          const inst = w.institutionName.trim();
-
-          if (prog.length > 0 && inst.length === 0) {
-            stepErrors[`wish_${w.id}_institutionName`] = `Veuillez indiquer l'université pour le vœu ${idx + 1}.`;
-          } else if (prog.length === 0 && inst.length > 0) {
-            stepErrors[`wish_${w.id}_programName`] = `Veuillez préciser la formation pour le vœu ${idx + 1}.`;
-          } else if (prog.length > 0 && inst.length > 0) {
-            if (prog.length < 3) {
-              stepErrors[`wish_${w.id}_programName`] = 'L\'intitulé doit comporter au moins 3 caractères.';
-            }
-            if (inst.length < 3) {
-              stepErrors[`wish_${w.id}_institutionName`] = 'L\'établissement doit comporter au moins 3 caractères.';
-            }
-          }
-        });
-
-        // 3. Justification obligatoire
-        if (!formData.reasonsForPrograms || formData.reasonsForPrograms.trim().length < 20) {
-          stepErrors.reasonsForPrograms = 'Veuillez expliquer vos choix de formations en au moins 20 caractères.';
+        if (diploma.length < 2) {
+          stepErrors.currentDiploma = 'Veuillez préciser votre diplôme actuel ou récent (au moins 2 caractères).';
         }
-
-        if (Object.keys(stepErrors).length > 0) {
-          setErrors(stepErrors);
-          return false;
+        if (field.length < 2) {
+          stepErrors.fieldOfStudy = "Veuillez préciser votre filière d'études (au moins 2 caractères).";
         }
-
-        result = { success: true };
         break;
       }
-      case 3:
-        result = Step3Schema.safeParse({
-          reasonFrance: formData.reasonFrance,
-          professionalGoal: formData.professionalGoal,
-          strongSkills: formData.strongSkills,
-        });
+      case 2: {
+        const wishes = data.targetWishes || [];
+        // Filtrer les entrées complètement blanches ajoutées par mégarde
+        const activeWishes = wishes.filter(
+          (w) => w.programName.trim().length > 0 || w.institutionName.trim().length > 0
+        );
+
+        if (activeWishes.length === 0 && !data.targetPrograms?.trim()) {
+          stepErrors.targetWishes = 'Veuillez renseigner au moins un vœu de formation complet (formation et établissement).';
+        } else {
+          activeWishes.forEach((w, idx) => {
+            const prog = w.programName.trim();
+            const inst = w.institutionName.trim();
+
+            if (prog.length > 0 && inst.length === 0) {
+              stepErrors[`wish_${w.id}_institutionName`] = `Veuillez indiquer l'université pour le vœu ${idx + 1}.`;
+            } else if (prog.length === 0 && inst.length > 0) {
+              stepErrors[`wish_${w.id}_programName`] = `Veuillez préciser la formation pour le vœu ${idx + 1}.`;
+            } else if (prog.length > 0 && inst.length > 0) {
+              if (prog.length < 2) {
+                stepErrors[`wish_${w.id}_programName`] = 'L\'intitulé doit comporter au moins 2 caractères.';
+              }
+              if (inst.length < 2) {
+                stepErrors[`wish_${w.id}_institutionName`] = 'L\'établissement doit comporter au moins 2 caractères.';
+              }
+            }
+          });
+        }
+
+        const reasons = (data.reasonsForPrograms || data.reasonFrance || '').trim();
+        if (!reasons || reasons.length < 3) {
+          stepErrors.reasonsForPrograms = 'Veuillez expliquer brièvement vos choix de formations.';
+        }
         break;
+      }
+      case 3: {
+        const goal = (data.professionalGoal || '').trim();
+        const reason = (data.reasonFrance || data.reasonsForPrograms || '').trim();
+
+        if (goal.length < 3) {
+          stepErrors.professionalGoal = 'Veuillez préciser votre projet professionnel ou le métier visé.';
+        }
+        if (reason.length < 3) {
+          stepErrors.reasonFrance = 'Veuillez expliquer vos motivations pour étudier en France.';
+        }
+        break;
+      }
       case 4:
-        result = Step4Schema.safeParse({
-          weaknessesToWork: formData.weaknessesToWork,
-        });
+        // L'auto-évaluation à l'étape 4 est optionnelle
         break;
     }
 
-    if (!result.success) {
-      const formattedErrors: Record<string, string> = {};
-      if ('error' in result && result.error) {
-        result.error.issues.forEach((issue) => {
-          const path = issue.path[0] as string;
-          formattedErrors[path] = issue.message;
-        });
-      }
-      setErrors(formattedErrors);
+    return stepErrors;
+  };
+
+  // Validation d'une étape donnée
+  const validateStep = (step: ProfileStep): boolean => {
+    const stepErrors = checkStepErrors(step, formData);
+    if (Object.keys(stepErrors).length > 0) {
+      setErrors(stepErrors);
       return false;
     }
 
-    // Mettre à jour les étapes complétées
+    // Effacer les erreurs de l'étape courante
+    setErrors({});
     if (!completedSteps.includes(step)) {
       setCompletedSteps((prev) => [...prev, step]);
     }
@@ -423,45 +421,71 @@ export function AcademicProfileForm() {
   const handleFinalSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Valider les 4 étapes
-    const isStep1Valid = validateStep(1);
-    const isStep2Valid = validateStep(2);
-    const isStep3Valid = validateStep(3);
-    const isStep4Valid = validateStep(4);
+    // 1. Filtrer les vœux complètement vides pour ne pas pénaliser l'utilisateur
+    const currentWishes = formData.targetWishes || [];
+    const activeWishes = currentWishes.filter(
+      (w) => w.programName.trim().length > 0 || w.institutionName.trim().length > 0
+    );
+    const cleanedWishes = activeWishes.length > 0 ? activeWishes : currentWishes;
+    const serialized = wishesToSerializedText(cleanedWishes);
 
-    if (!isStep1Valid || !isStep2Valid || !isStep3Valid || !isStep4Valid) {
-      // Trouver la première étape en erreur
-      if (!isStep1Valid) setCurrentStep(1);
-      else if (!isStep2Valid) setCurrentStep(2);
-      else if (!isStep3Valid) setCurrentStep(3);
-      else if (!isStep4Valid) setCurrentStep(4);
-
-      setSaveStatus({
-        type: 'error',
-        message: 'Veuillez corriger les champs requis avant de valider votre profil.',
-      });
-      return;
-    }
-
-    const fullValidation = CompleteAcademicProfileSchema.safeParse({
+    const dataToSave: AcademicProfileData = {
       ...formData,
+      targetWishes: cleanedWishes,
+      targetPrograms: serialized.targetPrograms || formData.targetPrograms || '',
+      targetInstitutions: serialized.targetInstitutions || formData.targetInstitutions || '',
+      reasonsForPrograms: (formData.reasonsForPrograms || formData.reasonFrance || '').trim(),
+      reasonFrance: (formData.reasonFrance || formData.reasonsForPrograms || '').trim(),
+      professionalGoal: (formData.professionalGoal || '').trim(),
       isCompleted: true,
-    });
+    };
 
-    if (!fullValidation.success) {
+    // 2. Contrôler rigoureusement les 4 étapes sans écraser les messages d'erreur
+    const err1 = checkStepErrors(1, dataToSave);
+    const err2 = checkStepErrors(2, dataToSave);
+    const err3 = checkStepErrors(3, dataToSave);
+    const err4 = checkStepErrors(4, dataToSave);
+    const combinedErrors = { ...err1, ...err2, ...err3, ...err4 };
+
+    if (Object.keys(combinedErrors).length > 0) {
+      setErrors(combinedErrors);
+
+      // Identifier précisément la première étape nécessitant une correction
+      let firstErrorStep: ProfileStep = 1;
+      let firstErrorMessage = '';
+
+      if (Object.keys(err1).length > 0) {
+        firstErrorStep = 1;
+        firstErrorMessage = Object.values(err1)[0];
+      } else if (Object.keys(err2).length > 0) {
+        firstErrorStep = 2;
+        firstErrorMessage = Object.values(err2)[0];
+      } else if (Object.keys(err3).length > 0) {
+        firstErrorStep = 3;
+        firstErrorMessage = Object.values(err3)[0];
+      } else if (Object.keys(err4).length > 0) {
+        firstErrorStep = 4;
+        firstErrorMessage = Object.values(err4)[0];
+      }
+
+      setCurrentStep(firstErrorStep);
       setSaveStatus({
         type: 'error',
-        message: 'Des informations obligatoires sont manquantes ou incomplètes.',
+        message: `Veuillez renseigner les informations requises à l'étape ${firstErrorStep} : ${firstErrorMessage}`,
       });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
 
+    // 3. Tout est valide : persistance immédiate et envoi
+    setFormData(dataToSave);
     setIsSaving(true);
     setSaveStatus({ type: null, message: '' });
 
-    // Conserver localement le brouillon pour ne rien perdre si le serveur échoue
+    // Conserver localement le profil complet pour garantir la pérennité immédiate
     try {
-      localStorage.setItem('campus_france_profile_draft', JSON.stringify({ ...formData, isCompleted: true }));
+      localStorage.setItem('campus_france_profile_draft', JSON.stringify(dataToSave));
+      localStorage.setItem('campus_france_profile_completed', 'true');
     } catch {
       // Ignorer erreur localStorage
     }
@@ -470,7 +494,7 @@ export function AcademicProfileForm() {
       const response = await fetch('/api/profile', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...formData, isCompleted: true }),
+        body: JSON.stringify(dataToSave),
       });
 
       const data = await response.json();
@@ -478,24 +502,27 @@ export function AcademicProfileForm() {
       if (!response.ok) {
         setSaveStatus({
           type: 'error',
-          message: data.error || "Échec de l'enregistrement sur le serveur. Vos informations restent saisies ci-dessous, veuillez réessayer.",
+          message: data.error || "Échec de l'enregistrement sur le serveur. Vos informations restent conservées ci-dessous, veuillez réessayer.",
         });
+        setIsSaving(false);
         return;
       }
 
-      // Succès réel confirmé par le serveur
+      // Succès réel confirmé par le serveur : déverrouillage et redirection instantanée
       localStorage.setItem('campus_france_profile_completed', 'true');
       setSaveStatus({
         type: 'success',
         message: data.message || 'Profil validé avec succès ! Redirection vers votre tableau de bord...',
       });
-      setTimeout(() => router.push('/dashboard'), 1500);
+
+      // Redirection instantanée zéro pause
+      router.push('/dashboard');
+      router.refresh();
     } catch {
       setSaveStatus({
         type: 'error',
-        message: 'Erreur de communication avec le serveur. Vos saisies ont été conservées, veuillez vérifier votre connexion et retenter la validation.',
+        message: 'Erreur de communication avec le serveur. Vos saisies sont conservées en mémoire locale.',
       });
-    } finally {
       setIsSaving(false);
     }
   };
@@ -836,7 +863,7 @@ export function AcademicProfileForm() {
                 className="w-full bg-slate-950 border border-slate-700/80 rounded-xl p-3.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition"
               />
               <div className="flex justify-between items-center text-xs text-slate-500 mt-1">
-                <span>Minimum 20 caractères</span>
+                <span>Motivation synthétique et précise</span>
                 <span>{formData.reasonsForPrograms.length}/1000</span>
               </div>
               {errors.reasonsForPrograms && (
@@ -874,7 +901,7 @@ export function AcademicProfileForm() {
                   className="w-full bg-slate-950 border border-slate-700/80 rounded-xl p-3.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition resize-none"
                 />
                 <div className="flex justify-between items-center text-xs text-slate-500 mt-1">
-                  <span>Minimum 25 caractères</span>
+                  <span>Métier, fonction ou spécialisation visée</span>
                   <span>{formData.professionalGoal.length}/1000</span>
                 </div>
                 {errors.professionalGoal && (
@@ -899,7 +926,7 @@ export function AcademicProfileForm() {
                   className="w-full bg-slate-950 border border-slate-700/80 rounded-xl p-3.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition resize-none"
                 />
                 <div className="flex justify-between items-center text-xs text-slate-500 mt-1">
-                  <span>Minimum 20 caractères</span>
+                  <span>Raisons de la mobilité en France</span>
                   <span>{formData.reasonFrance.length}/1000</span>
                 </div>
                 {errors.reasonFrance && (

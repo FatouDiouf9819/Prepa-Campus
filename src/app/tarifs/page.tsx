@@ -152,7 +152,8 @@ export default function TarifsPage() {
                   {isFree ? (
                     isLoggedIn ? (
                       <Link
-                        href="/entretien"
+                        href="/entretien/preparation"
+                        prefetch={true}
                         className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition active:scale-95 shadow-md shadow-emerald-500/20"
                       >
                         <span>{language === 'fr' ? 'Lancer ma simulation' : 'Start my simulation'}</span>
@@ -161,6 +162,7 @@ export default function TarifsPage() {
                     ) : (
                       <Link
                         href="/auth/inscription"
+                        prefetch={true}
                         className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-white/10 hover:bg-white/15 text-white font-bold text-xs border border-white/15 transition active:scale-95"
                       >
                         {t('pricing.create_account')}

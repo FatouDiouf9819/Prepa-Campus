@@ -9,9 +9,9 @@ export const metadata = {
 
 export default function InterviewPage() {
   return (
-    <div className="min-h-screen bg-slate-950">
+    <div className="min-h-screen bg-[#05070E] text-slate-100 font-sans">
       <Suspense fallback={
-        <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-cyan-400 gap-3">
+        <div className="min-h-screen bg-[#05070E] flex flex-col items-center justify-center text-[#38BDF8] gap-3">
           <Loader2 className="w-8 h-8 animate-spin" />
           <span className="text-xs text-neutral-400">Chargement de la salle d&apos;entretien...</span>
         </div>

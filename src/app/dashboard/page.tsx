@@ -134,6 +134,7 @@ export default function DashboardPage() {
               currentDiploma: p.currentDiploma ?? p.current_diploma ?? '',
               fieldOfStudy: p.fieldOfStudy ?? p.field_of_study ?? '',
               currentInstitution: p.currentInstitution ?? p.current_institution ?? '',
+              targetWishes: p.targetWishes ?? p.target_wishes ?? [],
               targetPrograms: p.targetPrograms ?? p.target_programs ?? '',
               targetInstitutions: p.targetInstitutions ?? p.target_institutions ?? '',
               reasonsForPrograms: p.reasonsForPrograms ?? p.reasons_for_programs ?? '',

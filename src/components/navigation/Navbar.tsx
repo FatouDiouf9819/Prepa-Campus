@@ -188,6 +188,7 @@ export function Navbar() {
               <>
                 <Link
                   href="/profil"
+                  prefetch={true}
                   className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-white/5 border border-white/15 text-xs font-semibold text-slate-200 hover:bg-white/10 shadow-xs transition"
                 >
                   <User className="w-3.5 h-3.5 text-[#38BDF8]" />

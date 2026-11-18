@@ -92,7 +92,7 @@ export default function RapportPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center text-cyan-400">
+      <div className="min-h-screen bg-[#05070E] flex items-center justify-center text-[#38BDF8]">
         <Loader2 className="w-8 h-8 animate-spin" />
       </div>
     );
@@ -100,10 +100,10 @@ export default function RapportPage() {
 
   if (!report) {
     return (
-      <div className="min-h-screen bg-slate-950 flex flex-col justify-between">
+      <div className="min-h-screen bg-[#05070E] flex flex-col justify-between text-slate-100 font-sans">
         <Navbar />
         <main className="flex-1 flex items-center justify-center p-4">
-          <div className="max-w-md w-full bg-slate-900 border border-slate-800 rounded-3xl p-8 text-center space-y-5 shadow-2xl">
+          <div className="max-w-md w-full bg-[#0D121F] border border-white/10 rounded-3xl p-8 text-center space-y-5 shadow-2xl">
             <div className="w-12 h-12 mx-auto rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 font-bold">
               CF
             </div>
@@ -124,14 +124,14 @@ export default function RapportPage() {
               <button
                 type="button"
                 onClick={() => router.push('/dashboard')}
-                className="w-full py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium transition"
+                className="w-full py-2.5 px-4 rounded-xl bg-white/10 hover:bg-white/15 text-slate-300 text-xs font-medium transition"
               >
                 Retour au Tableau de bord
               </button>
             </div>
           </div>
         </main>
-        <footer className="border-t border-slate-900 py-6 text-center text-xs text-slate-500">
+        <footer className="border-t border-white/10 py-6 text-center text-xs text-slate-500 bg-[#05070E]">
           <p>PrépaCampus — Rapport pédagogique indépendant.</p>
         </footer>
       </div>
@@ -139,12 +139,12 @@ export default function RapportPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col">
+    <div className="min-h-screen bg-[#05070E] flex flex-col text-slate-100 font-sans">
       <Navbar />
       <main className="flex-1 py-4">
         <EvaluationReportView report={report} />
       </main>
-      <footer className="border-t border-slate-900 py-6 text-center text-xs text-slate-500">
+      <footer className="border-t border-white/10 py-6 text-center text-xs text-slate-500 bg-[#05070E]">
         <p>PrépaCampus — Rapport pédagogique indépendant.</p>
       </footer>
     </div>

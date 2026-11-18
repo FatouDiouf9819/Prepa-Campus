@@ -9,7 +9,7 @@ export const metadata = {
 
 export default function PreparationPage() {
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col">
+    <div className="min-h-screen bg-[#05070E] flex flex-col text-slate-100 font-sans">
       <Navbar />
       <main className="flex-1 py-4">
         <PreparationScreen />
