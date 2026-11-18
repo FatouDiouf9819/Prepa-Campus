@@ -34,6 +34,8 @@ export default function HomePage() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeFaq, setActiveFaq] = useState<number | null>(0);
+  const [activeStep, setActiveStep] = useState<number | null>(0);
+  const [activeTestimonial, setActiveTestimonial] = useState<number | null>(0);
   const [activeTab, setActiveTab] = useState<'question' | 'feedback'>('feedback');
 
   useEffect(() => {
@@ -73,6 +75,84 @@ export default function HomePage() {
     {
       q: "Combien de simulations puis-je réaliser ?",
       a: "Vous pouvez vous entraîner en illimité 24h/24 et 7j/7 jusqu'au jour de votre convocation. Chaque session génère des questions renouvelées et adaptées à votre filière spécifique (Informatique, Gestion, Santé, Droit, Ingénierie, etc.)."
+    }
+  ];
+
+  const stepsData = [
+    {
+      num: "01",
+      badge: "Profil & Cursus",
+      title: "Renseignez votre parcours et vos vœux d'études",
+      shortDesc: "Indiquez votre filière, vos universités ciblées et vos ambitions de carrière en France.",
+      fullDesc: "Notre système configure immédiatement un profil d'entretien sur-mesure. Vous précisez votre cursus d'origine (Licence, Master, BTS), vos universités ciblées en France (Sorbonne, Paris-Saclay, Lyon, etc.) et votre projet professionnel. L'IA adapte ses critères exactement selon les exigences de votre commission académique.",
+      icon: "/step-icon-1.png",
+      keyPoints: [
+        "Alignement avec votre compte Pastel / Études en France",
+        "Prise en compte de votre filière et niveau d'admission",
+        "Définition de votre projet d'insertion professionnelle"
+      ]
+    },
+    {
+      num: "02",
+      badge: "Immersion Réelle",
+      title: "Simulez votre entretien en conditions réelles avec l'IA",
+      shortDesc: "Répondez aux questions posées par l'IA et confrontez-vous aux scénarios réels.",
+      fullDesc: "Vous êtes plongé dans les conditions réelles d'un entretien Campus France. L'IA pose les questions clés, relance sur les points sensibles (cohérence du projet, financement, retour au pays) et teste votre réactivité orale ou écrite avec un chronomètre réaliste.",
+      icon: "/step-icon-2.png",
+      keyPoints: [
+        "Banque actualisée de 50+ questions types et variantes régionales",
+        "Détection des pièges éliminatoires et relances en temps réel",
+        "Mode oral (micro) ou écrit selon votre convenance"
+      ]
+    },
+    {
+      num: "03",
+      badge: "Résultats & Avis Favorable",
+      title: "Analysez vos feedbacks et décrochez votre avis favorable",
+      shortDesc: "Appliquez les corrections personnalisées et présentez-vous serein et victorieux.",
+      fullDesc: "En moins de 30 secondes, recevez votre bilan détaillé : note d'admissibilité sur 20, points forts, faiblesses éliminatoires identifiées, et reformulations stratégiques rédigées pour convaincre votre examinateur dès les premières minutes.",
+      icon: "/step-icon-3.png",
+      keyPoints: [
+        "Note sur 20 basée sur la grille officielle des conseillers",
+        "Reformulations stratégiques mot à mot de vos réponses",
+        "Progression continue jusqu'à l'obtention de l'Avis Favorable"
+      ]
+    }
+  ];
+
+  const testimonialsData = [
+    {
+      name: "Mamadou Diallo",
+      admission: "Admis à Sorbonne Université (Paris)",
+      city: "Dakar, Sénégal",
+      avatar: "/avatar-ref-mamadou.png",
+      stars: 5,
+      rating: "19/20 à l'entretien",
+      shortQuote: "« Grâce aux simulations, j'ai tout de suite compris pourquoi mes premières réponses étaient trop vagues. »",
+      fullQuote: "« Grâce aux simulations, j'ai tout de suite compris pourquoi mes premières réponses étaient trop vagues. Le jour de mon entretien à l'espace Campus France de Dakar, les questions du conseiller étaient exactement celles préparées sur la plateforme. J'ai défendu mon projet de Master Informatique avec assurance et j'ai décroché l'avis favorable direct sans la moindre hésitation ! »",
+      keyFactor: "Structuration du projet professionnel et justification du choix de la Sorbonne."
+    },
+    {
+      name: "Aïssatou Sow",
+      admission: "Admise à Université Paris-Saclay",
+      city: "Abidjan, Côte d'Ivoire",
+      avatar: "/avatar-ref-aissatou-sow.png",
+      stars: 5,
+      rating: "Avis Favorable validé",
+      shortQuote: "« Les conseils sur la cohérence financière et le projet professionnel m'ont littéralement sauvée. »",
+      fullQuote: "« Les conseils sur la cohérence financière et le projet professionnel m'ont littéralement sauvée. J'avais du mal à expliquer mon plan de financement et l'IA m'a donné les tournures exactes attendues par les agents consulaires. Les retours sont instantanés et infiniment plus rigoureux qu'un accompagnement classique. Je recommande à 100% à tous les candidats. »",
+      keyFactor: "Clarification du budget prévisionnel et logique de réinsertion professionnelle."
+    },
+    {
+      name: "Ibrahima Ndiaye",
+      admission: "Admis à INSA Lyon",
+      city: "Douala, Cameroun",
+      avatar: "/avatar-ref-ibrahima.png",
+      stars: 5,
+      rating: "18.5/20 évalué par l'IA",
+      shortQuote: "« Une plateforme intuitive, ultra-performante et rassurante. En 3 entraînements, j'étais prêt. »",
+      fullQuote: "« Une plateforme intuitive, ultra-performante et rassurante. En 3 entraînements, j'avais éliminé tous mes tics de langage et structuré mon projet d'ingénierie selon les standards des grandes écoles. Arrivé devant l'examinateur, je n'avais plus aucun stress car j'avais déjà vécu la scène plusieurs fois. Merci Prépa Campus ! »",
+      keyFactor: "Maîtrise du discours technique et arguments de motivation pour l'INSA Lyon."
     }
   ];
 
@@ -691,112 +771,131 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 6. SECTION : Comment ça marche ? En 3 étapes connectées */}
-      <section id="comment-ca-marche" className="py-12 sm:py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+      {/* 6. SECTION : Comment ça marche ? (Liste Déroulante Épurée & Élégante) */}
+      <section id="comment-ca-marche" className="py-12 sm:py-20 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
         
-        {/* Titre avec lignes décoratives */}
-        <div className="text-center mb-12 sm:mb-16">
+        {/* En-tête de section */}
+        <div className="text-center mb-10 sm:mb-14">
           <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full text-xs font-semibold bg-blue-50 text-[#0066FF] border border-blue-100 mb-3">
+            <Sparkles className="w-3.5 h-3.5" />
             <span>Méthode Éprouvée</span>
           </div>
           <h2 className="text-2xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
             Comment ça marche ?
           </h2>
-          <p className="text-sm sm:text-base text-[#0066FF] font-bold mt-1">
-            En 3 étapes simples pour maximiser vos chances
+          <p className="text-sm sm:text-base text-slate-500 mt-2 font-normal">
+            En 3 étapes simples pour maximiser vos chances de réussite
           </p>
         </div>
 
-        {/* 3 Cartes reliées */}
-        <div className="grid grid-cols-1 md:grid-cols-11 gap-4 items-center">
-          
-          {/* Étape 1 */}
-          <div className="md:col-span-3 bg-white rounded-3xl p-7 shadow-[0_4px_25px_rgba(0,102,255,0.05)] border border-blue-100/80 flex flex-col items-center text-center relative hover:-translate-y-1.5 transition duration-300 h-full justify-between group">
-            <div className="w-8 h-8 rounded-full bg-[#0066FF] text-white font-black text-xs flex items-center justify-center shadow-md shadow-blue-500/30 mb-3 group-hover:scale-110 transition-transform">
-              1
-            </div>
-            <div className="relative w-20 h-20 sm:w-24 sm:h-24 my-3">
-              <Image
-                src="/step-icon-1.png"
-                alt="Présentez votre parcours"
-                fill
-                className="object-contain"
-              />
-            </div>
-            <div>
-              <h3 className="text-base font-bold text-slate-900 mb-1.5">
-                Renseignez votre parcours
-              </h3>
-              <p className="text-xs text-slate-500 leading-relaxed max-w-xs">
-                Indiquez votre filière, vos formations visées et vos ambitions de carrière en France.
-              </p>
-            </div>
-          </div>
+        {/* Liste déroulante interactive des étapes */}
+        <div className="space-y-4">
+          {stepsData.map((step, idx) => {
+            const isOpen = activeStep === idx;
+            return (
+              <div
+                key={idx}
+                className={`rounded-2xl sm:rounded-3xl border transition-all duration-300 overflow-hidden ${
+                  isOpen
+                    ? 'bg-white border-blue-200/90 shadow-xl shadow-blue-500/5 ring-1 ring-blue-500/10'
+                    : 'bg-white/70 hover:bg-white border-slate-200/80 shadow-xs hover:shadow-md'
+                }`}
+              >
+                {/* Ligne d'en-tête cliquable */}
+                <button
+                  type="button"
+                  onClick={() => setActiveStep(isOpen ? null : idx)}
+                  className="w-full p-5 sm:p-6 text-left flex items-center justify-between gap-4 transition-colors group"
+                >
+                  <div className="flex items-center gap-4 sm:gap-5 min-w-0">
+                    {/* Numéro d'étape élégant */}
+                    <div
+                      className={`w-10 h-10 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center font-black text-sm shrink-0 transition-all ${
+                        isOpen
+                          ? 'bg-[#0066FF] text-white shadow-md shadow-blue-500/25 scale-105'
+                          : 'bg-slate-100 text-slate-600 group-hover:bg-blue-50 group-hover:text-[#0066FF]'
+                      }`}
+                    >
+                      {step.num}
+                    </div>
 
-          {/* Chevron 1 */}
-          <div className="hidden md:flex md:col-span-1 justify-center">
-            <ChevronRight className="w-6 h-6 text-[#0066FF] stroke-[2.5]" />
-          </div>
+                    {/* Titre & résumé */}
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
+                        <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-blue-50 text-[#0066FF] border border-blue-100/60">
+                          {step.badge}
+                        </span>
+                      </div>
+                      <h3 className="text-sm sm:text-base font-bold text-slate-900 truncate sm:whitespace-normal group-hover:text-[#0066FF] transition-colors">
+                        {step.title}
+                      </h3>
+                      {!isOpen && (
+                        <p className="text-xs text-slate-500 mt-0.5 truncate hidden sm:block">
+                          {step.shortDesc}
+                        </p>
+                      )}
+                    </div>
+                  </div>
 
-          {/* Étape 2 */}
-          <div className="md:col-span-3 bg-white rounded-3xl p-7 shadow-[0_4px_25px_rgba(0,102,255,0.05)] border border-blue-100/80 flex flex-col items-center text-center relative hover:-translate-y-1.5 transition duration-300 h-full justify-between group">
-            <div className="w-8 h-8 rounded-full bg-[#0066FF] text-white font-black text-xs flex items-center justify-center shadow-md shadow-blue-500/30 mb-3 group-hover:scale-110 transition-transform">
-              2
-            </div>
-            <div className="relative w-24 h-20 sm:w-28 sm:h-24 my-3">
-              <Image
-                src="/step-icon-2.png"
-                alt="Entraînez-vous"
-                fill
-                className="object-contain"
-              />
-            </div>
-            <div>
-              <h3 className="text-base font-bold text-slate-900 mb-1.5">
-                Simulez votre entretien
-              </h3>
-              <p className="text-xs text-slate-500 leading-relaxed max-w-xs">
-                Répondez aux questions posées par l'IA et confrontez-vous aux scénarios réels.
-              </p>
-            </div>
-          </div>
+                  {/* Indicateur déroulant */}
+                  <div
+                    className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 border transition-all duration-300 ${
+                      isOpen
+                        ? 'bg-[#0066FF] text-white border-transparent rotate-180'
+                        : 'bg-slate-50 text-slate-400 border-slate-200 group-hover:border-blue-200 group-hover:text-[#0066FF]'
+                    }`}
+                  >
+                    <ChevronDown className="w-4 h-4 transition-transform" />
+                  </div>
+                </button>
 
-          {/* Chevron 2 */}
-          <div className="hidden md:flex md:col-span-1 justify-center">
-            <ChevronRight className="w-6 h-6 text-[#0066FF] stroke-[2.5]" />
-          </div>
+                {/* Contenu Déroulant & Épuré */}
+                {isOpen && (
+                  <div className="px-5 sm:px-6 pb-6 pt-1 border-t border-slate-100 animate-fadeIn">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 pt-4">
+                      
+                      {/* Description détaillée & points clés */}
+                      <div className="space-y-4 max-w-xl">
+                        <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-normal">
+                          {step.fullDesc}
+                        </p>
+                        
+                        <div className="space-y-2 pt-1">
+                          {step.keyPoints.map((point, pIdx) => (
+                            <div key={pIdx} className="flex items-center gap-2.5 text-xs text-slate-700 font-medium">
+                              <div className="w-4 h-4 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-100">
+                                <Check className="w-2.5 h-2.5 stroke-[3]" />
+                              </div>
+                              <span>{point}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
 
-          {/* Étape 3 */}
-          <div className="md:col-span-3 bg-white rounded-3xl p-7 shadow-[0_4px_25px_rgba(0,102,255,0.05)] border border-blue-100/80 flex flex-col items-center text-center relative hover:-translate-y-1.5 transition duration-300 h-full justify-between group">
-            <div className="w-8 h-8 rounded-full bg-[#0066FF] text-white font-black text-xs flex items-center justify-center shadow-md shadow-blue-500/30 mb-3 group-hover:scale-110 transition-transform">
-              3
-            </div>
-            <div className="relative w-20 h-20 sm:w-24 sm:h-24 my-3">
-              <Image
-                src="/step-icon-3.png"
-                alt="Progressez"
-                fill
-                className="object-contain"
-              />
-            </div>
-            <div>
-              <h3 className="text-base font-bold text-slate-900 mb-1.5">
-                Décrochez votre visa
-              </h3>
-              <p className="text-xs text-slate-500 leading-relaxed max-w-xs">
-                Appliquez les corrections personnalisées et présentez-vous serein et victorieux.
-              </p>
-            </div>
-          </div>
+                      {/* Visuel d'illustration de l'étape */}
+                      <div className="relative w-20 h-20 sm:w-24 sm:h-24 bg-gradient-to-tr from-blue-50/80 to-slate-50 p-3 rounded-2xl border border-blue-100/60 shrink-0 self-center sm:self-start shadow-xs">
+                        <Image
+                          src={step.icon}
+                          alt={step.title}
+                          fill
+                          className="object-contain p-2"
+                        />
+                      </div>
 
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       </section>
 
-      {/* 7. SECTION : Témoignages & Étudiants Admis */}
-      <section id="temoignages" className="py-12 sm:py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+      {/* 7. SECTION : Témoignages & Étudiants Admis (Liste Déroulante Épurée & Élégante) */}
+      <section id="temoignages" className="py-12 sm:py-20 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
         
-        {/* Titre avec lignes décoratives */}
-        <div className="text-center mb-12 sm:mb-16">
+        {/* En-tête de section */}
+        <div className="text-center mb-10 sm:mb-14">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-600 border border-emerald-100 mb-3">
             <CheckCircle2 className="w-3.5 h-3.5" />
             <span>Réussites Vérifiées</span>
@@ -805,97 +904,98 @@ export default function HomePage() {
             Ils ont réussi leur entretien
           </h2>
           <p className="text-xs sm:text-sm text-slate-500 mt-2">
-            Rejoignez des centaines d'étudiants qui étudient aujourd'hui dans les meilleures universités françaises.
+            Rejoignez des centaines d'étudiants admis dans les universités françaises les plus prestigieuses.
           </p>
         </div>
 
-        {/* 3 Cartes Témoignages Premium */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          
-          {/* Témoignage 1 : Mamadou Diallo */}
-          <div className="bg-white rounded-3xl p-7 shadow-[0_4px_25px_rgba(0,102,255,0.05)] border border-blue-50 flex flex-col justify-between hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-            <div>
-              <div className="flex items-center gap-1 text-amber-400 mb-4">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" />
-                ))}
-              </div>
-              <p className="text-xs sm:text-sm text-slate-700 leading-relaxed mb-6 font-normal">
-                « Grâce aux simulations, j'ai tout de suite compris pourquoi mes premières réponses étaient trop vagues. Le jour de mon entretien à Dakar, les questions étaient exactement celles préparées. Avis favorable direct ! »
-              </p>
-            </div>
-            <div className="flex items-center gap-3.5 pt-4 border-t border-slate-100">
-              <div className="relative w-12 h-12 rounded-full overflow-hidden shrink-0 border-2 border-blue-100">
-                <Image
-                  src="/avatar-ref-mamadou.png"
-                  alt="Mamadou Diallo"
-                  fill
-                  className="object-cover"
-                />
-              </div>
-              <div>
-                <h4 className="text-sm font-bold text-slate-900">Mamadou Diallo</h4>
-                <p className="text-[11px] font-medium text-[#0066FF]">Admis à Sorbonne Université (Paris)</p>
-              </div>
-            </div>
-          </div>
+        {/* Liste déroulante interactive des témoignages */}
+        <div className="space-y-4">
+          {testimonialsData.map((item, idx) => {
+            const isOpen = activeTestimonial === idx;
+            return (
+              <div
+                key={idx}
+                className={`rounded-2xl sm:rounded-3xl border transition-all duration-300 overflow-hidden ${
+                  isOpen
+                    ? 'bg-white border-blue-200/90 shadow-xl shadow-blue-500/5 ring-1 ring-blue-500/10'
+                    : 'bg-white/70 hover:bg-white border-slate-200/80 shadow-xs hover:shadow-md'
+                }`}
+              >
+                {/* Ligne d'en-tête cliquable */}
+                <button
+                  type="button"
+                  onClick={() => setActiveTestimonial(isOpen ? null : idx)}
+                  className="w-full p-5 sm:p-6 text-left flex items-center justify-between gap-4 transition-colors group"
+                >
+                  <div className="flex items-center gap-3.5 sm:gap-4 min-w-0">
+                    {/* Avatar de l'étudiant */}
+                    <div className="relative w-12 h-12 sm:w-14 sm:h-14 rounded-full overflow-hidden shrink-0 border-2 border-blue-100 shadow-xs">
+                      <Image
+                        src={item.avatar}
+                        alt={item.name}
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
 
-          {/* Témoignage 2 : Aïssatou Sow */}
-          <div className="bg-white rounded-3xl p-7 shadow-[0_4px_25px_rgba(0,102,255,0.05)] border border-blue-50 flex flex-col justify-between hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-            <div>
-              <div className="flex items-center gap-1 text-amber-400 mb-4">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" />
-                ))}
-              </div>
-              <p className="text-xs sm:text-sm text-slate-700 leading-relaxed mb-6 font-normal">
-                « Les conseils sur la cohérence financière et le projet professionnel m'ont sauvé. Les retours sont instantanés et infiniment plus rigoureux qu'un accompagnement classique. Je recommande à 100%. »
-              </p>
-            </div>
-            <div className="flex items-center gap-3.5 pt-4 border-t border-slate-100">
-              <div className="relative w-12 h-12 rounded-full overflow-hidden shrink-0 border-2 border-blue-100">
-                <Image
-                  src="/avatar-ref-aissatou-sow.png"
-                  alt="Aïssatou Sow"
-                  fill
-                  className="object-cover"
-                />
-              </div>
-              <div>
-                <h4 className="text-sm font-bold text-slate-900">Aïssatou Sow</h4>
-                <p className="text-[11px] font-medium text-[#0066FF]">Admise à Université Paris-Saclay</p>
-              </div>
-            </div>
-          </div>
+                    {/* Nom, Université & Étoiles */}
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 mb-0.5">
+                        <h3 className="text-sm sm:text-base font-bold text-slate-900 group-hover:text-[#0066FF] transition-colors">
+                          {item.name}
+                        </h3>
+                        <span className="text-[10px] font-semibold text-slate-400 hidden sm:inline">• {item.city}</span>
+                      </div>
+                      <p className="text-xs font-semibold text-[#0066FF] truncate">
+                        {item.admission}
+                      </p>
+                      {!isOpen && (
+                        <p className="text-xs text-slate-500 mt-1 truncate italic hidden sm:block max-w-md">
+                          {item.shortQuote}
+                        </p>
+                      )}
+                    </div>
+                  </div>
 
-          {/* Témoignage 3 : Ibrahima Ndiaye */}
-          <div className="bg-white rounded-3xl p-7 shadow-[0_4px_25px_rgba(0,102,255,0.05)] border border-blue-50 flex flex-col justify-between hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-            <div>
-              <div className="flex items-center gap-1 text-amber-400 mb-4">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" />
-                ))}
-              </div>
-              <p className="text-xs sm:text-sm text-slate-700 leading-relaxed mb-6 font-normal">
-                « Une plateforme intuitive, ultra-performante et rassurante. En 3 entraînements, j'avais éliminé tous mes tics de langage et structuré mon projet d'ingénierie. Merci Prépa Campus ! »
-              </p>
-            </div>
-            <div className="flex items-center gap-3.5 pt-4 border-t border-slate-100">
-              <div className="relative w-12 h-12 rounded-full overflow-hidden shrink-0 border-2 border-blue-100">
-                <Image
-                  src="/avatar-ref-ibrahima.png"
-                  alt="Ibrahima Ndiaye"
-                  fill
-                  className="object-cover"
-                />
-              </div>
-              <div>
-                <h4 className="text-sm font-bold text-slate-900">Ibrahima Ndiaye</h4>
-                <p className="text-[11px] font-medium text-[#0066FF]">Admis à INSA Lyon</p>
-              </div>
-            </div>
-          </div>
+                  {/* Note & Chevron */}
+                  <div className="flex items-center gap-3 shrink-0">
+                    <div className="flex items-center gap-1 text-amber-400">
+                      {[...Array(5)].map((_, i) => (
+                        <Star key={i} className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                      ))}
+                    </div>
+                    <div
+                      className={`w-8 h-8 rounded-full flex items-center justify-center border transition-all duration-300 ${
+                        isOpen
+                          ? 'bg-[#0066FF] text-white border-transparent rotate-180'
+                          : 'bg-slate-50 text-slate-400 border-slate-200 group-hover:border-blue-200 group-hover:text-[#0066FF]'
+                      }`}
+                    >
+                      <ChevronDown className="w-4 h-4 transition-transform" />
+                    </div>
+                  </div>
+                </button>
 
+                {/* Contenu Déroulant & Épuré */}
+                {isOpen && (
+                  <div className="px-5 sm:px-6 pb-6 pt-2 border-t border-slate-100 animate-fadeIn">
+                    <div className="pt-3 space-y-4">
+                      {/* Citation complète */}
+                      <p className="text-xs sm:text-sm text-slate-700 leading-relaxed font-normal bg-slate-50/80 p-4 rounded-2xl border border-slate-100 italic">
+                        {item.fullQuote}
+                      </p>
+
+                      {/* Facteur clé de succès */}
+                      <div className="flex items-center gap-2.5 text-xs text-slate-600 bg-blue-50/50 p-3 rounded-xl border border-blue-100/60">
+                        <span className="font-bold text-[#0066FF] shrink-0">Point décisif :</span>
+                        <span className="font-medium text-slate-700">{item.keyFactor}</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       </section>
 
