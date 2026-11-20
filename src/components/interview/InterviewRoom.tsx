@@ -19,7 +19,8 @@ import {
   CheckCircle2,
   Edit3,
   RefreshCw,
-  ShieldCheck
+  ShieldCheck,
+  AlertTriangle
 } from 'lucide-react';
 import { AcademicProfileData } from '@/types/profile';
 import { InterviewTurn, InterviewStatus, JuryPersonality } from '@/types/interview';
@@ -69,21 +70,49 @@ export function InterviewRoom() {
   const accumulatedTranscriptRef = useRef<string>('');
   const isSubmittingTurnRef = useRef<boolean>(false);
   const isRecordingRef = useRef<boolean>(false);
+  const isAiSpeakingCancelledRef = useRef<boolean>(false);
+  const ttsAbortControllerRef = useRef<AbortController | null>(null);
 
-  // Arrêt immédiat et inconditionnel de toutes les voix et audios de l'IA
+  // Arrêt immédiat et inconditionnel de toutes les voix et audios de l'IA (sans aucun déclenchement de fallback d'erreur)
   const stopAllAiSpeech = useCallback(() => {
+    isAiSpeakingCancelledRef.current = true;
+
+    // 1. Avorter immédiatement toute requête de synthèse audio OpenAI en cours
+    if (ttsAbortControllerRef.current) {
+      try {
+        ttsAbortControllerRef.current.abort();
+      } catch {}
+      ttsAbortControllerRef.current = null;
+    }
+
+    // 2. Stopper et réinitialiser l'élément audio HTML5 en supprimant TOUS les écouteurs pour éviter que onerror ne déclenche le WebSpeech fallback
+    if (audioElementRef.current) {
+      try {
+        const audio = audioElementRef.current;
+        audio.onended = null;
+        audio.onerror = null;
+        audio.onplay = null;
+        audio.onpause = null;
+        audio.pause();
+        audio.currentTime = 0;
+        audio.removeAttribute('src');
+        audio.load();
+      } catch {}
+      audioElementRef.current = null;
+    }
+
+    // 3. Stopper et vider définitivement la file d'attente de synthèse vocale locale
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
       try {
         window.speechSynthesis.cancel();
+        setTimeout(() => {
+          try {
+            window.speechSynthesis.cancel();
+          } catch {}
+        }, 50);
       } catch {}
     }
-    if (audioElementRef.current) {
-      try {
-        audioElementRef.current.pause();
-        audioElementRef.current.currentTime = 0;
-        audioElementRef.current.src = '';
-      } catch {}
-    }
+
     setIsAiPlaying(false);
   }, []);
 
@@ -507,6 +536,12 @@ export function InterviewRoom() {
 
   // Fallback vocal local avec sélection d'une voix féminine française naturelle, posée et articulée
   const fallbackWebSpeech = useCallback((text: string, onEnd: () => void) => {
+    // Si l'utilisateur a arrêté l'entretien ou a coupé la voix, NE JAMAIS parler
+    if (isAiSpeakingCancelledRef.current) {
+      onEnd();
+      return;
+    }
+
     if (!text || !text.trim() || hasCreditError || status === 'CREDIT_BLOCKED') {
       onEnd();
       return;
@@ -574,6 +609,18 @@ export function InterviewRoom() {
       return;
     }
 
+    // Réinitialiser le verrou d'annulation pour cette nouvelle prise de parole légitime
+    isAiSpeakingCancelledRef.current = false;
+
+    // Annuler toute requête audio OpenAI précédente encore en vol
+    if (ttsAbortControllerRef.current) {
+      try {
+        ttsAbortControllerRef.current.abort();
+      } catch {}
+    }
+    const abortController = new AbortController();
+    ttsAbortControllerRef.current = abortController;
+
     setIsAiPlaying(true);
     setStatus('AI_SPEAKING');
 
@@ -587,20 +634,35 @@ export function InterviewRoom() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text: textToSpeak }),
+        signal: abortController.signal,
       });
+
+      if (isAiSpeakingCancelledRef.current) {
+        return;
+      }
 
       if (res.status === 200) {
         const audioBlob = await res.blob();
+        if (isAiSpeakingCancelledRef.current) {
+          return;
+        }
+
         const audioUrl = URL.createObjectURL(audioBlob);
         const audio = new Audio(audioUrl);
         audioElementRef.current = audio;
 
         audio.onended = () => {
           URL.revokeObjectURL(audioUrl);
-          triggerReadyAfterSpeech();
+          if (!isAiSpeakingCancelledRef.current) {
+            triggerReadyAfterSpeech();
+          }
         };
 
         audio.onerror = () => {
+          // NE JAMAIS déclencher le fallback local si l'arrêt a été demandé par l'utilisateur !
+          if (isAiSpeakingCancelledRef.current) {
+            return;
+          }
           fallbackWebSpeech(textToSpeak, triggerReadyAfterSpeech);
         };
 
@@ -610,15 +672,19 @@ export function InterviewRoom() {
         } catch (playErr) {
           console.warn('Autoplay audio bloqué sur mobile par le navigateur :', playErr);
           // Si l'autoplay est bloqué par iOS/Chrome mobile, on donne immédiatement la main au candidat
-          triggerReadyAfterSpeech();
+          if (!isAiSpeakingCancelledRef.current) {
+            triggerReadyAfterSpeech();
+          }
           return;
         }
       }
     } catch {
-      // Fallback vers la synthèse locale
+      // Ignorer si la requête a été volontairement avortée
     }
 
-    fallbackWebSpeech(textToSpeak, triggerReadyAfterSpeech);
+    if (!isAiSpeakingCancelledRef.current) {
+      fallbackWebSpeech(textToSpeak, triggerReadyAfterSpeech);
+    }
   }, [startStudentRecording, fallbackWebSpeech, hasCreditError, status]);
 
   // Arrêter l'enregistrement et transcrire la réponse pour vérification
@@ -870,6 +936,19 @@ export function InterviewRoom() {
         durationSeconds: 300 - timeRemaining,
         timestamp: new Date().toISOString(),
       });
+    }
+
+    const totalWords = finalTurns.reduce(
+      (acc, t) => acc + t.studentTranscript.split(/\s+/).filter(Boolean).length,
+      0
+    );
+
+    // Sécurité stricte : si moins de 2 questions de fond ou moins de 30 mots au total (ex: simple salutation "bonjour, je m'appelle..."), refuser de générer un bilan fictif
+    if (finalTurns.length < 2 && totalWords < 30) {
+      if (audioStreamRef.current) audioStreamRef.current.getTracks().forEach((t) => t.stop());
+      if (videoStreamRef.current) videoStreamRef.current.getTracks().forEach((t) => t.stop());
+      router.push('/dashboard');
+      return;
     }
 
     if (finalTurns.length > 0) {
@@ -1558,64 +1637,121 @@ export function InterviewRoom() {
       </footer>
 
       {/* Modal de confirmation d'arrêt d'entretien */}
-      {isEndConfirmOpen && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-rose-500/15 border border-rose-500/30 flex items-center justify-center text-rose-400 shrink-0">
-                <PhoneOff className="w-5 h-5" />
-              </div>
-              <div>
-                <h3 className="text-base font-bold text-white">Terminer l&apos;entretien ?</h3>
-                <p className="text-xs text-cyan-400 font-mono font-medium">Temps restant : {formatTime(timeRemaining)}</p>
-              </div>
-            </div>
+      {isEndConfirmOpen && (() => {
+        const currentDraftText = (candidateDraftAnswer.trim() || accumulatedTranscriptRef.current.trim() || manualTextAnswer.trim());
+        const hasValidDraft = !!(currentDraftText && !isTechnicalOrInvalidAnswer(currentDraftText));
+        const totalRecordedWords = turnsHistory.reduce(
+          (acc, t) => acc + t.studentTranscript.split(/\s+/).filter(Boolean).length, 0
+        ) + (hasValidDraft ? currentDraftText.split(/\s+/).filter(Boolean).length : 0);
+        const totalTurnsCount = turnsHistory.length + (hasValidDraft ? 1 : 0);
+        const isSubstantialInterview = totalTurnsCount >= 2 || (totalTurnsCount === 1 && totalRecordedWords >= 30);
 
-            <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-              {turnsHistory.length > 0 || candidateDraftAnswer.trim() || manualTextAnswer.trim()
-                ? "Vous pouvez clôturer l'entretien dès maintenant sans attendre la fin des 5 minutes. Votre bilan d'évaluation complet sera immédiatement calculé à partir de vos réponses enregistrées."
-                : "Vous n'avez pas encore validé de réponse. Si vous quittez maintenant, aucun bilan pédagogique ne sera généré."}
-            </p>
+        return (
+          <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in">
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+              {isSubstantialInterview ? (
+                <>
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-rose-500/15 border border-rose-500/30 flex items-center justify-center text-rose-400 shrink-0">
+                      <PhoneOff className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h3 className="text-base font-bold text-white">Terminer l&apos;entretien ?</h3>
+                      <p className="text-xs text-cyan-400 font-mono font-medium">Temps restant : {formatTime(timeRemaining)}</p>
+                    </div>
+                  </div>
 
-            <div className="flex flex-col gap-2.5 pt-2">
-              {(turnsHistory.length > 0 || candidateDraftAnswer.trim() || manualTextAnswer.trim()) && (
-                <button
-                  type="button"
-                  onClick={handleEarlyTerminationWithDraft}
-                  className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs sm:text-sm shadow-lg shadow-emerald-600/20 transition flex items-center justify-center gap-2 active:scale-95"
-                >
-                  <CheckCircle2 className="w-4 h-4" />
-                  Terminer et générer mon bilan ({turnsHistory.length + (candidateDraftAnswer.trim() || manualTextAnswer.trim() ? 1 : 0)} question{(turnsHistory.length + (candidateDraftAnswer.trim() || manualTextAnswer.trim() ? 1 : 0)) > 1 ? 's' : ''})
-                </button>
+                  <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                    Vous avez complété <strong className="text-white">{totalTurnsCount} question{totalTurnsCount > 1 ? 's' : ''}</strong> ({totalRecordedWords} mots analysables). Votre bilan pédagogique officiel sera généré fidèlement à partir de vos réponses enregistrées.
+                  </p>
+
+                  <div className="flex flex-col gap-2.5 pt-2">
+                    <button
+                      type="button"
+                      onClick={handleEarlyTerminationWithDraft}
+                      className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs sm:text-sm shadow-lg shadow-emerald-600/20 transition flex items-center justify-center gap-2 active:scale-95"
+                    >
+                      <CheckCircle2 className="w-4 h-4" />
+                      Terminer et générer mon bilan ({totalTurnsCount} question{totalTurnsCount > 1 ? 's' : ''})
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsEndConfirmOpen(false);
+                        if (audioStreamRef.current) audioStreamRef.current.getTracks().forEach((t) => t.stop());
+                        if (videoStreamRef.current) videoStreamRef.current.getTracks().forEach((t) => t.stop());
+                        if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+                          window.speechSynthesis.cancel();
+                        }
+                        router.push('/dashboard');
+                      }}
+                      className="w-full py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs sm:text-sm border border-slate-700 transition"
+                    >
+                      Quitter sans générer de bilan
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setIsEndConfirmOpen(false)}
+                      className="w-full py-2 px-4 rounded-xl text-slate-400 hover:text-white font-medium text-xs sm:text-sm transition hover:bg-slate-800/50"
+                    >
+                      Continuer l&apos;entretien
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0">
+                      <AlertTriangle className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h3 className="text-base font-bold text-white">Interrompre la simulation ?</h3>
+                      <p className="text-xs text-amber-400/90 font-medium">Session trop courte pour être évaluée</p>
+                    </div>
+                  </div>
+
+                  <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                    Vous n&apos;avez pas encore abordé les questions de fond (salutation brève ou aucune réponse enregistrée). Aucun bilan consulaire ne peut être calculé valablement sur une simple introduction.
+                  </p>
+
+                  <div className="p-3 rounded-xl bg-emerald-950/30 border border-emerald-500/30 flex items-center gap-2.5 text-xs text-emerald-300">
+                    <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <span>Aucun crédit de simulation n&apos;est consommé si vous quittez maintenant.</span>
+                  </div>
+
+                  <div className="flex flex-col gap-2.5 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => setIsEndConfirmOpen(false)}
+                      className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs sm:text-sm shadow-lg shadow-emerald-600/20 transition flex items-center justify-center gap-2 active:scale-95"
+                    >
+                      Continuer l&apos;entretien
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsEndConfirmOpen(false);
+                        if (audioStreamRef.current) audioStreamRef.current.getTracks().forEach((t) => t.stop());
+                        if (videoStreamRef.current) videoStreamRef.current.getTracks().forEach((t) => t.stop());
+                        if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+                          window.speechSynthesis.cancel();
+                        }
+                        router.push('/dashboard');
+                      }}
+                      className="w-full py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs sm:text-sm border border-slate-700 transition"
+                    >
+                      Quitter vers le tableau de bord
+                    </button>
+                  </div>
+                </>
               )}
-
-              <button
-                type="button"
-                onClick={() => {
-                  setIsEndConfirmOpen(false);
-                  if (audioStreamRef.current) audioStreamRef.current.getTracks().forEach((t) => t.stop());
-                  if (videoStreamRef.current) videoStreamRef.current.getTracks().forEach((t) => t.stop());
-                  if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-                    window.speechSynthesis.cancel();
-                  }
-                  router.push('/dashboard');
-                }}
-                className="w-full py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs sm:text-sm border border-slate-700 transition"
-              >
-                Quitter vers le tableau de bord
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setIsEndConfirmOpen(false)}
-                className="w-full py-2 px-4 rounded-xl text-slate-400 hover:text-white font-medium text-xs sm:text-sm transition hover:bg-slate-800/50"
-              >
-                Continuer l&apos;entretien
-              </button>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
     </div>
   );
 }

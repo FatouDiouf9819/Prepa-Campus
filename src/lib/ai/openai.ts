@@ -526,15 +526,87 @@ export async function generateEvaluationReport(
     };
   }
 
-  const isPartial = validAcademicTurns.length < turns.length;
+  const totalWords = validAcademicTurns.reduce(
+    (sum, t) => sum + t.studentTranscript.split(/\s+/).filter(Boolean).length,
+    0
+  );
+
+  // Cas 2 : Prise de parole dérisoire ou salutation brève sans contenu évaluable (ex: "Bonjour je m'appelle Fatou...")
+  if (totalWords < 25 || (validAcademicTurns.length === 1 && totalWords < 35)) {
+    const rawTranscript = validAcademicTurns[0].studentTranscript.trim();
+    const scoreParcours = Math.min(3, Math.max(1, Math.round(totalWords / 10)));
+    const scoreElocution = Math.min(2, Math.max(1, Math.round(totalWords / 15)));
+    const totalMinimalScore = scoreParcours + scoreElocution;
+
+    return {
+      id: `report_${Date.now()}`,
+      sessionId: `session_${Date.now()}`,
+      overallScore: totalMinimalScore,
+      evaluationCompleteness: 'UNAVAILABLE',
+      isTechnicalIssue: false,
+      evaluationGridVersion: 'v1.0.0',
+      createdAt: new Date().toISOString(),
+      synthesisSummary: `Entretien écourté dès les premières secondes (${totalWords} mots prononcés : « ${rawTranscript.slice(0, 60)}... »). Vous avez mis fin à la simulation avant d'aborder les questions fondamentales sur votre projet d'études, vos universités visées et votre projet professionnel. Aucun score consulaire favorable ne peut être attribué sur une prestation interrompue. Nous vous recommandons de réaliser un entretien complet de 5 minutes pour obtenir un bilan fidèle et constructif.`,
+      scoresByCriteria: [
+        {
+          name: 'parcours',
+          label: 'Cohérence du parcours académique',
+          score: scoreParcours,
+          maxScore: 20,
+          comment: 'Présentation interrompue avant d\'aborder les détails du parcours.',
+        },
+        {
+          name: 'formations',
+          label: 'Justification des vœux et formations',
+          score: 0,
+          maxScore: 25,
+          comment: 'Sujet non évalué : la simulation s\'est arrêtée avant toute question sur vos formations.',
+        },
+        {
+          name: 'projet_pro',
+          label: 'Solidité du projet professionnel',
+          score: 0,
+          maxScore: 25,
+          comment: 'Sujet non évalué : aucun projet professionnel n\'a été formulé durant cette session.',
+        },
+        {
+          name: 'argumentation',
+          label: 'Capacité d\'argumentation sous relance',
+          score: 0,
+          maxScore: 20,
+          comment: 'Sujet non évalué : l\'entretien a été clôturé avant toute phase de relance.',
+        },
+        {
+          name: 'elocution',
+          label: 'Clarté de l\'expression et structure',
+          score: scoreElocution,
+          maxScore: 10,
+          comment: 'Volume de parole trop court pour mesurer la fluidité et le débit.',
+        },
+      ],
+      strengths: [],
+      areasToImprove: [
+        {
+          criterion: 'Durée et développement de l\'entretien',
+          verbatimQuote: rawTranscript.slice(0, 80),
+          feedback: 'Ne coupez pas l\'entretien au début. Répondez aux questions successives de l\'examinatrice pour couvrir les 5 critères officiels.',
+          suggestedReformulation: `« Bonjour, je m'appelle ${profile.academicStatus || 'étudiant'} en ${profile.fieldOfStudy}, et je candidate pour ${profile.targetPrograms || 'mes formations en France'}. »`,
+        },
+      ],
+      reformulationExamples: [],
+      revisionTopics: [
+        'Mener une simulation complète jusqu\'au terme des 5 minutes',
+        'Structurer sa présentation d\'introduction en 1 minute (Nom, diplôme actuel, projet visé)',
+        'Préparer les réponses aux questions sur les universités et le financement',
+      ],
+    };
+  }
+
+  const isPartial = validAcademicTurns.length < turns.length || validAcademicTurns.length < 4;
   const evaluationCompleteness: EvaluationCompleteness = isPartial ? 'PARTIAL' : 'COMPLETE';
 
   // Mode déterministe fondé rigoureusement sur les critères officiels et les propos réels
   const computeDeterministicReport = (): EvaluationReport => {
-    const totalWords = validAcademicTurns.reduce(
-      (sum, t) => sum + t.studentTranscript.split(/\s+/).filter(Boolean).length,
-      0
-    );
     const avgWords = totalWords / validAcademicTurns.length;
     const allTranscriptsText = validAcademicTurns.map((t) => t.studentTranscript).join(' ').toLowerCase();
 
@@ -549,49 +621,63 @@ export async function generateEvaluationReport(
       allTranscriptsText
     );
 
-    // Critère 1 : Parcours académique (max 20) — varie selon la consistance de la présentation
-    let parcoursScore = 12;
-    if (validAcademicTurns[0]?.studentTranscript.length > 70) parcoursScore += 4;
-    else if (validAcademicTurns[0]?.studentTranscript.length > 30) parcoursScore += 2;
+    // Critère 1 : Parcours académique (max 20)
+    let parcoursScore = 8;
+    if (validAcademicTurns[0]?.studentTranscript.length > 70) parcoursScore += 6;
+    else if (validAcademicTurns[0]?.studentTranscript.length > 30) parcoursScore += 3;
     if (hasAcademicKeywords) parcoursScore += 2;
-    if (validAcademicTurns[0]?.studentTranscript.length < 25) parcoursScore -= 3;
-    parcoursScore = Math.min(20, Math.max(6, parcoursScore));
+    parcoursScore = Math.min(20, Math.max(4, parcoursScore));
 
-    // Critère 2 : Justification des formations (max 25) — varie selon la précision des cours
-    let formationsScore = 14;
-    if (avgWords >= 22) formationsScore += 5;
-    else if (avgWords >= 12) formationsScore += 2;
-    else formationsScore -= 3;
-    if (mentionsProgram) formationsScore += 4;
-    formationsScore = Math.min(25, Math.max(7, formationsScore));
+    // Critère 2 : Justification des formations (max 25)
+    // Si moins de 2 questions répondues, les formations n'ont pas été abordées -> 0 point !
+    let formationsScore = 0;
+    let formationsComment = "Critère non évalué : entretien arrêté avant d'aborder les formations.";
+    if (validAcademicTurns.length >= 2) {
+      formationsScore = 9;
+      if (avgWords >= 22) formationsScore += 7;
+      else if (avgWords >= 12) formationsScore += 4;
+      if (mentionsProgram) formationsScore += 5;
+      formationsScore = Math.min(25, Math.max(5, formationsScore));
+      formationsComment = "Connaissance des formations visées ; précisez les matières clés du semestre.";
+    }
 
-    // Critère 3 : Solidité du projet professionnel (max 25) — varie selon l'adéquation métier
-    let projetProScore = 15;
-    if (mentionsProGoal) projetProScore += 5;
-    if (profile.professionalGoal.length > 25 && allTranscriptsText.length > 80) projetProScore += 2;
-    if (avgWords < 10) projetProScore -= 4;
-    projetProScore = Math.min(25, Math.max(7, projetProScore));
+    // Critère 3 : Solidité du projet professionnel (max 25)
+    // Si moins de 3 questions répondues, le projet pro n'a pas été abordé -> 0 point !
+    let projetProScore = 0;
+    let projetProComment = "Critère non évalué : entretien arrêté avant d'aborder le projet professionnel.";
+    if (validAcademicTurns.length >= 3) {
+      projetProScore = 10;
+      if (mentionsProGoal) projetProScore += 6;
+      if (profile.professionalGoal.length > 25 && allTranscriptsText.length > 80) projetProScore += 4;
+      projetProScore = Math.min(25, Math.max(5, projetProScore));
+      projetProComment = "Objectif professionnel identifié en cohérence avec les études visées.";
+    }
 
-    // Critère 4 : Argumentation sous relance (max 20) — varie selon la réactivité
-    let argumentationScore = 11;
-    if (validAcademicTurns.length >= 3 && avgWords >= 18) argumentationScore += 5;
-    else if (validAcademicTurns.length >= 2 && avgWords >= 10) argumentationScore += 2;
-    else argumentationScore -= 2;
-    argumentationScore = Math.min(20, Math.max(5, argumentationScore));
+    // Critère 4 : Argumentation sous relance (max 20)
+    // Si moins de 4 questions répondues, les relances n'ont pas été testées -> 0 point !
+    let argumentationScore = 0;
+    let argumentationComment = "Critère non évalué : entretien clôturé avant la phase de relances.";
+    if (validAcademicTurns.length >= 4) {
+      argumentationScore = 8;
+      if (avgWords >= 18) argumentationScore += 6;
+      else if (avgWords >= 10) argumentationScore += 3;
+      argumentationScore = Math.min(20, Math.max(4, argumentationScore));
+      argumentationComment = "Effort d'approfondissement ; veillez à donner des exemples concrets.";
+    }
 
-    // Critère 5 : Élocution et structure (max 10) — varie selon l'aisance
-    let elocutionScore = 5;
+    // Critère 5 : Élocution et structure (max 10)
+    let elocutionScore = 3;
     if (avgWords >= 15) elocutionScore += 2;
-    if (validAcademicTurns.length >= 2) elocutionScore += 1;
-    if (allTranscriptsText.length > 120) elocutionScore += 1;
-    elocutionScore = Math.min(10, Math.max(3, elocutionScore));
+    if (validAcademicTurns.length >= 3) elocutionScore += 2;
+    if (allTranscriptsText.length > 120) elocutionScore += 2;
+    elocutionScore = Math.min(10, Math.max(2, elocutionScore));
 
     const calculatedTotal = parcoursScore + formationsScore + projetProScore + argumentationScore + elocutionScore;
     const firstTranscript = validAcademicTurns[0].studentTranscript;
     const lastTranscript = validAcademicTurns[validAcademicTurns.length - 1].studentTranscript;
 
     const partialNote = isPartial
-      ? ` Note : Évaluation partielle basée sur ${validAcademicTurns.length} réponse(s) exploitable(s) sur ${turns.length} tour(s).`
+      ? ` Note : Évaluation partielle basée sur ${validAcademicTurns.length} réponse(s) enregistrée(s). Les critères non abordés reçoivent la note de 0.`
       : '';
 
     return {
@@ -602,7 +688,7 @@ export async function generateEvaluationReport(
       isTechnicalIssue: false,
       evaluationGridVersion: 'v1.0.0',
       createdAt: new Date().toISOString(),
-      synthesisSummary: `Entretien de préparation de 5 minutes complété avec ${validAcademicTurns.length} réponse(s) enregistrée(s). Vous avez présenté votre profil en ${profile.fieldOfStudy} pour les formations ${profile.targetPrograms}. Vos réponses reflètent une motivation réelle qui peut être encore renforcée par des exemples précis lors des relances.${partialNote}`,
+      synthesisSummary: `Entretien de préparation complété avec ${validAcademicTurns.length} réponse(s) enregistrée(s). Vous avez présenté votre profil en ${profile.fieldOfStudy}.${partialNote}`,
       scoresByCriteria: [
         {
           name: 'parcours',
@@ -616,21 +702,21 @@ export async function generateEvaluationReport(
           label: 'Justification des vœux et formations',
           score: formationsScore,
           maxScore: 25,
-          comment: 'Connaissance des formations visées ; précisez les matières clés du semestre.',
+          comment: formationsComment,
         },
         {
           name: 'projet_pro',
           label: 'Solidité du projet professionnel',
           score: projetProScore,
           maxScore: 25,
-          comment: 'Objectif professionnel identifié en cohérence avec les études visées.',
+          comment: projetProComment,
         },
         {
           name: 'argumentation',
           label: 'Capacité d\'argumentation sous relance',
           score: argumentationScore,
           maxScore: 20,
-          comment: 'Effort d\'approfondissement ; veillez à donner des exemples concrets.',
+          comment: argumentationComment,
         },
         {
           name: 'elocution',
@@ -698,9 +784,14 @@ CONSIGNES STRICTES D'ÉVALUATION ET DE NOTATION RÉELLE :
 3. BARÈME ET NOTES RÉELLES :
    - Calcule des notes qui reflètent FIDÈLEMENT la qualité, la clarté et la pertinence des réponses du candidat.
    - Ne copie JAMAIS de notes fixes ou stéréotypées.
-   - Si la prestation est riche, fluide et argumentée : note élevée (80 à 95 / 100).
+   - RÈGLE FONDAMENTALE POUR LES ENTRETIENS ÉCOURTÉS OU SUJETS NON ABORDÉS :
+     * Si le candidat n'a pas répondu à une question sur ses formations/vœux, la note "formations" DOIT OBLIGATOIREMENT ÊTRE 0 (avec pour commentaire "Critère non évalué : sujet non abordé durant la simulation").
+     * Si le candidat n'a pas abordé son projet professionnel, la note "projet_pro" DOIT OBLIGATOIREMENT ÊTRE 0.
+     * Si l'entretien s'est arrêté avant toute phase de relance, la note "argumentation" DOIT OBLIGATOIREMENT ÊTRE 0.
+     * Interdiction formelle d'attribuer des points de complaisance ou d'inventer des réponses imaginaires.
+   - Si la prestation est riche, fluide et argumentée sur l'ensemble des 5 critères : note élevée (80 à 95 / 100).
    - Si la prestation est moyenne ou générale : note intermédiaire (60 à 78 / 100).
-   - Si les réponses sont très courtes, vagues ou hésitantes : note basse (35 à 59 / 100).
+   - Si les réponses sont très courtes, vagues, partielles ou interrompues : note basse (10 à 45 / 100).
    - Plafonds stricts par critère :
      * parcours : entier entre 0 et 20
      * formations : entier entre 0 et 25
