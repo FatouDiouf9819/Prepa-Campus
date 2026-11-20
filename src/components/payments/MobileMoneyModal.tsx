@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { 
   X, 
   Smartphone, 
@@ -30,12 +31,20 @@ export function MobileMoneyModal({
   defaultPackId = 'pack_reussite',
   onPaymentSuccess,
 }: PaymentModalProps) {
+  const router = useRouter();
   const { language, t } = useLanguage();
   const isEn = language === 'en';
 
   const [paymentMethod, setPaymentMethod] = useState<'card' | 'mobile_money'>('card');
   const [selectedPackId, setSelectedPackId] = useState<string>(defaultPackId);
   const [selectedOperatorId, setSelectedOperatorId] = useState<string>('wave_sn');
+
+  // Synchroniser le pack sélectionné quand defaultPackId change ou quand le modal s'ouvre
+  useEffect(() => {
+    if (defaultPackId) {
+      setSelectedPackId(defaultPackId);
+    }
+  }, [defaultPackId, isOpen]);
   
   // États Mobile Money
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -305,7 +314,10 @@ export function MobileMoneyModal({
 
             <div className="pt-2 flex flex-col sm:flex-row gap-3">
               <button
-                onClick={handleReset}
+                onClick={() => {
+                  handleReset();
+                  router.push('/entretien/preparation');
+                }}
                 className="w-full inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-[#0066FF] hover:bg-[#0052CC] text-white font-bold text-xs sm:text-sm shadow-xl shadow-blue-500/30 transition cursor-pointer"
               >
                 {isEn ? 'Start an interview' : 'Démarrer une simulation'}

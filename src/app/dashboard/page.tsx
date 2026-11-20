@@ -522,14 +522,26 @@ export default function DashboardPage() {
             </div>
 
             <div>
-              <Link
-                href="/entretien/preparation"
-                prefetch={true}
-                className="w-full inline-flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl bg-[#0066FF] hover:bg-[#0052CC] text-white font-bold text-xs sm:text-sm shadow-lg shadow-blue-500/25 transition active:scale-[0.98]"
-              >
-                <span>{language === 'fr' ? 'Démarrer ma simulation (5 min)' : 'Start voice simulation (5 min)'}</span>
-                <ArrowRight className="w-4 h-4" />
-              </Link>
+              {isProfileComplete ? (
+                <Link
+                  href="/entretien/preparation"
+                  prefetch={true}
+                  className="w-full inline-flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl bg-[#0066FF] hover:bg-[#0052CC] text-white font-bold text-xs sm:text-sm shadow-lg shadow-blue-500/25 transition active:scale-[0.98]"
+                >
+                  <span>{language === 'fr' ? 'Démarrer ma simulation (5 min)' : 'Start voice simulation (5 min)'}</span>
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+              ) : (
+                <Link
+                  href="/profil"
+                  prefetch={true}
+                  className="w-full inline-flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl bg-gradient-to-r from-amber-600 to-orange-500 hover:from-amber-500 hover:to-orange-400 text-white font-bold text-xs sm:text-sm shadow-lg shadow-amber-500/25 transition active:scale-[0.98]"
+                >
+                  <AlertCircle className="w-4 h-4" />
+                  <span>{language === 'fr' ? 'Compléter mon dossier pour démarrer (Requis)' : 'Complete dossier to start (Required)'}</span>
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+              )}
             </div>
           </div>
         </div>

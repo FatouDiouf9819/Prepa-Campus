@@ -67,6 +67,24 @@ export function InterviewRoom() {
   const cachedVoicesRef = useRef<SpeechSynthesisVoice[]>([]);
   const accumulatedTranscriptRef = useRef<string>('');
   const isSubmittingTurnRef = useRef<boolean>(false);
+  const isRecordingRef = useRef<boolean>(false);
+
+  // Arrêt immédiat et inconditionnel de toutes les voix et audios de l'IA
+  const stopAllAiSpeech = useCallback(() => {
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      try {
+        window.speechSynthesis.cancel();
+      } catch {}
+    }
+    if (audioElementRef.current) {
+      try {
+        audioElementRef.current.pause();
+        audioElementRef.current.currentTime = 0;
+        audioElementRef.current.src = '';
+      } catch {}
+    }
+    setIsAiPlaying(false);
+  }, []);
 
   // Précharger les voix dès le montage pour éviter toute voix masculine par défaut
   useEffect(() => {
@@ -373,6 +391,7 @@ export function InterviewRoom() {
 
   // Démarrer l'enregistrement de l'étudiant
   const startStudentRecording = useCallback(async () => {
+    isRecordingRef.current = true;
     setStatus('STUDENT_RECORDING');
     setLiveTranscript('');
     setCandidateDraftAnswer('');
@@ -464,6 +483,15 @@ export function InterviewRoom() {
 
           recognition.onerror = () => {
             // Ignorer l'erreur non-bloquante de Web Speech
+          };
+
+          // Gestion des courtes pauses de réflexion : si le navigateur coupe après un silence, redémarrer tant que l'enregistrement est actif
+          recognition.onend = () => {
+            if (isRecordingRef.current) {
+              try {
+                recognition.start();
+              } catch {}
+            }
           };
 
           recognition.start();
@@ -594,6 +622,7 @@ export function InterviewRoom() {
 
   // Arrêter l'enregistrement et transcrire la réponse pour vérification
   const handleStopRecordingAndTranscribe = async () => {
+    isRecordingRef.current = false;
     // 1. Arrêter la reconnaissance vocale Web Speech
     if (speechRecognitionRef.current) {
       try {
@@ -794,6 +823,7 @@ export function InterviewRoom() {
 
   // Clôture et génération du rapport final
   const handleFinalConclusion = async (finalTurns?: InterviewTurn[]) => {
+    stopAllAiSpeech();
     setStatus('GENERATING_REPORT');
     const turnsToAnalyze = finalTurns || turnsHistory;
 
@@ -825,6 +855,7 @@ export function InterviewRoom() {
 
   // Clôture prématurée demandée par l'étudiant (avant la fin des 5 minutes)
   const handleEarlyTerminationWithDraft = async () => {
+    stopAllAiSpeech();
     setIsEndConfirmOpen(false);
     const finalTurns = [...turnsHistory];
     const draft = candidateDraftAnswer.trim() || accumulatedTranscriptRef.current.trim() || manualTextAnswer.trim();
@@ -1050,7 +1081,10 @@ export function InterviewRoom() {
 
           <button
             type="button"
-            onClick={() => setIsEndConfirmOpen(true)}
+            onClick={() => {
+              stopAllAiSpeech();
+              setIsEndConfirmOpen(true);
+            }}
             className="inline-flex items-center gap-1.5 px-2.5 py-1.5 sm:px-3 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 hover:text-rose-200 border border-rose-500/30 text-xs font-semibold transition active:scale-95 shadow-sm"
             title="Arrêter ou terminer l'entretien avant les 5 minutes"
           >
@@ -1179,19 +1213,19 @@ export function InterviewRoom() {
             {/* Carte Question de l'examinatrice */}
             <div className="bg-slate-900/80 border border-slate-800/90 rounded-2xl p-6 backdrop-blur-md shadow-xl relative overflow-hidden">
               <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-2 text-xs font-semibold text-cyan-400">
+                <div className="flex items-center gap-2 text-sm font-semibold text-cyan-400">
                   <Bot className="w-4 h-4" />
                   <span>Question de l&apos;examinatrice Campus France</span>
                 </div>
 
                 {isAiPlaying && (
-                  <span className="inline-flex items-center gap-1.5 text-[11px] text-cyan-300 font-medium animate-pulse">
+                  <span className="inline-flex items-center gap-1.5 text-xs text-cyan-300 font-medium animate-pulse">
                     <Volume2 className="w-3.5 h-3.5" /> L&apos;examinatrice parle...
                   </span>
                 )}
               </div>
 
-              <p className="text-base sm:text-lg text-white font-medium leading-relaxed">
+              <p className="text-xl sm:text-2xl font-bold text-white tracking-tight leading-relaxed">
                 {currentQuestion || "Initialisation de votre première question..."}
               </p>
 
@@ -1390,7 +1424,10 @@ export function InterviewRoom() {
         <div className="flex justify-center -mt-2">
           <button
             type="button"
-            onClick={() => setIsEndConfirmOpen(true)}
+            onClick={() => {
+              stopAllAiSpeech();
+              setIsEndConfirmOpen(true);
+            }}
             className="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-rose-300 py-1.5 px-3 rounded-lg hover:bg-rose-500/10 transition active:scale-95"
           >
             <PhoneOff className="w-3.5 h-3.5 text-rose-400/80" />

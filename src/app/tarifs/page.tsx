@@ -67,7 +67,28 @@ export default function TarifsPage() {
     <div className="min-h-screen bg-[#05070E] flex flex-col text-slate-100 font-sans">
       <Navbar />
 
-      <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16 space-y-12">
+      <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16 space-y-10">
+        {/* Barre de retour rapide vers la simulation pour les candidats */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 rounded-2xl bg-[#0D121F] border border-blue-500/30 shadow-lg">
+          <div className="flex items-center gap-3 text-xs sm:text-sm text-slate-200">
+            <span className="w-8 h-8 rounded-xl bg-blue-500/20 border border-blue-500/30 text-cyan-400 flex items-center justify-center shrink-0">
+              <Sparkles className="w-4 h-4" />
+            </span>
+            <span>
+              {language === 'fr' 
+                ? 'Prêt à vous entraîner ou vous avez déjà vos simulations ?' 
+                : 'Ready to practice or already have your simulations?'}
+            </span>
+          </div>
+          <Link
+            href="/entretien/preparation"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#0066FF] hover:bg-[#0052CC] text-white font-bold text-xs sm:text-sm shadow-md shadow-blue-500/30 transition active:scale-95"
+          >
+            <span>{language === 'fr' ? 'Retourner à la simulation' : 'Return to simulation'}</span>
+            <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
+
         {/* En-tête Hero Épuré & Élégant */}
         <div className="text-center max-w-2xl mx-auto space-y-3">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/15 border border-blue-500/30 text-[#38BDF8] text-xs font-semibold">

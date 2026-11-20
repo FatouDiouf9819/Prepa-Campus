@@ -4,6 +4,7 @@ import { TIMEOUTS, createTimeoutSignal } from '@/config/timeouts';
 import { AcademicProfileData } from '@/types/profile';
 import { JuryPersonality } from '@/types/interview';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
+import { isAcademicProfileComplete } from '@/lib/validations/profile';
 
 /**
  * POST /api/interview/start
@@ -30,10 +31,10 @@ export async function POST(request: NextRequest) {
     const profile: AcademicProfileData = body.profile;
     const juryPersonality: JuryPersonality | undefined = body.juryPersonality;
 
-    if (!profile || !profile.currentDiploma || !profile.targetPrograms) {
+    if (!profile || !isAcademicProfileComplete(profile)) {
       cleanup();
       return NextResponse.json(
-        { error: 'Profil académique incomplet. Veuillez compléter votre profil avant de lancer une simulation.' },
+        { error: 'Profil académique incomplet. Veuillez compléter votre dossier sur votre espace avant de lancer une simulation.' },
         { status: 400 }
       );
     }

@@ -36,7 +36,12 @@ export function EvaluationReportView({ report }: ReportProps) {
     ...(report.areasToImprove || []).map((a) => a.verbatimQuote || '').filter(Boolean),
     ...(report.reformulationExamples || []).map((r) => r.studentQuote || '').filter(Boolean),
   ];
-  const speechAnalytics = analyzeSpeechFluency(studentQuotes, 180);
+
+  // Calcul du temps d'élocution effectif basé sur le volume réel de mots exprimés
+  // Standard officiel d'élocution française académique : 120-130 mots par minute
+  const totalExtractedWords = studentQuotes.join(' ').split(/\s+/).filter(Boolean).length;
+  const estimatedSpeakingSeconds = Math.max(15, Math.round((totalExtractedWords / 125) * 60));
+  const speechAnalytics = analyzeSpeechFluency(studentQuotes, estimatedSpeakingSeconds);
 
   const getScoreColor = (score: number) => {
     if (score >= 75) return 'text-emerald-400 border-emerald-500/30 bg-emerald-500/10';
@@ -127,21 +132,15 @@ export function EvaluationReportView({ report }: ReportProps) {
               </div>
               <div>
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-xs font-bold text-white">Analyse Vocale & Diction</span>
-                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${speechAnalytics.paceColorClass}`}>
+                  <span className="text-sm sm:text-base font-bold text-white">Analyse Vocale & Diction</span>
+                  <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold border ${speechAnalytics.paceColorClass}`}>
                     {speechAnalytics.paceLabel} ({speechAnalytics.wordsPerMinute} mots/min)
                   </span>
-                  {speechAnalytics.fillerWordsCount > 0 ? (
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/10 border border-amber-500/20 text-amber-300">
-                      {speechAnalytics.fillerWordsCount} tic{speechAnalytics.fillerWordsCount > 1 ? 's' : ''} verbal{speechAnalytics.fillerWordsCount > 1 ? 'aux' : ''} détecté{speechAnalytics.fillerWordsCount > 1 ? 's' : ''}
-                    </span>
-                  ) : (
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 border border-emerald-500/20 text-emerald-300">
-                      Élocution fluide sans tics
-                    </span>
-                  )}
+                  <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold border ${speechAnalytics.fluencyColorClass}`}>
+                    {speechAnalytics.fluencyBadge}
+                  </span>
                 </div>
-                <p className="text-xs text-slate-400 mt-1">
+                <p className="text-xs sm:text-sm text-slate-300 mt-1.5 leading-relaxed">
                   {speechAnalytics.feedback}
                 </p>
               </div>
@@ -152,7 +151,7 @@ export function EvaluationReportView({ report }: ReportProps) {
 
       {/* 5 Critères d'Évaluation */}
       <div>
-        <h2 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+        <h2 className="text-xl sm:text-2xl font-bold text-white mb-4 flex items-center gap-2.5">
           <TrendingUp className="w-5 h-5 text-cyan-400" />
           Évaluation Critère par Critère
         </h2>

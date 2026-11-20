@@ -3,10 +3,16 @@ import { AcademicProfileData } from '@/types/profile';
 import { InterviewTurn, EvaluationReport, EvaluationCompleteness, JuryPersonality } from '@/types/interview';
 import { isTechnicalOrInvalidAnswer } from '@/lib/ai/validation';
 
+let cachedOpenAIClient: OpenAI | null = null;
+
 /**
- * Initialise le client OpenAI côté serveur uniquement.
+ * Initialise le client OpenAI côté serveur uniquement (Singleton avec réutilisation des connexions TCP).
  */
 export function getOpenAIClient(): OpenAI | null {
+  if (cachedOpenAIClient) {
+    return cachedOpenAIClient;
+  }
+
   const apiKey = (process.env.TCHAVI_API_KEY || process.env.OPENAI_API_KEY || '').trim();
   if (!apiKey || apiKey.startsWith('sk-proj-exemple') || apiKey === '') {
     return null;
@@ -23,12 +29,14 @@ export function getOpenAIClient(): OpenAI | null {
     baseURL = 'https://tchavi.com/api/v1';
   }
 
-  return new OpenAI({
+  cachedOpenAIClient = new OpenAI({
     apiKey,
     baseURL: baseURL || undefined,
     timeout: 15000,
-    maxRetries: 1,
+    maxRetries: 2,
   });
+
+  return cachedOpenAIClient;
 }
 
 /**
@@ -417,6 +425,7 @@ IMPORTANT :
 - Une SEULE question à la fois.
 - Français fluide, naturel, avec une ponctuation soignée (virgules, intonations) adaptée à une voix féminine posée.
 - RÈGLE ABSOLUE ANTI-RÉPÉTITION : Ne repose JAMAIS la même question ni une question similaire à celles déjà posées ci-dessus. Explore un NOUVEL angle thématique différent.
+- GESTION BIENVEILLANTE DU TEMPS DE PAROLE : Un court temps de réflexion (quelques secondes) ou des pauses posées entre deux phrases sont tout à fait normaux lors d'un entretien oral. Ne qualifie JAMAIS ces pauses d'hésitation ou de faiblesse si le fond de la réponse est constructif. Seules les réponses complètement vides, muettes ou hors-sujet font l'objet d'une relance.
 
 Format JSON strict :
 {

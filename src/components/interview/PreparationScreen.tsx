@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { AcademicProfileData } from '@/types/profile';
 import { JuryPersonality } from '@/types/interview';
+import { isAcademicProfileComplete } from '@/lib/validations/profile';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { MobileMoneyModal } from '@/components/payments/MobileMoneyModal';
 
@@ -148,17 +149,7 @@ export function PreparationScreen() {
       }
 
       if (mounted) {
-        setProfile({
-          countryResidence: 'Sénégal',
-          currentDiploma: 'Licence 3 Informatique',
-          fieldOfStudy: 'Génie Logiciel',
-          targetPrograms: 'Master Informatique Big Data',
-          targetInstitutions: 'Université de Lille',
-          reasonFrance: 'Approfondir mes compétences dans des laboratoires de référence.',
-          professionalGoal: 'Devenir Data Engineer pour concevoir des architectures distribuées.',
-          reasonsForPrograms: 'Maquette pédagogique axée sur la pratique et l\'alternance.',
-          isCompleted: true,
-        });
+        setProfile(null);
       }
     }
 
@@ -272,7 +263,13 @@ export function PreparationScreen() {
     };
   }, []);
 
+  const isProfileComplete = isAcademicProfileComplete(profile);
+
   const handleStartInterview = () => {
+    if (!isProfileComplete) {
+      router.push('/profil');
+      return;
+    }
     if (creditsBalance !== null && creditsBalance <= 0) {
       setIsCreditModalOpen(true);
       return;
@@ -290,16 +287,43 @@ export function PreparationScreen() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
+      {/* Alerte si le profil est incomplet */}
+      {!isProfileComplete && (
+        <div className="mb-6 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-200 text-xs sm:text-sm flex items-start gap-3 shadow-lg">
+          <AlertCircle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+          <div className="space-y-1.5 flex-1">
+            <div className="font-bold text-white text-sm">
+              {language === 'fr' ? 'Dossier académique requis avant simulation' : 'Academic profile required'}
+            </div>
+            <p className="text-slate-300 leading-relaxed text-xs">
+              {language === 'fr' 
+                ? "L'examinatrice IA calibre ses questions spécifiquement sur vos universités visées, vos diplômes et votre projet professionnel. Vous devez d'abord compléter votre dossier pour démarrer."
+                : "The AI jury tailors questions directly to your target universities and career project. Please complete your academic dossier before starting."}
+            </p>
+            <div className="pt-1">
+              <Link
+                href="/profil"
+                prefetch={true}
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs transition"
+              >
+                <span>{language === 'fr' ? 'Compléter mon profil maintenant' : 'Complete my profile now'}</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* En-tête */}
       <div className="mb-6">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-cyan-400 text-xs font-semibold mb-3">
           <Clock className="w-3.5 h-3.5" />
           Simulation Officielle : 5 Minutes Chrono
         </div>
-        <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
+        <h1 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
           Vérification Matérielle & Consignes d&apos;Entretien
         </h1>
-        <p className="mt-2 text-sm text-slate-300">
+        <p className="mt-2 text-sm sm:text-base text-slate-300">
           Avant d&apos;entrer dans la salle, vérifiez le bon fonctionnement de votre microphone et de votre webcam locale.
         </p>
       </div>
@@ -560,6 +584,16 @@ export function PreparationScreen() {
                 </span>
               </button>
             </div>
+          ) : !isProfileComplete ? (
+            <Link
+              href="/profil"
+              prefetch={true}
+              className="w-full inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-gradient-to-r from-amber-600 to-orange-500 hover:from-amber-500 hover:to-orange-400 text-white font-bold text-sm shadow-xl shadow-amber-500/25 transition transform hover:-translate-y-0.5"
+            >
+              <AlertCircle className="w-4 h-4" />
+              <span>{language === 'fr' ? 'Compléter mon dossier académique (Requis)' : 'Complete academic dossier (Required)'}</span>
+              <ArrowRight className="w-4 h-4" />
+            </Link>
           ) : (
             <button
               type="button"
