@@ -17,6 +17,7 @@ import {
 import { AcademicProfileData, ProfileStep, TargetWish, MAX_TARGET_WISHES } from '@/types/profile';
 import { createEmptyWish, wishesToSerializedText, parseLegacyOrStoredWishes } from '@/lib/profile/wishes';
 import { ProfileStepIndicator } from './ProfileStepIndicator';
+import { SmartSpellingAssistant } from './SmartSpellingAssistant';
 import { 
   Step1Schema, 
   Step3Schema, 
@@ -667,7 +668,14 @@ export function AcademicProfileForm() {
                   placeholder="Ex : Licence 3 Informatique, Baccalauréat Scientifique, BTS Comptabilité, Master 1..."
                   value={formData.currentDiploma}
                   onChange={(e) => handleInputChange('currentDiploma', e.target.value)}
+                  spellCheck={true}
+                  autoCorrect="on"
+                  lang="fr"
                   className="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition"
+                />
+                <SmartSpellingAssistant
+                  text={formData.currentDiploma}
+                  onApplyCorrection={(corrected) => handleInputChange('currentDiploma', corrected)}
                 />
                 {errors.currentDiploma && (
                   <p className="text-xs text-rose-400 mt-1.5 flex items-center gap-1">
@@ -685,7 +693,14 @@ export function AcademicProfileForm() {
                   placeholder="Ex : Génie Logiciel, Économie-Gestion, Droit Privé, Biologie..."
                   value={formData.fieldOfStudy}
                   onChange={(e) => handleInputChange('fieldOfStudy', e.target.value)}
+                  spellCheck={true}
+                  autoCorrect="on"
+                  lang="fr"
                   className="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition"
+                />
+                <SmartSpellingAssistant
+                  text={formData.fieldOfStudy}
+                  onApplyCorrection={(corrected) => handleInputChange('fieldOfStudy', corrected)}
                 />
                 {errors.fieldOfStudy && (
                   <p className="text-xs text-rose-400 mt-1.5 flex items-center gap-1">
@@ -703,7 +718,14 @@ export function AcademicProfileForm() {
                   placeholder="Ex : Université Cheikh Anta Diop (UCAD), Université Félix Houphouët-Boigny, ESP Dakar..."
                   value={formData.currentInstitution || ''}
                   onChange={(e) => handleInputChange('currentInstitution', e.target.value)}
+                  spellCheck={true}
+                  autoCorrect="on"
+                  lang="fr"
                   className="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition"
+                />
+                <SmartSpellingAssistant
+                  text={formData.currentInstitution || ''}
+                  onApplyCorrection={(corrected) => handleInputChange('currentInstitution', corrected)}
                 />
                 {errors.currentInstitution && (
                   <p className="text-xs text-rose-400 mt-1.5 flex items-center gap-1">
@@ -727,7 +749,14 @@ export function AcademicProfileForm() {
                   placeholder="Ex : Césure après la L2, réorientation vers l'informatique, retard de soutenance de stage... Expliquez avec vos propres mots pour que l'examinatrice comprenne votre évolution avec bienveillance."
                   value={formData.studyParticularities || ''}
                   onChange={(e) => handleInputChange('studyParticularities', e.target.value)}
+                  spellCheck={true}
+                  autoCorrect="on"
+                  lang="fr"
                   className="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition resize-none"
+                />
+                <SmartSpellingAssistant
+                  text={formData.studyParticularities || ''}
+                  onApplyCorrection={(corrected) => handleInputChange('studyParticularities', corrected)}
                 />
                 <p className="text-[11px] text-slate-500 mt-1">
                   Facultatif • Ces détails permettent d&apos;adapter les questions de l&apos;entretien oral sans jugement ni a priori.
@@ -799,7 +828,14 @@ export function AcademicProfileForm() {
                         placeholder="Ex : Master 1 Informatique parcours Big Data"
                         value={wish.programName}
                         onChange={(e) => handleWishChange(wish.id, 'programName', e.target.value)}
+                        spellCheck={true}
+                        autoCorrect="on"
+                        lang="fr"
                         className="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition"
+                      />
+                      <SmartSpellingAssistant
+                        text={wish.programName}
+                        onApplyCorrection={(corrected) => handleWishChange(wish.id, 'programName', corrected)}
                       />
                       {errors[`wish_${wish.id}_programName`] && (
                         <p className="text-xs text-rose-400 mt-1.5 flex items-center gap-1">
@@ -817,7 +853,14 @@ export function AcademicProfileForm() {
                         placeholder="Ex : Université de Lille, Université Paris-Saclay"
                         value={wish.institutionName}
                         onChange={(e) => handleWishChange(wish.id, 'institutionName', e.target.value)}
+                        spellCheck={true}
+                        autoCorrect="on"
+                        lang="fr"
                         className="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition"
+                      />
+                      <SmartSpellingAssistant
+                        text={wish.institutionName}
+                        onApplyCorrection={(corrected) => handleWishChange(wish.id, 'institutionName', corrected)}
                       />
                       {errors[`wish_${wish.id}_institutionName`] && (
                         <p className="text-xs text-rose-400 mt-1.5 flex items-center gap-1">
@@ -860,7 +903,14 @@ export function AcademicProfileForm() {
                 placeholder="Précisez les matières clés, les modules de spécialisation ou les laboratoires de recherche qui justifient votre choix..."
                 value={formData.reasonsForPrograms}
                 onChange={(e) => handleInputChange('reasonsForPrograms', e.target.value)}
+                spellCheck={true}
+                autoCorrect="on"
+                lang="fr"
                 className="w-full bg-slate-950 border border-slate-700/80 rounded-xl p-3.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition"
+              />
+              <SmartSpellingAssistant
+                text={formData.reasonsForPrograms}
+                onApplyCorrection={(corrected) => handleInputChange('reasonsForPrograms', corrected)}
               />
               <div className="flex justify-between items-center text-xs text-slate-500 mt-1">
                 <span>Motivation synthétique et précise</span>
@@ -898,7 +948,14 @@ export function AcademicProfileForm() {
                   placeholder="Ex : Je souhaite devenir Ingénieur Cloud / DevOps dans le secteur bancaire ou des télécoms. À court terme après l'obtention de mon diplôme, je vise un poste d'administrateur infrastructure pour automatiser les déploiements, avec pour objectif d'évoluer vers le conseil en architecture logicielle."
                   value={formData.professionalGoal}
                   onChange={(e) => handleInputChange('professionalGoal', e.target.value)}
+                  spellCheck={true}
+                  autoCorrect="on"
+                  lang="fr"
                   className="w-full bg-slate-950 border border-slate-700/80 rounded-xl p-3.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition resize-none"
+                />
+                <SmartSpellingAssistant
+                  text={formData.professionalGoal}
+                  onApplyCorrection={(corrected) => handleInputChange('professionalGoal', corrected)}
                 />
                 <div className="flex justify-between items-center text-xs text-slate-500 mt-1">
                   <span>Métier, fonction ou spécialisation visée</span>
@@ -923,7 +980,14 @@ export function AcademicProfileForm() {
                   placeholder="Ex : La France dispose d'un écosystème de formation d'excellence dans mon domaine, associant des cours théoriques pointus, des travaux pratiques sur des technologies récentes et des opportunités d'alternance en entreprise. Ce cadre me permettra d'acquérir une méthode de travail et une expertise reconnue internationalement."
                   value={formData.reasonFrance}
                   onChange={(e) => handleInputChange('reasonFrance', e.target.value)}
+                  spellCheck={true}
+                  autoCorrect="on"
+                  lang="fr"
                   className="w-full bg-slate-950 border border-slate-700/80 rounded-xl p-3.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition resize-none"
+                />
+                <SmartSpellingAssistant
+                  text={formData.reasonFrance}
+                  onApplyCorrection={(corrected) => handleInputChange('reasonFrance', corrected)}
                 />
                 <div className="flex justify-between items-center text-xs text-slate-500 mt-1">
                   <span>Raisons de la mobilité en France</span>
@@ -954,7 +1018,14 @@ export function AcademicProfileForm() {
                   placeholder="Ex : Stage de 3 mois en développement Python/Django chez Orange ; Certification AWS Cloud Practitioner ; Réalisation d'une application de gestion en React ; Membre actif du club informatique universitaire."
                   value={formData.strongSkills || ''}
                   onChange={(e) => handleInputChange('strongSkills', e.target.value)}
+                  spellCheck={true}
+                  autoCorrect="on"
+                  lang="fr"
                   className="w-full bg-slate-950 border border-slate-700/80 rounded-xl p-3.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition resize-none"
+                />
+                <SmartSpellingAssistant
+                  text={formData.strongSkills || ''}
+                  onApplyCorrection={(corrected) => handleInputChange('strongSkills', corrected)}
                 />
                 <p className="text-[11px] text-slate-500 mt-1">
                   Facultatif • Ces informations permettent à l&apos;examinatrice de vous poser des questions pertinentes sur vos réalisations concrètes.
@@ -988,7 +1059,14 @@ export function AcademicProfileForm() {
                 placeholder="Ex : Questions que vous redoutez, difficultés à justifier votre parcours ou une réorientation, manque de confiance à l'oral, présentation synthétique de votre projet professionnel..."
                 value={formData.weaknessesToWork || ''}
                 onChange={(e) => handleInputChange('weaknessesToWork', e.target.value)}
+                spellCheck={true}
+                autoCorrect="on"
+                lang="fr"
                 className="w-full bg-slate-950 border border-slate-700/80 rounded-xl p-3.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition"
+              />
+              <SmartSpellingAssistant
+                text={formData.weaknessesToWork || ''}
+                onApplyCorrection={(corrected) => handleInputChange('weaknessesToWork', corrected)}
               />
               <p className="text-[11px] text-slate-400 mt-1">
                 L&apos;IA prendra en compte ces indications pour orienter ses questions sans vous pénaliser.
