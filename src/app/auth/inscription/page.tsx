@@ -25,8 +25,8 @@ function InscriptionForm() {
   const { language } = useLanguage();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const rawRedirect = searchParams.get('redirectTo') || '/dashboard';
-  const redirectTo = (rawRedirect.startsWith('/') && !rawRedirect.startsWith('//')) ? rawRedirect : '/dashboard';
+  const rawRedirect = searchParams.get('redirectTo') || '/';
+  const redirectTo = (rawRedirect.startsWith('/') && !rawRedirect.startsWith('//')) ? rawRedirect : '/';
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

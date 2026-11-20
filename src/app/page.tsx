@@ -10,33 +10,36 @@ import {
   Trophy,
   ArrowRight, 
   Star, 
-  User, 
-  Menu, 
-  X, 
   Check, 
   ChevronRight, 
   ChevronDown, 
-  LogOut, 
   LayoutDashboard, 
   Sparkles, 
-  ShieldCheck, 
-  Award, 
-  Clock, 
-  Globe2, 
   Play, 
   Volume2, 
-  MessageSquare, 
   CheckCircle2,
-  Home,
   History,
   BookOpen,
-  CreditCard
+  Zap,
+  AlertCircle,
+  FileText
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
+import { Navbar } from '@/components/navigation/Navbar';
+import { useLanguage } from '@/lib/i18n/LanguageContext';
+import { AcademicProfileData } from '@/types/profile';
+import { isAcademicProfileComplete } from '@/lib/validations/profile';
+import { MobileMoneyModal } from '@/components/payments/MobileMoneyModal';
 
 export default function HomePage() {
+  const { language, t } = useLanguage();
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [profile, setProfile] = useState<AcademicProfileData | null>(null);
+  const [creditsBalance, setCreditsBalance] = useState<number>(1);
+  const [rechargeModalOpen, setRechargeModalOpen] = useState(false);
+  const [isAddingCredits, setIsAddingCredits] = useState(false);
+  const [showPublicPresentation, setShowPublicPresentation] = useState(false);
+
   const [activeFaq, setActiveFaq] = useState<number | null>(0);
   const [activeStep, setActiveStep] = useState<number | null>(0);
   const [activeTestimonial, setActiveTestimonial] = useState<number | null>(0);
@@ -57,11 +60,87 @@ export default function HomePage() {
     };
   }, []);
 
-  const handleSignOut = async () => {
-    const supabase = createClient();
-    await supabase.auth.signOut();
-    setIsAuthenticated(false);
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    async function loadCredits() {
+      try {
+        const res = await fetch('/api/credits');
+        if (res.ok) {
+          const data = await res.json();
+          if (typeof data.balance === 'number') {
+            setCreditsBalance(data.balance);
+            try {
+              localStorage.setItem('campus_france_credits_balance', data.balance.toString());
+            } catch {
+              // Ignorer
+            }
+            return;
+          }
+        }
+      } catch {
+        // Repli
+      }
+      try {
+        const saved = localStorage.getItem('campus_france_credits_balance');
+        if (saved !== null) {
+          setCreditsBalance(parseInt(saved, 10));
+        }
+      } catch {
+        // Ignorer
+      }
+    }
+
+    async function loadProfile() {
+      try {
+        const res = await fetch('/api/profile');
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.profile) {
+            setProfile(data.profile);
+            return;
+          }
+        }
+      } catch {
+        // Repli
+      }
+      try {
+        const saved = localStorage.getItem('campus_france_profile_draft');
+        if (saved) setProfile(JSON.parse(saved));
+      } catch {
+        // Ignorer
+      }
+    }
+
+    loadCredits();
+    loadProfile();
+  }, [isAuthenticated]);
+
+  const handleQuickAddCredits = async (amount: number = 10) => {
+    setIsAddingCredits(true);
+    try {
+      const res = await fetch('/api/credits', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount }),
+      });
+      const data = await res.json();
+      if (typeof data.balance === 'number') {
+        setCreditsBalance(data.balance);
+        try {
+          localStorage.setItem('campus_france_credits_balance', data.balance.toString());
+        } catch {
+          // Ignorer
+        }
+      }
+    } catch {
+      // Ignorer
+    } finally {
+      setIsAddingCredits(false);
+    }
   };
+
+  const isProfileComplete = isAcademicProfileComplete(profile);
 
   const faqItems = [
     {
@@ -163,278 +242,293 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-[#05070E] text-slate-100 flex flex-col font-sans selection:bg-[#0066FF]/30 selection:text-white">
       
-      {/* 1. Header Navigation Glassmorphism (Dark Theme) */}
-      <header className="sticky top-0 z-50 bg-[#05070E]/85 backdrop-blur-xl border-b border-white/10 transition-all">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between">
+      {/* 1. Header Navigation Unifié avec Menu Mobile Plein Écran Dark */}
+      <Navbar />
+
+      {/* ESPACE CANDIDAT AUTHENTIFIÉ — HUB DE PRÉPARATION DARK */}
+      {isAuthenticated && !showPublicPresentation ? (
+        <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-8 animate-in fade-in duration-300">
           
-          {/* Logo Prépa Campus */}
-          <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-[#0066FF] to-[#38BDF8] flex items-center justify-center text-white shadow-md shadow-blue-500/25 group-hover:scale-105 transition-transform">
-              <GraduationCap className="w-5 h-5 sm:w-6 sm:h-6" />
-            </div>
-            <div className="flex flex-col">
-              <span className="text-lg sm:text-xl font-extrabold tracking-tight text-white leading-none">
-                Prépa<span className="text-[#38BDF8]">Campus</span>
-              </span>
-              <span className="text-[10px] text-slate-400 font-medium tracking-wide mt-0.5 uppercase">
-                Simulateur d&apos;Entretien IA
-              </span>
-            </div>
-          </Link>
+          {/* 1. HERO PRÉPARATION CANDIDAT (La page noire préférée de l'étudiant) */}
+          <section className="relative rounded-3xl p-6 sm:p-12 text-center overflow-hidden border border-white/10 bg-gradient-to-b from-[#0B132B]/70 via-[#070D1E]/80 to-[#05070E] shadow-2xl">
+            {/* Lueur d'ambiance bleue */}
+            <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-[650px] h-[300px] bg-gradient-to-b from-[#0066FF]/25 via-[#38BDF8]/15 to-transparent blur-3xl pointer-events-none rounded-full" />
 
-          {/* Navigation Liens Desktop */}
-          <nav className="hidden md:flex items-center gap-6 text-sm font-semibold text-slate-300">
-            {isAuthenticated ? (
-              <>
-                <Link href="/" className="relative text-white font-bold transition flex items-center gap-1.5">
-                  <Home className="w-4 h-4 text-[#38BDF8]" />
-                  <span>Accueil</span>
-                  <span className="absolute -bottom-1.5 left-0 right-0 h-0.5 bg-[#0066FF] rounded-full" />
-                </Link>
-                <Link href="/dashboard" className="hover:text-white transition flex items-center gap-1.5">
-                  <LayoutDashboard className="w-4 h-4 text-slate-400" />
-                  <span>Tableau de bord</span>
-                </Link>
-                <Link href="/historique" className="hover:text-white transition flex items-center gap-1.5">
-                  <History className="w-4 h-4 text-slate-400" />
-                  <span>Historique</span>
-                </Link>
-                <Link href="/questions" className="hover:text-white transition flex items-center gap-1.5">
-                  <BookOpen className="w-4 h-4 text-slate-400" />
-                  <span>50 Questions</span>
-                </Link>
-                <Link href="/tarifs" className="hover:text-white transition flex items-center gap-1.5">
-                  <CreditCard className="w-4 h-4 text-slate-400" />
-                  <span>Tarifs & Packs</span>
-                </Link>
-              </>
-            ) : (
-              <>
-                <Link href="/" className="relative text-white font-bold transition">
-                  Accueil
-                  <span className="absolute -bottom-1.5 left-0 right-0 h-0.5 bg-[#0066FF] rounded-full" />
-                </Link>
-                <a href="#simulateur" className="hover:text-white transition flex items-center gap-1.5">
-                  <span>Simulateur IA</span>
-                  <span className="px-1.5 py-0.5 text-[10px] font-bold bg-blue-500/20 text-[#38BDF8] border border-blue-500/30 rounded-full">Nouveau</span>
-                </a>
-                <a href="#avantages" className="hover:text-white transition">
-                  Avantages
-                </a>
-                <a href="#comment-ca-marche" className="hover:text-white transition">
-                  Méthode
-                </a>
-                <a href="#temoignages" className="hover:text-white transition">
-                  Admis
-                </a>
-                <a href="#faq" className="hover:text-white transition">
-                  FAQ
-                </a>
-              </>
-            )}
-          </nav>
+            <div className="relative z-10 max-w-3xl mx-auto flex flex-col items-center">
+              {/* Badge supérieur */}
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-500/15 border border-blue-500/30 text-[#38BDF8] text-xs font-bold mb-5 shadow-xs">
+                <Sparkles className="w-3.5 h-3.5 text-[#38BDF8]" />
+                <span>{t('home.hero_badge')}</span>
+              </div>
 
-          {/* Actions Droite (Boutons visibles uniquement sur Desktop, accessibles via le menu hamburger sur Mobile) */}
-          <div className="flex items-center gap-3">
-            {isAuthenticated ? (
-              <div className="hidden md:flex items-center gap-2.5">
+              {/* Titre Principal */}
+              <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight leading-tight">
+                {t('home.hero_title')}{' '}
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#0066FF] via-[#38BDF8] to-cyan-400">
+                  {t('home.hero_title_highlight')}
+                </span>{' '}
+                {t('home.hero_title_suffix')}
+              </h1>
+
+              {/* Sous-titre */}
+              <p className="text-sm sm:text-base lg:text-lg text-slate-300 max-w-2xl mx-auto mt-4 leading-relaxed font-normal">
+                {t('home.hero_subtitle')}
+              </p>
+
+              {/* Bouton d'action principal */}
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5 sm:gap-4 mt-8 w-full max-w-md mx-auto">
                 <Link
-                  href="/profil"
+                  href={isProfileComplete ? "/entretien/preparation" : "/profil"}
                   prefetch={true}
-                  className="inline-flex items-center gap-1.5 border border-white/15 bg-white/5 hover:bg-white/10 text-white text-xs sm:text-sm font-semibold px-3.5 sm:px-4 py-2 rounded-full backdrop-blur-md transition"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-8 py-4 rounded-2xl bg-gradient-to-r from-[#0066FF] to-[#0052CC] hover:from-[#0052CC] hover:to-[#0040A8] text-white font-extrabold text-sm sm:text-base shadow-xl shadow-blue-500/30 transition transform hover:-translate-y-0.5 active:scale-95 group cursor-pointer"
                 >
-                  <User className="w-3.5 h-3.5 text-[#38BDF8]" />
-                  <span>Mon Dossier</span>
+                  <Play className="w-4 h-4 fill-current group-hover:scale-110 transition-transform" />
+                  <span>{t('home.hero_cta')}</span>
+                  <ArrowRight className="w-4 h-4" />
                 </Link>
+
                 <Link
                   href="/dashboard"
                   prefetch={true}
-                  className="inline-flex items-center gap-2 bg-[#0066FF] hover:bg-[#0052CC] text-white text-xs sm:text-sm font-semibold px-4 sm:px-5 py-2.5 rounded-full shadow-md shadow-blue-500/20 transition-all hover:-translate-y-0.5"
-                >
-                  <LayoutDashboard className="w-4 h-4" />
-                  <span>Mon espace</span>
-                </Link>
-                <button
-                  onClick={handleSignOut}
-                  title="Se déconnecter"
-                  className="p-2 text-slate-400 hover:text-white hover:bg-white/10 rounded-full transition"
-                >
-                  <LogOut className="w-4 h-4" />
-                </button>
-              </div>
-            ) : (
-              <div className="hidden md:flex items-center gap-2 sm:gap-3">
-                <Link
-                  href="/auth/connexion"
-                  prefetch={true}
-                  className="inline-flex items-center gap-1.5 border border-white/15 bg-white/5 hover:bg-white/10 text-white text-xs sm:text-sm font-semibold px-3.5 sm:px-4 py-2 rounded-full backdrop-blur-md transition"
-                >
-                  <User className="w-3.5 h-3.5 text-slate-300" />
-                  <span>Connexion</span>
-                </Link>
-                <Link
-                  href="/auth/inscription"
-                  prefetch={true}
-                  className="inline-flex items-center gap-1.5 bg-[#0066FF] hover:bg-[#0052CC] text-white text-xs sm:text-sm font-semibold px-4 sm:px-5 py-2 sm:py-2.5 rounded-full shadow-lg shadow-blue-500/30 hover:shadow-blue-500/40 transition-all hover:-translate-y-0.5"
-                >
-                  <span>Créer mon compte</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </Link>
-              </div>
-            )}
-
-            {/* Menu Mobile Hamburger */}
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-2 text-slate-300 hover:text-white hover:bg-white/10 rounded-lg transition"
-              aria-label="Ouvrir le menu"
-            >
-              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-            </button>
-          </div>
-        </div>
-
-        {/* Tiroir Mobile */}
-        {mobileMenuOpen && (
-          <div className="md:hidden bg-[#0A0E1A]/98 backdrop-blur-xl border-b border-white/10 px-4 pt-3 pb-6 space-y-2 shadow-2xl animate-in fade-in">
-            {isAuthenticated ? (
-              <div className="space-y-1.5">
-                <Link
-                  href="/"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center gap-3 px-4 py-3 rounded-xl bg-blue-500/15 border border-blue-500/30 text-[#38BDF8] font-bold text-sm"
-                >
-                  <Home className="w-4 h-4 text-[#38BDF8]" />
-                  <span>Accueil</span>
-                </Link>
-                <Link
-                  href="/dashboard"
-                  prefetch={true}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center gap-3 px-4 py-3 rounded-xl bg-[#0D121F] border border-white/10 text-slate-200 hover:text-white text-sm font-semibold transition"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-4 rounded-2xl bg-[#0D121F] hover:bg-[#121827] text-slate-200 hover:text-white border border-white/10 text-xs sm:text-sm font-bold shadow-md transition cursor-pointer"
                 >
                   <LayoutDashboard className="w-4 h-4 text-[#38BDF8]" />
                   <span>Tableau de bord</span>
                 </Link>
-                <Link
-                  href="/historique"
-                  prefetch={true}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center gap-3 px-4 py-3 rounded-xl bg-[#0D121F] border border-white/10 text-slate-200 hover:text-white text-sm font-semibold transition"
-                >
-                  <History className="w-4 h-4 text-[#38BDF8]" />
-                  <span>Historique</span>
-                </Link>
-                <Link
-                  href="/questions"
-                  prefetch={true}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center gap-3 px-4 py-3 rounded-xl bg-[#0D121F] border border-white/10 text-slate-200 hover:text-white text-sm font-semibold transition"
-                >
-                  <BookOpen className="w-4 h-4 text-[#38BDF8]" />
-                  <span>50 Questions types</span>
-                </Link>
-                <Link
-                  href="/tarifs"
-                  prefetch={true}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center gap-3 px-4 py-3 rounded-xl bg-[#0D121F] border border-white/10 text-slate-200 hover:text-white text-sm font-semibold transition"
-                >
-                  <CreditCard className="w-4 h-4 text-[#38BDF8]" />
-                  <span>Tarifs & Formules</span>
-                </Link>
-                <div className="pt-3 border-t border-white/10 grid grid-cols-2 gap-2">
-                  <Link
-                    href="/profil"
-                    prefetch={true}
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 text-slate-200 hover:text-white text-xs font-semibold transition"
-                  >
-                    <User className="w-4 h-4 text-[#38BDF8]" />
-                    <span>Mon Dossier</span>
-                  </Link>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setMobileMenuOpen(false);
-                      handleSignOut();
-                    }}
-                    className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-300 hover:text-rose-200 text-xs font-semibold transition"
-                  >
-                    <LogOut className="w-4 h-4" />
-                    <span>Se déconnecter</span>
-                  </button>
-                </div>
               </div>
-            ) : (
-              <>
-                <Link
-                  href="/"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="block py-2 text-sm text-[#38BDF8] font-bold"
-                >
-                  Accueil
-                </Link>
-                <a
-                  href="#simulateur"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="block py-2 text-sm text-slate-300 hover:text-white font-medium"
-                >
-                  Simulateur IA
-                </a>
-                <a
-                  href="#avantages"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="block py-2 text-sm text-slate-300 hover:text-white font-medium"
-                >
-                  Avantages
-                </a>
-                <a
-                  href="#comment-ca-marche"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="block py-2 text-sm text-slate-300 hover:text-white font-medium"
-                >
-                  Comment ça marche
-                </a>
-                <a
-                  href="#temoignages"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="block py-2 text-sm text-slate-300 hover:text-white font-medium"
-                >
-                  Témoignages
-                </a>
-                <a
-                  href="#faq"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="block py-2 text-sm text-slate-300 hover:text-white font-medium"
-                >
-                  FAQ
-                </a>
-                <div className="pt-3 border-t border-white/10 space-y-2">
-                  <Link
-                    href="/auth/connexion"
-                    prefetch={true}
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="w-full flex items-center justify-center gap-2 border border-white/15 text-white text-sm font-semibold py-2.5 rounded-full hover:bg-white/10 transition"
-                  >
-                    <User className="w-4 h-4" />
-                    <span>Se connecter</span>
-                  </Link>
-                  <Link
-                    href="/auth/inscription"
-                    prefetch={true}
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="w-full flex items-center justify-center gap-2 bg-[#0066FF] hover:bg-[#0052CC] text-white text-sm font-semibold py-2.5 rounded-full transition shadow-lg shadow-blue-500/30"
-                  >
-                    <span>Créer mon compte</span>
-                    <ArrowRight className="w-4 h-4" />
+
+              {/* Disclaimer d'indépendance discret */}
+              <p className="text-[11px] text-slate-500 mt-5 max-w-xl">
+                {t('home.disclaimer')}
+              </p>
+            </div>
+          </section>
+
+          {/* 2. STATUT CANDIDAT (Solde & Dossier Pastel) */}
+          <div className="p-5 sm:p-6 rounded-3xl bg-[#0D121F] border border-white/10 shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-5">
+            {/* Solde & Rechargement */}
+            <div className="flex items-center gap-3 flex-wrap">
+              <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-xs font-semibold">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="text-slate-300">
+                  Solde de simulations :{' '}
+                  <strong className="text-white font-bold">
+                    {creditsBalance} {creditsBalance > 1 ? 'disponibles' : 'disponible'}
+                  </strong>
+                </span>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setRechargeModalOpen(true)}
+                className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#0066FF] hover:bg-[#0052CC] text-white font-bold text-xs shadow-md shadow-blue-500/25 transition active:scale-95 cursor-pointer"
+              >
+                <Zap className="w-3.5 h-3.5" />
+                <span>Recharger</span>
+              </button>
+
+              <button
+                type="button"
+                disabled={isAddingCredits}
+                onClick={() => handleQuickAddCredits(10)}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-emerald-500/15 border border-emerald-500/30 hover:bg-emerald-500/25 text-emerald-400 font-bold text-xs transition active:scale-95 cursor-pointer"
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>{isAddingCredits ? '...' : '+10 Gratuits'}</span>
+              </button>
+            </div>
+
+            {/* Dossier Académique Stepper / Status */}
+            <div className="flex items-center gap-3">
+              {isProfileComplete ? (
+                <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-semibold">
+                  <CheckCircle2 className="w-4 h-4 shrink-0" />
+                  <span>Dossier académique complet</span>
+                  <Link href="/profil" className="text-white hover:underline text-[11px] ml-1">
+                    (Vérifier)
                   </Link>
                 </div>
-              </>
-            )}
+              ) : (
+                <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-300 text-xs font-semibold">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <span>Dossier incomplet</span>
+                  <Link href="/profil" className="text-white font-bold underline text-xs ml-1">
+                    Compléter mon dossier →
+                  </Link>
+                </div>
+              )}
+            </div>
           </div>
-        )}
-      </header>
+
+          {/* 3. LES 4 ACTIONS ESSENTIELLES DU CANDIDAT */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            
+            {/* Action 1 : Simulation */}
+            <Link
+              href={isProfileComplete ? "/entretien/preparation" : "/profil"}
+              className="p-5 rounded-2xl bg-[#0D121F] border border-white/10 hover:border-blue-500/40 transition group flex flex-col justify-between"
+            >
+              <div className="space-y-3">
+                <div className="w-10 h-10 rounded-xl bg-blue-500/15 border border-blue-500/30 flex items-center justify-center text-[#38BDF8] group-hover:scale-105 transition-transform">
+                  <Mic className="w-5 h-5" />
+                </div>
+                <h3 className="text-base font-bold text-white group-hover:text-[#38BDF8] transition">
+                  Simulation Vocale (5 min)
+                </h3>
+                <p className="text-xs text-slate-400 leading-relaxed">
+                  Entraînement en direct avec le jury IA, relances adaptées et chronomètre officiel.
+                </p>
+              </div>
+              <div className="pt-4 mt-2 border-t border-white/5 flex items-center justify-between text-xs font-bold text-[#38BDF8]">
+                <span>Lancer l&apos;entretien</span>
+                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+              </div>
+            </Link>
+
+            {/* Action 2 : 50 Questions types */}
+            <Link
+              href="/questions"
+              className="p-5 rounded-2xl bg-[#0D121F] border border-white/10 hover:border-blue-500/40 transition group flex flex-col justify-between"
+            >
+              <div className="space-y-3">
+                <div className="w-10 h-10 rounded-xl bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center text-cyan-400 group-hover:scale-105 transition-transform">
+                  <BookOpen className="w-5 h-5" />
+                </div>
+                <h3 className="text-base font-bold text-white group-hover:text-cyan-400 transition">
+                  50 Questions Types
+                </h3>
+                <p className="text-xs text-slate-400 leading-relaxed">
+                  Banque officielle des 50 questions posées par les conseillers et pièges décryptés.
+                </p>
+              </div>
+              <div className="pt-4 mt-2 border-t border-white/5 flex items-center justify-between text-xs font-bold text-cyan-400">
+                <span>Explorer les questions</span>
+                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+              </div>
+            </Link>
+
+            {/* Action 3 : Historique & Bilans */}
+            <Link
+              href="/historique"
+              className="p-5 rounded-2xl bg-[#0D121F] border border-white/10 hover:border-blue-500/40 transition group flex flex-col justify-between"
+            >
+              <div className="space-y-3">
+                <div className="w-10 h-10 rounded-xl bg-purple-500/15 border border-purple-500/30 flex items-center justify-center text-purple-400 group-hover:scale-105 transition-transform">
+                  <History className="w-5 h-5" />
+                </div>
+                <h3 className="text-base font-bold text-white group-hover:text-purple-400 transition">
+                  Historique & Bilans
+                </h3>
+                <p className="text-xs text-slate-400 leading-relaxed">
+                  Consultez vos bilans verbatim, notes consulaires sur 20 et conseils de progression.
+                </p>
+              </div>
+              <div className="pt-4 mt-2 border-t border-white/5 flex items-center justify-between text-xs font-bold text-purple-400">
+                <span>Voir mes rapports</span>
+                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+              </div>
+            </Link>
+
+            {/* Action 4 : Dossier Pastel */}
+            <Link
+              href="/profil"
+              className="p-5 rounded-2xl bg-[#0D121F] border border-white/10 hover:border-blue-500/40 transition group flex flex-col justify-between"
+            >
+              <div className="space-y-3">
+                <div className="w-10 h-10 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400 group-hover:scale-105 transition-transform">
+                  <FileText className="w-5 h-5" />
+                </div>
+                <h3 className="text-base font-bold text-white group-hover:text-emerald-400 transition">
+                  Mon Dossier Pastel
+                </h3>
+                <p className="text-xs text-slate-400 leading-relaxed">
+                  Renseignez vos universités, projet professionnel et correction intelligente d&apos;orthographe.
+                </p>
+              </div>
+              <div className="pt-4 mt-2 border-t border-white/5 flex items-center justify-between text-xs font-bold text-emerald-400">
+                <span>Modifier mon dossier</span>
+                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+              </div>
+            </Link>
+
+          </div>
+
+          {/* 4. LES 3 PILIERS DE LA PRÉPARATION */}
+          <section className="p-6 sm:p-8 rounded-3xl bg-[#0D121F] border border-white/10 space-y-6">
+            <div className="text-center max-w-xl mx-auto">
+              <h2 className="text-xl sm:text-2xl font-black text-white">
+                {t('home.how_it_works')}
+              </h2>
+              <p className="text-xs text-slate-400 mt-1">
+                La méthode recommandée pour décrocher votre avis favorable Campus France.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="p-4 rounded-2xl bg-white/5 border border-white/5 space-y-2">
+                <span className="w-7 h-7 rounded-lg bg-blue-500/20 text-[#38BDF8] flex items-center justify-center text-xs font-bold">1</span>
+                <h3 className="text-sm font-bold text-white">{t('home.pillar1_title')}</h3>
+                <p className="text-xs text-slate-400 leading-relaxed">{t('home.pillar1_desc')}</p>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-white/5 border border-white/5 space-y-2">
+                <span className="w-7 h-7 rounded-lg bg-cyan-500/20 text-cyan-400 flex items-center justify-center text-xs font-bold">2</span>
+                <h3 className="text-sm font-bold text-white">{t('home.pillar2_title')}</h3>
+                <p className="text-xs text-slate-400 leading-relaxed">{t('home.pillar2_desc')}</p>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-white/5 border border-white/5 space-y-2">
+                <span className="w-7 h-7 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xs font-bold">3</span>
+                <h3 className="text-sm font-bold text-white">{t('home.pillar3_title')}</h3>
+                <p className="text-xs text-slate-400 leading-relaxed">{t('home.pillar3_desc')}</p>
+              </div>
+            </div>
+          </section>
+
+          {/* 5. AVERTISSEMENTS & SÉCURITÉ */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-slate-400">
+            <div className="p-4 rounded-2xl bg-[#0D121F] border border-white/5 space-y-1">
+              <span className="font-bold text-slate-200 block">Avertissement & Indépendance</span>
+              <p className="text-[11px] leading-relaxed text-slate-400">
+                PrépaCampus est une structure privée et indépendante d&apos;aide et de simulation pédagogique pour préparer le vrai entretien. Nous ne travaillons pas avec Campus France et n&apos;avons aucune affiliation institutionnelle.
+              </p>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-[#0D121F] border border-white/5 space-y-1">
+              <span className="font-bold text-slate-200 block">Sécurité & Confidentialité de la Caméra</span>
+              <p className="text-[11px] leading-relaxed text-slate-400">
+                La caméra est activée exclusivement pour vous placer en conditions réelles. Nous ne collectons aucune donnée vidéo : vos images ne sont jamais enregistrées ni stockées dans nos bases.
+              </p>
+            </div>
+          </div>
+
+          {/* 6. LIEN VERS LA PRÉSENTATION PUBLIQUE */}
+          <div className="text-center pt-2 pb-6">
+            <button
+              type="button"
+              onClick={() => setShowPublicPresentation(true)}
+              className="inline-flex items-center gap-2 text-xs text-slate-500 hover:text-[#38BDF8] underline decoration-slate-700 underline-offset-4 transition cursor-pointer"
+            >
+              <span>Consulter la présentation publique de Prépa Campus</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+
+        </main>
+      ) : (
+        <>
+          {showPublicPresentation && (
+            <div className="bg-[#0D121F] border-b border-white/10 px-4 py-3 text-center text-xs text-slate-300 flex items-center justify-center gap-3">
+              <span>Vous consultez actuellement la vitrine publique du simulateur.</span>
+              <button
+                type="button"
+                onClick={() => setShowPublicPresentation(false)}
+                className="text-[#38BDF8] font-bold hover:underline inline-flex items-center gap-1 cursor-pointer"
+              >
+                <span>← Revenir à mon espace de préparation</span>
+              </button>
+            </div>
+          )}
 
       {/* 2. HERO SECTION — COUVERTURE TOTALE (PLEIN ÉCRAN IMMERSIF - DARK THEME) */}
       
@@ -1205,6 +1299,25 @@ export default function HomePage() {
           </div>
         </div>
       </footer>
+        </>
+      )}
+
+      {/* MODAL DE RECHARGEMENT MOBILE MONEY */}
+      <MobileMoneyModal
+        isOpen={rechargeModalOpen}
+        onClose={() => setRechargeModalOpen(false)}
+        defaultPackId="pack_reussite"
+        onPaymentSuccess={async () => {
+          setRechargeModalOpen(false);
+          const res = await fetch('/api/credits');
+          if (res.ok) {
+            const data = await res.json();
+            if (typeof data.balance === 'number') {
+              setCreditsBalance(data.balance);
+            }
+          }
+        }}
+      />
 
     </div>
   );

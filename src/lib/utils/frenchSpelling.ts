@@ -263,3 +263,4 @@ export function applyAllSpellingCorrections(text: string): {
 
   return { correctedText: updated, count };
 }
+
