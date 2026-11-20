@@ -258,14 +258,7 @@ export function Navbar() {
                 </div>
                 <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-[#05070E]" />
               </Link>
-            ) : (
-              <Link
-                href="/auth/connexion"
-                className="text-xs font-bold text-[#38BDF8] hover:text-white px-1.5 py-1"
-              >
-                {t('nav.login')}
-              </Link>
-            )}
+            ) : null}
 
             {/* Bouton Hamburger */}
             <button

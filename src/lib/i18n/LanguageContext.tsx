@@ -23,7 +23,7 @@ export const TRANSLATIONS: Translations = {
   'nav.signup': { fr: 'Créer un compte', en: 'Create Account' },
   'nav.start': { fr: 'Commencer', en: 'Get Started' },
   'nav.signout': { fr: 'Déconnexion', en: 'Sign Out' },
-  'nav.tagline': { fr: 'Simulation IA Vocale', en: 'Voice AI Simulation' },
+  'nav.tagline': { fr: "Simulateur d'Entretien IA", en: 'AI Interview Simulator' },
   'nav.lang_switch': { fr: 'Langue', en: 'Language' },
 
   // Home Page

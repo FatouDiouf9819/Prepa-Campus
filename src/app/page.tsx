@@ -172,8 +172,8 @@ export default function HomePage() {
               <span className="text-lg sm:text-xl font-extrabold tracking-tight text-white leading-none">
                 Prépa<span className="text-[#38BDF8]">Campus</span>
               </span>
-              <span className="text-[10px] text-slate-400 font-medium tracking-wide mt-0.5">
-                RÉUSSITE CAMPUS FRANCE
+              <span className="text-[10px] text-slate-400 font-medium tracking-wide mt-0.5 uppercase">
+                Simulateur d&apos;Entretien IA
               </span>
             </div>
           </Link>
@@ -202,10 +202,10 @@ export default function HomePage() {
             </a>
           </nav>
 
-          {/* Actions Droite */}
+          {/* Actions Droite (Boutons visibles uniquement sur Desktop, accessibles via le menu hamburger sur Mobile) */}
           <div className="flex items-center gap-3">
             {isAuthenticated ? (
-              <div className="flex items-center gap-2.5">
+              <div className="hidden md:flex items-center gap-2.5">
                 <Link
                   href="/dashboard"
                   prefetch={true}
@@ -223,7 +223,7 @@ export default function HomePage() {
                 </button>
               </div>
             ) : (
-              <div className="flex items-center gap-2 sm:gap-3">
+              <div className="hidden md:flex items-center gap-2 sm:gap-3">
                 <Link
                   href="/auth/connexion"
                   prefetch={true}
