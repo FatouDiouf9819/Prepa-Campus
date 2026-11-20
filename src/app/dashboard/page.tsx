@@ -299,6 +299,78 @@ export default function DashboardPage() {
           </div>
         </div>
 
+        {/* Bannière de Parcours d'Onboarding Guidé (Idéal pour orienter l'étudiant dès la connexion) */}
+        {!isProfileComplete ? (
+          <div className="p-5 sm:p-6 rounded-3xl bg-gradient-to-r from-blue-950/60 via-[#0D121F] to-cyan-950/40 border border-blue-500/40 shadow-xl space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/15 border border-blue-500/30 text-[#38BDF8] text-xs font-bold mb-2">
+                  <Sparkles className="w-3.5 h-3.5" />
+                  {language === 'fr' ? 'Étape 1 sur 3 • Action requise' : 'Step 1 of 3 • Action required'}
+                </span>
+                <h2 className="text-lg sm:text-xl font-black text-white">
+                  {language === 'fr' ? 'Bienvenue sur votre espace de préparation !' : 'Welcome to your preparation space!'}
+                </h2>
+                <p className="text-xs sm:text-sm text-slate-300 mt-1 max-w-2xl leading-relaxed">
+                  {language === 'fr'
+                    ? 'Pour que le jury IA adapte ses questions sur vos vraies formations et vos universités, complétez votre dossier académique en 2 minutes avant de lancer votre simulation.'
+                    : 'To allow the AI jury to tailor questions to your real degree and target universities, please complete your academic profile before launching the simulation.'}
+                </p>
+              </div>
+
+              <Link
+                href="/profil"
+                className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white font-bold text-xs sm:text-sm shadow-xl shadow-blue-500/30 transition transform hover:-translate-y-0.5 active:scale-95 shrink-0"
+              >
+                <span>{language === 'fr' ? 'Compléter mon dossier académique' : 'Complete my academic profile'}</span>
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+
+            {/* Stepper visuel 3 étapes */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 border-t border-white/10 text-xs">
+              <div className="flex items-center gap-2.5 p-2.5 rounded-xl bg-blue-500/20 border border-blue-500/40 text-white font-semibold">
+                <span className="w-6 h-6 rounded-lg bg-blue-600 text-white flex items-center justify-center text-xs font-bold shrink-0">1</span>
+                <span>{language === 'fr' ? 'Dossier académique (À faire)' : 'Academic profile (Pending)'}</span>
+              </div>
+              <div className="flex items-center gap-2.5 p-2.5 rounded-xl bg-white/5 text-slate-400">
+                <span className="w-6 h-6 rounded-lg bg-white/10 text-slate-300 flex items-center justify-center text-xs font-bold shrink-0">2</span>
+                <span>{language === 'fr' ? 'Simulation vocale (5 min)' : 'Voice simulation (5 min)'}</span>
+              </div>
+              <div className="flex items-center gap-2.5 p-2.5 rounded-xl bg-white/5 text-slate-400">
+                <span className="w-6 h-6 rounded-lg bg-white/10 text-slate-300 flex items-center justify-center text-xs font-bold shrink-0">3</span>
+                <span>{language === 'fr' ? 'Bilan & Notes consulaires' : 'Feedback & Consular scores'}</span>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="p-5 sm:p-6 rounded-3xl bg-gradient-to-r from-emerald-950/50 via-[#0D121F] to-teal-950/40 border border-emerald-500/40 shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-bold">
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                {language === 'fr' ? 'Dossier académique configuré & validé' : 'Academic profile configured & ready'}
+              </span>
+              <h2 className="text-lg sm:text-xl font-black text-white">
+                {language === 'fr' ? 'Prêt pour votre simulation d\'entretien officielle ?' : 'Ready for your official practice interview?'}
+              </h2>
+              <p className="text-xs text-slate-300">
+                {language === 'fr' 
+                  ? `L'examinatrice IA est calibrée sur votre profil (${profile?.currentDiploma || 'Diplôme'} • ${profile?.fieldOfStudy || 'Filière'}).`
+                  : `The AI jury is tailored to your profile (${profile?.currentDiploma || 'Degree'} • ${profile?.fieldOfStudy || 'Field'}).`}
+              </p>
+            </div>
+
+            <Link
+              href="/entretien/preparation"
+              className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-500 to-cyan-500 hover:from-emerald-500 hover:to-teal-400 text-white font-bold text-xs sm:text-sm shadow-xl shadow-emerald-500/25 transition transform hover:-translate-y-0.5 active:scale-95 shrink-0"
+            >
+              <Mic className="w-4 h-4" />
+              <span>{language === 'fr' ? 'Lancer ma simulation vocale (5 min)' : 'Start voice simulation (5 min)'}</span>
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+        )}
+
         {/* Bannière de recharge de test gratuite */}
         {creditsBalance <= 1 && (
           <div className="p-4 sm:p-5 rounded-3xl bg-[#0D121F] border border-emerald-500/30 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs">
@@ -645,12 +717,18 @@ export default function DashboardPage() {
         onPaymentSuccess={(newBalance) => setCreditsBalance(newBalance)}
       />
 
-      <footer className="border-t border-white/10 py-6 text-center text-xs text-slate-500 bg-[#05070E]">
-        <p>
-          {language === 'fr' 
-            ? 'PrépaCampus — Entraînement pédagogique indépendant aux entretiens Campus France.' 
-            : 'PrépaCampus — Independent pedagogical preparation for Campus France interviews.'}
-        </p>
+      <footer className="border-t border-white/10 py-8 text-center text-xs text-slate-400 bg-[#05070E] space-y-3 mt-8">
+        <div className="max-w-4xl mx-auto px-4 space-y-2 text-[11px] leading-relaxed text-slate-500">
+          <p>
+            <strong className="text-slate-400">Avertissement légal & Indépendance :</strong> PrépaCampus est une structure privée et indépendante d&apos;aide à la préparation pédagogique des entretiens de mobilité étudiante. Elle n&apos;est ni affiliée, ni agréée, ni liée à l&apos;agence gouvernementale Campus France ou aux ministères français. La dénomination « Campus France » est une marque déposée appartenant à ses ayants droit.
+          </p>
+          <p>
+            <strong className="text-slate-400">Sécurité & Confidentialité de votre Caméra :</strong> Le retour vidéo de votre caméra sert exclusivement à vous placer dans les conditions immersives réelles d&apos;un entretien. Aucune donnée vidéo n&apos;est collectée, enregistrée ou conservée dans nos bases de données.
+          </p>
+        </div>
+        <div className="text-[11px] text-slate-600">
+          © {new Date().getFullYear()} PrépaCampus • Simulateur d&apos;entretien vocal IA indépendant • Tous droits réservés.
+        </div>
       </footer>
     </div>
   );

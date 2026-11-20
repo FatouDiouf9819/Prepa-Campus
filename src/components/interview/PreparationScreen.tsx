@@ -392,12 +392,19 @@ export function PreparationScreen() {
             </div>
           </div>
 
-          {/* Note sur la protection des données */}
-          <div className="p-3.5 rounded-xl bg-slate-900/60 border border-slate-800/80 text-xs text-slate-400 flex items-start gap-2.5">
-            <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-            <p>
-              <strong className="text-slate-200">Confidentialité garantie :</strong> Votre flux vidéo reste à 100% sur votre appareil. Aucun flux vidéo n&apos;est enregistré ni transmis à nos serveurs.
-            </p>
+          {/* Note sur la protection des données & Indépendance */}
+          <div className="p-3.5 rounded-xl bg-slate-900/80 border border-slate-800 text-xs text-slate-400 space-y-2">
+            <div className="flex items-start gap-2.5">
+              <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+              <div className="space-y-1">
+                <p>
+                  <strong className="text-white">Sécurité & Confidentialité de votre Caméra :</strong> La caméra est allumée exclusivement pour vous placer dans les conditions réelles d&apos;un entretien. <strong>Aucune donnée vidéo n&apos;est enregistrée, collectée ou stockée</strong> dans nos bases de données. Tout le traitement reste 100% local sur votre navigateur.
+                </p>
+                <p className="text-[11px] text-slate-500">
+                  PrépaCampus est une structure privée et indépendante d&apos;aide à la préparation et n&apos;est pas affiliée à l&apos;organisme Campus France.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
 

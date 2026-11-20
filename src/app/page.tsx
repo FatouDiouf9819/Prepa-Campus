@@ -1078,6 +1078,48 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* FOOTER OFFICIEL & MENTIONS LÉGALES */}
+      <footer className="border-t border-white/10 py-10 bg-[#05070E] text-slate-400">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-white/10 pb-6">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#0066FF] to-[#38BDF8] flex items-center justify-center text-white shadow-md">
+                <GraduationCap className="w-4 h-4" />
+              </div>
+              <span className="font-extrabold text-white text-lg tracking-tight">
+                Prépa<span className="text-[#38BDF8]">Campus</span>
+              </span>
+            </div>
+            <div className="flex items-center gap-6 text-xs text-slate-400 flex-wrap justify-center">
+              <Link href="/tarifs" className="hover:text-white transition">Tarifs & Formules</Link>
+              <Link href="/questions" className="hover:text-white transition">50 Questions Types</Link>
+              <Link href="/dashboard" className="hover:text-white transition">Espace Candidat</Link>
+              <Link href="/auth/connexion" className="hover:text-white transition">Connexion</Link>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-[11px] text-slate-500 leading-relaxed">
+            <div className="p-4 rounded-2xl bg-[#0D121F] border border-white/5 space-y-1.5">
+              <span className="font-bold text-slate-300 block">Avertissement & Indépendance</span>
+              <p>
+                PrépaCampus est une structure privée et indépendante d&apos;aide et de simulation pédagogique pour préparer le vrai entretien. Nous ne travaillons pas avec Campus France et ne représentons aucune institution gouvernementale. « Campus France » est une marque déposée par ses ayants droit.
+              </p>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-[#0D121F] border border-white/5 space-y-1.5">
+              <span className="font-bold text-slate-300 block">Confidentialité & Sécurité de la Caméra</span>
+              <p>
+                La caméra est allumée exclusivement pour vous placer dans les conditions réelles d&apos;immersion de l&apos;entretien officiel. Nous ne collectons aucune donnée vidéo. Vos images ne sont jamais enregistrées ni stockées dans nos bases de données et restent 100% locales sur votre appareil.
+              </p>
+            </div>
+          </div>
+
+          <div className="text-center text-[11px] text-slate-600 pt-2">
+            © {new Date().getFullYear()} PrépaCampus • Plateforme indépendante d&apos;entraînement à la mobilité étudiante • Tous droits réservés.
+          </div>
+        </div>
+      </footer>
+
     </div>
   );
 }

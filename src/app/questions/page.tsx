@@ -75,6 +75,14 @@ export default function QuestionsLibraryPage() {
     { id: 'PIEGES_AVENIR', label: language === 'fr' ? 'Questions Pièges' : 'Trap Questions' },
   ];
 
+  const categoryCounts = useMemo(() => {
+    const counts: Record<string, number> = { ALL: OFFICIAL_QUESTIONS.length };
+    OFFICIAL_QUESTIONS.forEach((q) => {
+      counts[q.category] = (counts[q.category] || 0) + 1;
+    });
+    return counts;
+  }, []);
+
   const filteredQuestions = useMemo(() => {
     return OFFICIAL_QUESTIONS.filter((q) => {
       const matchCategory = selectedCategory === 'ALL' || q.category === selectedCategory;
@@ -182,25 +190,42 @@ export default function QuestionsLibraryPage() {
             />
           </div>
 
-          {/* Onglets de filtrage horizontaux épurés */}
+          {/* Onglets de filtrage horizontaux épurés avec compteurs */}
           <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1">
             {categories.map((cat) => {
               const isActive = selectedCategory === cat.id;
+              const count = categoryCounts[cat.id] || 0;
               return (
                 <button
                   key={cat.id}
                   type="button"
                   onClick={() => setSelectedCategory(cat.id)}
-                  className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition cursor-pointer ${
+                  className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition cursor-pointer flex items-center gap-1.5 ${
                     isActive
                       ? 'bg-[#0066FF] text-white font-bold shadow-md shadow-blue-500/25'
                       : 'bg-[#0D121F] border border-white/10 text-slate-300 hover:text-white hover:border-white/25'
                   }`}
                 >
-                  {cat.label}
+                  <span>{cat.label}</span>
+                  <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${
+                    isActive ? 'bg-white/20 text-white' : 'bg-white/5 text-slate-400'
+                  }`}>
+                    {count}
+                  </span>
                 </button>
               );
             })}
+          </div>
+
+          <div className="flex items-center justify-between text-xs text-slate-400 px-1 pt-1">
+            <span>
+              {language === 'fr' 
+                ? `${filteredQuestions.length} question${filteredQuestions.length > 1 ? 's' : ''} affichée${filteredQuestions.length > 1 ? 's' : ''} sur 50 questions types répertoriées`
+                : `Showing ${filteredQuestions.length} of 50 official questions`}
+            </span>
+            <span className="text-[11px] text-[#38BDF8] font-medium">
+              {language === 'fr' ? '5 questions en accès libre • 45 avec Pack' : '5 free questions • 45 with Pack'}
+            </span>
           </div>
         </div>
 
@@ -213,7 +238,7 @@ export default function QuestionsLibraryPage() {
           ) : (
             filteredQuestions.map((q: OfficialQuestion, idx: number) => {
               const isExpanded = expandedId === q.id;
-              const isSampleFreeQuestion = idx < 2;
+              const isSampleFreeQuestion = idx < 5;
               const isLockedForUser = !hasPremiumAccess && !isSampleFreeQuestion;
 
               return (
@@ -375,6 +400,21 @@ export default function QuestionsLibraryPage() {
           </Link>
         </div>
       </main>
+
+      {/* Footer Informatique & Libertés + Avertissement d'indépendance */}
+      <footer className="border-t border-white/10 py-8 text-center text-xs text-slate-400 bg-[#05070E] space-y-3 mt-8">
+        <div className="max-w-4xl mx-auto px-4 space-y-2 text-[11px] leading-relaxed text-slate-500">
+          <p>
+            <strong className="text-slate-400">Avertissement légal & Indépendance :</strong> PrépaCampus est une plateforme indépendante d&apos;entraînement pédagogique aux entretiens de mobilité étudiante. Elle n&apos;est ni affiliée, ni agréée, ni liée à l&apos;agence gouvernementale Campus France ou aux ministères français. La marque « Campus France » est une marque déposée appartenant à ses ayant-droits.
+          </p>
+          <p>
+            <strong className="text-slate-400">Sécurité & Confidentialité de votre Caméra :</strong> Le retour vidéo de votre caméra sert exclusivement à vous placer dans les conditions immersives réelles d&apos;un entretien. Aucune donnée vidéo n&apos;est collectée, enregistrée ou conservée dans nos bases de données.
+          </p>
+        </div>
+        <div className="text-[11px] text-slate-600">
+          © {new Date().getFullYear()} PrépaCampus • Simulateur d&apos;entretien vocal IA indépendant • Tous droits réservés.
+        </div>
+      </footer>
 
       {/* Modale de paiement Mobile Money directe */}
       <MobileMoneyModal

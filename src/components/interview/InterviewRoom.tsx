@@ -18,7 +18,8 @@ import {
   CameraOff,
   CheckCircle2,
   Edit3,
-  RefreshCw
+  RefreshCw,
+  ShieldCheck
 } from 'lucide-react';
 import { AcademicProfileData } from '@/types/profile';
 import { InterviewTurn, InterviewStatus, JuryPersonality } from '@/types/interview';
@@ -1219,6 +1220,12 @@ export function InterviewRoom() {
                 </span>
               </div>
             </div>
+
+            {/* Note rassurante de sécurité caméra */}
+            <div className="flex items-center gap-2 mt-2 px-3 py-1.5 rounded-xl bg-slate-900/60 border border-slate-800 text-[11px] text-slate-400">
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+              <span>Caméra locale d&apos;immersion • Aucun flux vidéo enregistré</span>
+            </div>
           </div>
 
           {/* Colonne Dialogue & État de l'IA */}
@@ -1547,7 +1554,7 @@ export function InterviewRoom() {
 
       {/* Barre inférieure */}
       <footer className="border-t border-slate-900 bg-slate-950 px-4 py-2 text-center text-[10px] text-slate-500">
-        Simulation d&apos;entretien Campus France • 5 minutes réglementaires • Traitement vocal éphémère et confidentiel.
+        Simulateur indépendant PrépaCampus • Non affilié à l&apos;organisme Campus France • Caméra locale sans aucun enregistrement vidéo.
       </footer>
 
       {/* Modal de confirmation d'arrêt d'entretien */}

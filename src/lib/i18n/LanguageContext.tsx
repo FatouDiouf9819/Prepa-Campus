@@ -91,8 +91,8 @@ export const TRANSLATIONS: Translations = {
     en: 'Your webcam stream remains strictly local inside your browser. No raw video or audio recording is stored on our servers. You keep full control of your personal data.'
   },
   'home.footer': {
-    fr: 'PrépaCampus — Entraînement pédagogique indépendant aux entretiens de mobilité étudiante.',
-    en: 'PrépaCampus — Independent pedagogical practice for international student mobility interviews.'
+    fr: 'PrépaCampus — Simulateur indépendant d\'entraînement aux entretiens. Non affilié à Campus France. Flux vidéo locaux sans enregistrement.',
+    en: 'PrépaCampus — Independent simulation platform. Not affiliated with Campus France. Local video stream without recording.'
   },
 
   // Tarifs / Pricing Hero
@@ -188,8 +188,8 @@ export const TRANSLATIONS: Translations = {
     en: 'Thanks to our atomic session guard, if a simulation encounters any network interruption at start, your credit is preserved and you can restart at no extra cost.'
   },
   'pricing.footer': {
-    fr: 'PrépaCampus — Tarifs officiels pour l\'entraînement à l\'entretien Campus France dans toute l\'Afrique & international.',
-    en: 'PrépaCampus — Official rates for Campus France interview practice across all Africa & worldwide.'
+    fr: 'PrépaCampus — Plateforme indépendante d\'aide et de simulation. Non affiliée à l\'agence Campus France.',
+    en: 'PrépaCampus — Independent student preparation platform. Not affiliated with Campus France agency.'
   },
 
   // Dashboard translations
