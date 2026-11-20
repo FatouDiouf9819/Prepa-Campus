@@ -26,7 +26,11 @@ import {
   Play, 
   Volume2, 
   MessageSquare, 
-  CheckCircle2 
+  CheckCircle2,
+  Home,
+  History,
+  BookOpen,
+  CreditCard
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
@@ -179,27 +183,55 @@ export default function HomePage() {
           </Link>
 
           {/* Navigation Liens Desktop */}
-          <nav className="hidden md:flex items-center gap-8 text-sm font-semibold text-slate-300">
-            <Link href="/" className="relative text-white font-bold transition">
-              Accueil
-              <span className="absolute -bottom-1.5 left-0 right-0 h-0.5 bg-[#0066FF] rounded-full" />
-            </Link>
-            <a href="#simulateur" className="hover:text-white transition flex items-center gap-1.5">
-              <span>Simulateur IA</span>
-              <span className="px-1.5 py-0.5 text-[10px] font-bold bg-blue-500/20 text-[#38BDF8] border border-blue-500/30 rounded-full">Nouveau</span>
-            </a>
-            <a href="#avantages" className="hover:text-white transition">
-              Avantages
-            </a>
-            <a href="#comment-ca-marche" className="hover:text-white transition">
-              Méthode
-            </a>
-            <a href="#temoignages" className="hover:text-white transition">
-              Admis
-            </a>
-            <a href="#faq" className="hover:text-white transition">
-              FAQ
-            </a>
+          <nav className="hidden md:flex items-center gap-6 text-sm font-semibold text-slate-300">
+            {isAuthenticated ? (
+              <>
+                <Link href="/" className="relative text-white font-bold transition flex items-center gap-1.5">
+                  <Home className="w-4 h-4 text-[#38BDF8]" />
+                  <span>Accueil</span>
+                  <span className="absolute -bottom-1.5 left-0 right-0 h-0.5 bg-[#0066FF] rounded-full" />
+                </Link>
+                <Link href="/dashboard" className="hover:text-white transition flex items-center gap-1.5">
+                  <LayoutDashboard className="w-4 h-4 text-slate-400" />
+                  <span>Tableau de bord</span>
+                </Link>
+                <Link href="/historique" className="hover:text-white transition flex items-center gap-1.5">
+                  <History className="w-4 h-4 text-slate-400" />
+                  <span>Historique</span>
+                </Link>
+                <Link href="/questions" className="hover:text-white transition flex items-center gap-1.5">
+                  <BookOpen className="w-4 h-4 text-slate-400" />
+                  <span>50 Questions</span>
+                </Link>
+                <Link href="/tarifs" className="hover:text-white transition flex items-center gap-1.5">
+                  <CreditCard className="w-4 h-4 text-slate-400" />
+                  <span>Tarifs & Packs</span>
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link href="/" className="relative text-white font-bold transition">
+                  Accueil
+                  <span className="absolute -bottom-1.5 left-0 right-0 h-0.5 bg-[#0066FF] rounded-full" />
+                </Link>
+                <a href="#simulateur" className="hover:text-white transition flex items-center gap-1.5">
+                  <span>Simulateur IA</span>
+                  <span className="px-1.5 py-0.5 text-[10px] font-bold bg-blue-500/20 text-[#38BDF8] border border-blue-500/30 rounded-full">Nouveau</span>
+                </a>
+                <a href="#avantages" className="hover:text-white transition">
+                  Avantages
+                </a>
+                <a href="#comment-ca-marche" className="hover:text-white transition">
+                  Méthode
+                </a>
+                <a href="#temoignages" className="hover:text-white transition">
+                  Admis
+                </a>
+                <a href="#faq" className="hover:text-white transition">
+                  FAQ
+                </a>
+              </>
+            )}
           </nav>
 
           {/* Actions Droite (Boutons visibles uniquement sur Desktop, accessibles via le menu hamburger sur Mobile) */}
@@ -207,12 +239,20 @@ export default function HomePage() {
             {isAuthenticated ? (
               <div className="hidden md:flex items-center gap-2.5">
                 <Link
+                  href="/profil"
+                  prefetch={true}
+                  className="inline-flex items-center gap-1.5 border border-white/15 bg-white/5 hover:bg-white/10 text-white text-xs sm:text-sm font-semibold px-3.5 sm:px-4 py-2 rounded-full backdrop-blur-md transition"
+                >
+                  <User className="w-3.5 h-3.5 text-[#38BDF8]" />
+                  <span>Mon Dossier</span>
+                </Link>
+                <Link
                   href="/dashboard"
                   prefetch={true}
                   className="inline-flex items-center gap-2 bg-[#0066FF] hover:bg-[#0052CC] text-white text-xs sm:text-sm font-semibold px-4 sm:px-5 py-2.5 rounded-full shadow-md shadow-blue-500/20 transition-all hover:-translate-y-0.5"
                 >
                   <LayoutDashboard className="w-4 h-4" />
-                  <span>Mon tableau de bord</span>
+                  <span>Mon espace</span>
                 </Link>
                 <button
                   onClick={handleSignOut}
@@ -256,60 +296,62 @@ export default function HomePage() {
 
         {/* Tiroir Mobile */}
         {mobileMenuOpen && (
-          <div className="md:hidden bg-[#0A0E1A]/95 backdrop-blur-xl border-b border-white/10 px-4 pt-3 pb-6 space-y-3 shadow-2xl">
-            <Link
-              href="/"
-              onClick={() => setMobileMenuOpen(false)}
-              className="block py-2 text-sm text-[#38BDF8] font-bold"
-            >
-              Accueil
-            </Link>
-            <a
-              href="#simulateur"
-              onClick={() => setMobileMenuOpen(false)}
-              className="block py-2 text-sm text-slate-300 hover:text-white font-medium"
-            >
-              Simulateur IA
-            </a>
-            <a
-              href="#avantages"
-              onClick={() => setMobileMenuOpen(false)}
-              className="block py-2 text-sm text-slate-300 hover:text-white font-medium"
-            >
-              Avantages
-            </a>
-            <a
-              href="#comment-ca-marche"
-              onClick={() => setMobileMenuOpen(false)}
-              className="block py-2 text-sm text-slate-300 hover:text-white font-medium"
-            >
-              Comment ça marche
-            </a>
-            <a
-              href="#temoignages"
-              onClick={() => setMobileMenuOpen(false)}
-              className="block py-2 text-sm text-slate-300 hover:text-white font-medium"
-            >
-              Témoignages
-            </a>
-            <a
-              href="#faq"
-              onClick={() => setMobileMenuOpen(false)}
-              className="block py-2 text-sm text-slate-300 hover:text-white font-medium"
-            >
-              FAQ
-            </a>
-            <div className="pt-3 border-t border-white/10 space-y-2">
-              {isAuthenticated ? (
-                <>
+          <div className="md:hidden bg-[#0A0E1A]/98 backdrop-blur-xl border-b border-white/10 px-4 pt-3 pb-6 space-y-2 shadow-2xl animate-in fade-in">
+            {isAuthenticated ? (
+              <div className="space-y-1.5">
+                <Link
+                  href="/"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-3 px-4 py-3 rounded-xl bg-blue-500/15 border border-blue-500/30 text-[#38BDF8] font-bold text-sm"
+                >
+                  <Home className="w-4 h-4 text-[#38BDF8]" />
+                  <span>Accueil</span>
+                </Link>
+                <Link
+                  href="/dashboard"
+                  prefetch={true}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-3 px-4 py-3 rounded-xl bg-[#0D121F] border border-white/10 text-slate-200 hover:text-white text-sm font-semibold transition"
+                >
+                  <LayoutDashboard className="w-4 h-4 text-[#38BDF8]" />
+                  <span>Tableau de bord</span>
+                </Link>
+                <Link
+                  href="/historique"
+                  prefetch={true}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-3 px-4 py-3 rounded-xl bg-[#0D121F] border border-white/10 text-slate-200 hover:text-white text-sm font-semibold transition"
+                >
+                  <History className="w-4 h-4 text-[#38BDF8]" />
+                  <span>Historique</span>
+                </Link>
+                <Link
+                  href="/questions"
+                  prefetch={true}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-3 px-4 py-3 rounded-xl bg-[#0D121F] border border-white/10 text-slate-200 hover:text-white text-sm font-semibold transition"
+                >
+                  <BookOpen className="w-4 h-4 text-[#38BDF8]" />
+                  <span>50 Questions types</span>
+                </Link>
+                <Link
+                  href="/tarifs"
+                  prefetch={true}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-3 px-4 py-3 rounded-xl bg-[#0D121F] border border-white/10 text-slate-200 hover:text-white text-sm font-semibold transition"
+                >
+                  <CreditCard className="w-4 h-4 text-[#38BDF8]" />
+                  <span>Tarifs & Formules</span>
+                </Link>
+                <div className="pt-3 border-t border-white/10 grid grid-cols-2 gap-2">
                   <Link
-                    href="/dashboard"
+                    href="/profil"
                     prefetch={true}
                     onClick={() => setMobileMenuOpen(false)}
-                    className="w-full flex items-center justify-center gap-2 bg-[#0066FF] hover:bg-[#0052CC] text-white text-sm font-semibold py-2.5 rounded-full transition shadow-lg shadow-blue-500/30"
+                    className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 text-slate-200 hover:text-white text-xs font-semibold transition"
                   >
-                    <LayoutDashboard className="w-4 h-4" />
-                    <span>Mon tableau de bord</span>
+                    <User className="w-4 h-4 text-[#38BDF8]" />
+                    <span>Mon Dossier</span>
                   </Link>
                   <button
                     type="button"
@@ -317,14 +359,58 @@ export default function HomePage() {
                       setMobileMenuOpen(false);
                       handleSignOut();
                     }}
-                    className="w-full flex items-center justify-center gap-2 border border-white/15 text-slate-300 hover:text-white text-sm font-semibold py-2.5 rounded-full hover:bg-white/10 transition"
+                    className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-300 hover:text-rose-200 text-xs font-semibold transition"
                   >
                     <LogOut className="w-4 h-4" />
                     <span>Se déconnecter</span>
                   </button>
-                </>
-              ) : (
-                <>
+                </div>
+              </div>
+            ) : (
+              <>
+                <Link
+                  href="/"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="block py-2 text-sm text-[#38BDF8] font-bold"
+                >
+                  Accueil
+                </Link>
+                <a
+                  href="#simulateur"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="block py-2 text-sm text-slate-300 hover:text-white font-medium"
+                >
+                  Simulateur IA
+                </a>
+                <a
+                  href="#avantages"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="block py-2 text-sm text-slate-300 hover:text-white font-medium"
+                >
+                  Avantages
+                </a>
+                <a
+                  href="#comment-ca-marche"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="block py-2 text-sm text-slate-300 hover:text-white font-medium"
+                >
+                  Comment ça marche
+                </a>
+                <a
+                  href="#temoignages"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="block py-2 text-sm text-slate-300 hover:text-white font-medium"
+                >
+                  Témoignages
+                </a>
+                <a
+                  href="#faq"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="block py-2 text-sm text-slate-300 hover:text-white font-medium"
+                >
+                  FAQ
+                </a>
+                <div className="pt-3 border-t border-white/10 space-y-2">
                   <Link
                     href="/auth/connexion"
                     prefetch={true}
@@ -343,9 +429,9 @@ export default function HomePage() {
                     <span>Créer mon compte</span>
                     <ArrowRight className="w-4 h-4" />
                   </Link>
-                </>
-              )}
-            </div>
+                </div>
+              </>
+            )}
           </div>
         )}
       </header>
