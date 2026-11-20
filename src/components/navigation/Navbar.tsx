@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { 
   GraduationCap, 
+  Sparkles,
   User, 
   LayoutDashboard, 
   History, 
@@ -111,14 +112,14 @@ export function Navbar() {
       )}
 
       <header className="sticky top-0 z-40 w-full border-b border-white/10 bg-[#05070E]/90 backdrop-blur-xl text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-2.5 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between">
           {/* Logo & Marque */}
-          <Link href="/" prefetch={true} className="flex items-center gap-2.5 group">
-            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-tr from-[#0066FF] to-[#38BDF8] flex items-center justify-center text-white shadow-md shadow-blue-500/25 group-hover:scale-105 transition-transform">
-              <GraduationCap className="w-5 h-5 text-white" />
+          <Link href="/" prefetch={true} className="flex items-center gap-1.5 group shrink-0">
+            <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl bg-gradient-to-tr from-[#0066FF] to-[#38BDF8] flex items-center justify-center text-white shadow-md shadow-blue-500/25 group-hover:scale-105 transition-transform">
+              <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
             </div>
             <div>
-              <span className="font-extrabold text-white text-base tracking-tight block">
+              <span className="font-extrabold text-white text-sm sm:text-base tracking-tight block">
                 Prépa<span className="text-[#38BDF8]">Campus</span>
               </span>
               <span className="text-[10px] text-slate-400 block -mt-1 font-medium hidden sm:block">
@@ -224,13 +225,13 @@ export function Navbar() {
           </div>
 
           {/* Section Droite Mobile : Langue + Avatar / Connexion + Menu Hamburger */}
-          <div className="flex md:hidden items-center gap-2">
+          <div className="flex md:hidden items-center gap-1 sm:gap-2 shrink-0">
             {/* Toggle FR / EN rapide sur mobile */}
-            <div className="flex items-center rounded-lg bg-[#121827] border border-white/10 p-0.5 text-[10px] font-bold">
+            <div className="flex items-center rounded-lg bg-[#121827] border border-white/10 p-0.5 text-[9px] sm:text-[10px] font-bold">
               <button
                 type="button"
                 onClick={() => setLanguage('fr')}
-                className={`px-2 py-0.5 rounded transition ${
+                className={`px-1.5 sm:px-2 py-0.5 rounded transition ${
                   language === 'fr'
                     ? 'bg-[#0066FF] text-white shadow-xs'
                     : 'text-slate-400 hover:text-white'
@@ -241,7 +242,7 @@ export function Navbar() {
               <button
                 type="button"
                 onClick={() => setLanguage('en')}
-                className={`px-2 py-0.5 rounded transition ${
+                className={`px-1.5 sm:px-2 py-0.5 rounded transition ${
                   language === 'en'
                     ? 'bg-[#0066FF] text-white shadow-xs'
                     : 'text-slate-400 hover:text-white'
@@ -253,21 +254,29 @@ export function Navbar() {
 
             {isAuthenticated ? (
               <Link href="/profil" className="relative group">
-                <div className="w-8 h-8 rounded-full bg-white/10 border border-white/15 flex items-center justify-center text-xs font-bold text-white shadow-xs">
-                  <User className="w-4 h-4 text-[#38BDF8]" />
+                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/10 border border-white/15 flex items-center justify-center text-xs font-bold text-white shadow-xs">
+                  <User className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#38BDF8]" />
                 </div>
-                <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-[#05070E]" />
+                <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-[#05070E]" />
               </Link>
-            ) : null}
+            ) : (
+              <Link
+                href="/auth/connexion"
+                prefetch={true}
+                className="text-[11px] sm:text-xs font-bold text-[#38BDF8] hover:text-white px-1 sm:px-1.5 py-1 transition"
+              >
+                {t('nav.login')}
+              </Link>
+            )}
 
             {/* Bouton Hamburger */}
             <button
               type="button"
               onClick={() => setMobileMenuOpen(true)}
-              className="p-1.5 rounded-xl bg-white/10 border border-white/15 text-white hover:bg-white/15 transition shadow-xs focus:outline-none"
+              className="p-1.5 rounded-lg sm:rounded-xl bg-white/10 border border-white/15 text-white hover:bg-white/15 transition shadow-xs focus:outline-none"
               aria-label="Ouvrir le menu"
             >
-              <Menu className="w-5 h-5 text-white" />
+              <Menu className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
             </button>
           </div>
         </div>
@@ -297,7 +306,7 @@ export function Navbar() {
               className="flex items-center gap-2.5 group"
             >
               <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#0066FF] to-[#38BDF8] flex items-center justify-center text-white shadow-md shadow-blue-500/25 group-hover:scale-105 transition-transform">
-                <GraduationCap className="w-4 h-4 text-white" />
+                <Sparkles className="w-4 h-4 text-white" />
               </div>
               <span className="font-extrabold text-white text-base tracking-tight">
                 Prépa<span className="text-[#38BDF8]">Campus</span>
