@@ -1138,7 +1138,13 @@ export function InterviewRoom() {
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
           {/* Colonne Caméra Locale & Indicateur Micro */}
           <div className="md:col-span-5 flex flex-col items-center">
-            <div className="relative w-full aspect-video sm:aspect-square max-w-sm bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-2xl flex items-center justify-center">
+            <div className={`relative w-full aspect-video sm:aspect-square max-w-sm bg-slate-900 rounded-3xl overflow-hidden shadow-2xl flex items-center justify-center transition-all duration-200 ${
+              status === 'STUDENT_RECORDING' && audioLevel > 6
+                ? 'border-2 border-emerald-400 shadow-[0_0_30px_rgba(16,185,129,0.35)]'
+                : status === 'STUDENT_RECORDING'
+                ? 'border border-cyan-500/50 shadow-[0_0_20px_rgba(6,182,212,0.15)]'
+                : 'border border-slate-800'
+            }`}>
               {isCameraActive ? (
                 <video
                   ref={videoRef}
@@ -1166,17 +1172,27 @@ export function InterviewRoom() {
 
               {/* Indicateur de micro & VU-mètre en direct */}
               <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between">
-                <div className="bg-slate-950/85 backdrop-blur-md px-3 py-1.5 rounded-full text-[11px] font-medium border border-slate-700/60 flex items-center gap-2 text-slate-200">
+                <div className={`backdrop-blur-md px-3 py-1.5 rounded-full text-[11px] font-medium border flex items-center gap-2 transition-all ${
+                  status === 'STUDENT_RECORDING' && audioLevel > 6
+                    ? 'bg-emerald-950/90 border-emerald-500/60 text-emerald-300 shadow-md shadow-emerald-500/20'
+                    : status === 'STUDENT_RECORDING'
+                    ? 'bg-slate-950/85 border-cyan-500/40 text-cyan-300'
+                    : 'bg-slate-950/85 border-slate-700/60 text-slate-200'
+                }`}>
                   <span
                     className={`w-2.5 h-2.5 rounded-full ${
-                      status === 'STUDENT_RECORDING'
+                      status === 'STUDENT_RECORDING' && audioLevel > 6
+                        ? 'bg-emerald-400 animate-ping'
+                        : status === 'STUDENT_RECORDING'
                         ? 'bg-emerald-400 animate-pulse'
                         : 'bg-slate-500'
                     }`}
                   />
                   <span>
                     {status === 'STUDENT_RECORDING'
-                      ? 'Micro ouvert'
+                      ? audioLevel > 6
+                        ? 'Vous parlez...'
+                        : 'Micro ouvert'
                       : status === 'REVIEW_RESPONSE'
                       ? 'Réponse prête'
                       : 'Micro en attente'}
@@ -1184,19 +1200,16 @@ export function InterviewRoom() {
 
                   {/* VU-mètre dynamique réactif à la voix réelle */}
                   {status === 'STUDENT_RECORDING' && hasMicrophonePermission && (
-                    <div className="flex items-end gap-0.5 h-3 ml-1">
-                      <span
-                        className="w-1 bg-emerald-400 rounded-full transition-all duration-75"
-                        style={{ height: `${Math.max(20, Math.min(100, audioLevel * 1.5))}%` }}
-                      />
-                      <span
-                        className="w-1 bg-emerald-400 rounded-full transition-all duration-75"
-                        style={{ height: `${Math.max(20, Math.min(100, audioLevel * 1.8))}%` }}
-                      />
-                      <span
-                        className="w-1 bg-teal-400 rounded-full transition-all duration-75"
-                        style={{ height: `${Math.max(20, Math.min(100, audioLevel * 1.2))}%` }}
-                      />
+                    <div className="flex items-end gap-0.5 h-3.5 ml-1">
+                      {[0.8, 1.4, 2.0, 1.5, 0.9].map((m, i) => (
+                        <span
+                          key={i}
+                          className={`w-1 rounded-full transition-all duration-75 ${
+                            audioLevel > 6 ? 'bg-emerald-400' : 'bg-slate-600'
+                          }`}
+                          style={{ height: `${Math.max(20, Math.min(100, (audioLevel || 10) * m))}%` }}
+                        />
+                      ))}
                     </div>
                   )}
                 </div>
@@ -1366,27 +1379,122 @@ export function InterviewRoom() {
                 </div>
               ) : (
 
-                /* C. Mode Enregistrement Vocal Direct */
-                <div className="min-h-[75px] max-h-[130px] overflow-y-auto bg-slate-950/70 border border-slate-800/80 rounded-xl p-3 text-xs sm:text-sm text-slate-200 leading-relaxed">
-                  {liveTranscript ? (
-                    <span className="italic text-white">&ldquo;{liveTranscript}&rdquo;</span>
-                  ) : status === 'STUDENT_RECORDING' ? (
-                    <div className="text-slate-400 flex flex-col gap-1">
-                      <div className="flex items-center gap-2 text-emerald-400 font-medium">
-                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-                        Microphone ouvert — Parlez naturellement...
+                /* C. Mode Enregistrement Vocal Direct avec Micro qui bouillonne & Ondes sonores */
+                <div className="bg-slate-950/80 border border-slate-800/90 rounded-2xl p-4 sm:p-5 text-slate-200 space-y-4 shadow-inner">
+                  {status === 'STUDENT_RECORDING' ? (
+                    <div className="space-y-3.5">
+                      {/* En-tête : Micro qui bouillonne & Ondes de voix réactives */}
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-3.5 rounded-xl bg-slate-900/90 border border-emerald-500/30 shadow-lg relative overflow-hidden">
+                        {/* Effet de halo / lueur en fond quand l'utilisateur parle */}
+                        <div
+                          className={`absolute inset-0 bg-gradient-to-r from-emerald-500/15 via-teal-500/10 to-transparent transition-opacity duration-150 pointer-events-none ${
+                            audioLevel > 6 ? 'opacity-100' : 'opacity-20'
+                          }`}
+                        />
+
+                        {/* Le micro qui bouillonne (Animation concentrique) */}
+                        <div className="flex items-center gap-3.5 relative z-10">
+                          <div className="relative flex items-center justify-center shrink-0 w-12 h-12">
+                            {/* Vague 1 d'expansion (bouillonnement réactif) */}
+                            <span
+                              className={`absolute inset-0 rounded-full transition-all duration-200 ${
+                                audioLevel > 6
+                                  ? 'bg-emerald-400/40 animate-ping'
+                                  : 'bg-cyan-500/20 animate-pulse'
+                              }`}
+                            />
+                            {/* Vague 2 d'expansion halo */}
+                            <span
+                              className={`absolute inset-1 rounded-full transition-all duration-150 ${
+                                audioLevel > 6
+                                  ? 'bg-emerald-500/30 scale-125'
+                                  : 'bg-cyan-500/15 scale-100'
+                              }`}
+                            />
+                            {/* Cercle central du microphone */}
+                            <div
+                              className={`relative w-10 h-10 rounded-full flex items-center justify-center text-white transition-all duration-150 shadow-md ${
+                                audioLevel > 6
+                                  ? 'bg-gradient-to-tr from-emerald-500 to-teal-400 shadow-emerald-500/50 scale-110'
+                                  : 'bg-gradient-to-tr from-blue-600 to-cyan-500 shadow-cyan-500/30'
+                              }`}
+                            >
+                              <Mic className="w-5 h-5 text-white animate-pulse" />
+                            </div>
+                          </div>
+
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <span
+                                className={`w-2.5 h-2.5 rounded-full ${
+                                  audioLevel > 6
+                                    ? 'bg-emerald-400 animate-ping'
+                                    : 'bg-emerald-400 animate-pulse'
+                                }`}
+                              />
+                              <h4 className="text-xs sm:text-sm font-bold text-white tracking-tight">
+                                {audioLevel > 6
+                                  ? "Voix détectée • L'examinatrice vous écoute..."
+                                  : "Microphone ouvert • Parlez naturellement..."}
+                              </h4>
+                            </div>
+                            <p className="text-[11px] text-slate-400 mt-0.5">
+                              {audioLevel > 6
+                                ? "Vos paroles sont captées en direct par l'intelligence artificielle."
+                                : "Exprimez vos arguments à voix haute et posée."}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Ondes sonores / Égaliseur réactif (VU-mètre vibrant) */}
+                        <div className="flex items-center gap-1.5 self-center sm:self-auto h-8 px-3 py-1 bg-slate-950/80 rounded-xl border border-white/10 shrink-0 relative z-10">
+                          {[0.5, 0.9, 1.4, 2.0, 2.5, 1.9, 1.3, 0.8, 0.5].map((mult, idx) => {
+                            const barHeight = Math.max(15, Math.min(100, Math.round((audioLevel || 8) * mult)));
+                            return (
+                              <span
+                                key={idx}
+                                className={`w-1 rounded-full transition-all duration-75 ${
+                                  audioLevel > 6
+                                    ? 'bg-gradient-to-t from-emerald-500 via-teal-400 to-cyan-300 shadow-xs shadow-emerald-400/50'
+                                    : 'bg-slate-700'
+                                }`}
+                                style={{ height: `${barHeight}%` }}
+                              />
+                            );
+                          })}
+                        </div>
                       </div>
-                      <p className="text-[11px] text-slate-500">
-                        Votre voix est captée. Une fois terminé, cliquez sur &laquo; Arrêter et relire &raquo; pour vérifier votre transcription.
-                      </p>
+
+                      {/* Boîte de transcription en direct */}
+                      <div className="min-h-[55px] max-h-[110px] overflow-y-auto bg-slate-900/60 border border-slate-800 rounded-xl p-3 text-xs sm:text-sm leading-relaxed">
+                        {liveTranscript ? (
+                          <div className="space-y-1">
+                            <span className="text-[10px] uppercase font-bold tracking-wider text-cyan-400 flex items-center gap-1">
+                              <Sparkles className="w-3 h-3" /> Retranscription en direct :
+                            </span>
+                            <p className="italic text-white font-medium">&ldquo;{liveTranscript}&rdquo;</p>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2 text-slate-500 text-xs italic">
+                            <span>Commencez à parler, vos phrases s&apos;afficheront ici en direct...</span>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   ) : status === 'TRANSCRIBING' ? (
-                    <div className="text-cyan-300 flex items-center gap-2">
-                      <Sparkles className="w-4 h-4 animate-spin text-cyan-400" />
-                      <span>Transcription de votre voix par l&apos;IA en cours...</span>
+                    <div className="py-6 flex flex-col items-center justify-center gap-3 text-center">
+                      <div className="w-12 h-12 rounded-2xl bg-cyan-500/15 border border-cyan-500/30 text-cyan-400 flex items-center justify-center">
+                        <Sparkles className="w-6 h-6 animate-spin text-cyan-400" />
+                      </div>
+                      <div>
+                        <div className="text-sm font-bold text-white">Analyse et transcription de votre voix...</div>
+                        <p className="text-xs text-slate-400 mt-0.5">Préparation du texte pour relecture avant envoi au jury.</p>
+                      </div>
                     </div>
                   ) : (
-                    <span className="text-slate-500">Écoutez attentivement la question de l&apos;examinatrice...</span>
+                    <div className="py-4 text-center text-slate-500 text-xs">
+                      Écoutez attentivement la question de l&apos;examinatrice avant de répondre...
+                    </div>
                   )}
                 </div>
               )}
@@ -1394,18 +1502,19 @@ export function InterviewRoom() {
 
             {/* Actions de contrôle vocal pendant l'enregistrement */}
             {status === 'STUDENT_RECORDING' && !isTextFallbackOpen && (
-              <div className="flex items-center justify-between gap-3 pt-1">
-                <span className="text-[11px] text-slate-400">
-                  Prenez le temps d&apos;argumenter votre projet.
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-1">
+                <span className="text-[11px] text-slate-400 text-center sm:text-left">
+                  Prenez le temps d&apos;argumenter votre projet d&apos;études et professionnel.
                 </span>
 
                 <button
                   type="button"
                   onClick={handleStopRecordingAndTranscribe}
-                  className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-bold text-xs sm:text-sm shadow-xl shadow-emerald-500/25 transition transform hover:-translate-y-0.5"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-emerald-600 via-teal-500 to-cyan-500 hover:from-emerald-500 hover:to-teal-400 text-white font-bold text-xs sm:text-sm shadow-xl shadow-emerald-500/25 transition transform hover:-translate-y-0.5 active:scale-95 cursor-pointer"
                 >
+                  <span className="w-2.5 h-2.5 rounded-full bg-white animate-pulse" />
                   <MicOff className="w-4 h-4" />
-                  Arrêter et relire ma réponse
+                  <span>Arrêter et relire ma réponse</span>
                 </button>
               </div>
             )}
