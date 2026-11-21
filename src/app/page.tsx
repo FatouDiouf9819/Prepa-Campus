@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { 
@@ -12,6 +12,8 @@ import {
   Star, 
   Check, 
   ChevronDown, 
+  ChevronLeft,
+  ChevronRight,
   Sparkles, 
   Play, 
   Volume2, 
@@ -35,6 +37,84 @@ export default function HomePage() {
   const [activeFaq, setActiveFaq] = useState<number | null>(0);
   const [activeTestimonial, setActiveTestimonial] = useState<number | null>(0);
   const [isPlayingAudio, setIsPlayingAudio] = useState<boolean>(false);
+
+  // États et Références de carrousel mobile (swipe / slider tactile)
+  const stepsScrollRef = useRef<HTMLDivElement>(null);
+  const testimonialsScrollRef = useRef<HTMLDivElement>(null);
+  const pillarsScrollRef = useRef<HTMLDivElement>(null);
+
+  const [activeStepIdx, setActiveStepIdx] = useState<number>(0);
+  const [activeTestimonialIdx, setActiveTestimonialIdx] = useState<number>(0);
+  const [activePillarIdx, setActivePillarIdx] = useState<number>(0);
+
+  const scrollToStepCard = (index: number) => {
+    if (stepsScrollRef.current) {
+      const container = stepsScrollRef.current;
+      const child = container.children[index] as HTMLElement;
+      if (child) {
+        child.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+      }
+    }
+    setActiveStepIdx(index);
+  };
+
+  const scrollToTestimonialCard = (index: number) => {
+    if (testimonialsScrollRef.current) {
+      const container = testimonialsScrollRef.current;
+      const child = container.children[index] as HTMLElement;
+      if (child) {
+        child.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+      }
+    }
+    setActiveTestimonialIdx(index);
+  };
+
+  const scrollToPillarCard = (index: number) => {
+    if (pillarsScrollRef.current) {
+      const container = pillarsScrollRef.current;
+      const child = container.children[index] as HTMLElement;
+      if (child) {
+        child.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+      }
+    }
+    setActivePillarIdx(index);
+  };
+
+  const handleStepsScroll = () => {
+    if (stepsScrollRef.current) {
+      const container = stepsScrollRef.current;
+      const scrollLeft = container.scrollLeft;
+      const cardWidth = (container.children[0] as HTMLElement)?.offsetWidth || 300;
+      const idx = Math.round(scrollLeft / (cardWidth + 16));
+      if (idx >= 0 && idx < stepsData.length && idx !== activeStepIdx) {
+        setActiveStepIdx(idx);
+      }
+    }
+  };
+
+  const handleTestimonialsScroll = () => {
+    if (testimonialsScrollRef.current) {
+      const container = testimonialsScrollRef.current;
+      const scrollLeft = container.scrollLeft;
+      const cardWidth = (container.children[0] as HTMLElement)?.offsetWidth || 300;
+      const idx = Math.round(scrollLeft / (cardWidth + 16));
+      if (idx >= 0 && idx < testimonialsData.length && idx !== activeTestimonialIdx) {
+        setActiveTestimonialIdx(idx);
+      }
+    }
+  };
+
+  const handlePillarsScroll = () => {
+    if (pillarsScrollRef.current) {
+      const container = pillarsScrollRef.current;
+      const scrollLeft = container.scrollLeft;
+      const cardWidth = (container.children[0] as HTMLElement)?.offsetWidth || 300;
+      const idx = Math.round(scrollLeft / (cardWidth + 16));
+      if (idx >= 0 && idx < 3 && idx !== activePillarIdx) {
+        setActivePillarIdx(idx);
+      }
+    }
+  };
 
   useEffect(() => {
     const supabase = createClient();
@@ -225,43 +305,75 @@ export default function HomePage() {
             </div>
           </section>
 
-          {/* 3 Piliers de la méthode */}
+          {/* 3 Piliers de la méthode (Carrousel swipeable sur mobile, grille sur desktop) */}
           <section className="pt-8 pb-16 sm:pt-12 sm:pb-20 border-t border-neutral-900 bg-black">
             <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="text-center mb-8 sm:mb-10">
+              <div className="text-center mb-6 sm:mb-10">
                 <h2 className="text-2xl sm:text-3xl font-bold text-white">{t('home.how_it_works')}</h2>
+                {/* Indication visuelle mobile de swipe */}
+                <div className="flex md:hidden items-center justify-center gap-1.5 text-[11px] text-cyan-400/90 mt-2 font-medium">
+                  <span>Glissez de droite à gauche pour défiler</span>
+                  <ArrowRight className="w-3 h-3 animate-pulse" />
+                </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-[#0e0e0e] border border-neutral-800 rounded-2xl p-6 relative group hover:border-neutral-700 transition">
-                  <div className="w-12 h-12 rounded-xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center mb-4">
-                    <GraduationCap className="w-6 h-6" />
+              <div 
+                ref={pillarsScrollRef}
+                onScroll={handlePillarsScroll}
+                className="flex md:grid md:grid-cols-3 gap-4 sm:gap-6 overflow-x-auto md:overflow-x-visible snap-x snap-mandatory pb-4 pt-1 px-4 sm:px-0 -mx-4 sm:mx-0 scroll-smooth [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+              >
+                <div className="w-[82vw] max-w-[320px] shrink-0 snap-center md:w-auto md:max-w-none bg-[#0e0e0e] border border-neutral-800 rounded-3xl p-6 relative group hover:border-neutral-700 transition shadow-lg flex flex-col justify-between">
+                  <div>
+                    <div className="w-12 h-12 rounded-2xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center mb-4">
+                      <GraduationCap className="w-6 h-6" />
+                    </div>
+                    <h3 className="text-base sm:text-lg font-semibold text-white mb-2">{t('home.pillar1_title')}</h3>
+                    <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed">
+                      {t('home.pillar1_desc')}
+                    </p>
                   </div>
-                  <h3 className="text-lg font-semibold text-white mb-2">{t('home.pillar1_title')}</h3>
-                  <p className="text-sm text-neutral-400 leading-relaxed">
-                    {t('home.pillar1_desc')}
-                  </p>
                 </div>
 
-                <div className="bg-[#0e0e0e] border border-neutral-800 rounded-2xl p-6 relative group hover:border-neutral-700 transition">
-                  <div className="w-12 h-12 rounded-xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center mb-4">
-                    <Mic className="w-6 h-6" />
+                <div className="w-[82vw] max-w-[320px] shrink-0 snap-center md:w-auto md:max-w-none bg-[#0e0e0e] border border-neutral-800 rounded-3xl p-6 relative group hover:border-neutral-700 transition shadow-lg flex flex-col justify-between">
+                  <div>
+                    <div className="w-12 h-12 rounded-xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center mb-4">
+                      <Mic className="w-6 h-6" />
+                    </div>
+                    <h3 className="text-base sm:text-lg font-semibold text-white mb-2">{t('home.pillar2_title')}</h3>
+                    <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed">
+                      {t('home.pillar2_desc')}
+                    </p>
                   </div>
-                  <h3 className="text-lg font-semibold text-white mb-2">{t('home.pillar2_title')}</h3>
-                  <p className="text-sm text-neutral-400 leading-relaxed">
-                    {t('home.pillar2_desc')}
-                  </p>
                 </div>
 
-                <div className="bg-[#0e0e0e] border border-neutral-800 rounded-2xl p-6 relative group hover:border-neutral-700 transition">
-                  <div className="w-12 h-12 rounded-xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center mb-4">
-                    <FileText className="w-6 h-6" />
+                <div className="w-[82vw] max-w-[320px] shrink-0 snap-center md:w-auto md:max-w-none bg-[#0e0e0e] border border-neutral-800 rounded-3xl p-6 relative group hover:border-neutral-700 transition shadow-lg flex flex-col justify-between">
+                  <div>
+                    <div className="w-12 h-12 rounded-xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center mb-4">
+                      <FileText className="w-6 h-6" />
+                    </div>
+                    <h3 className="text-base sm:text-lg font-semibold text-white mb-2">{t('home.pillar3_title')}</h3>
+                    <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed">
+                      {t('home.pillar3_desc')}
+                    </p>
                   </div>
-                  <h3 className="text-lg font-semibold text-white mb-2">{t('home.pillar3_title')}</h3>
-                  <p className="text-sm text-neutral-400 leading-relaxed">
-                    {t('home.pillar3_desc')}
-                  </p>
                 </div>
+              </div>
+
+              {/* Pagination Dots sur Mobile */}
+              <div className="flex md:hidden items-center justify-center gap-2 mt-2">
+                {[0, 1, 2].map((idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => scrollToPillarCard(idx)}
+                    className={`transition-all duration-300 rounded-full cursor-pointer ${
+                      activePillarIdx === idx
+                        ? 'w-7 h-2 bg-gradient-to-r from-blue-500 to-cyan-400 shadow-md shadow-cyan-500/50'
+                        : 'w-2 h-2 bg-neutral-700 hover:bg-neutral-600'
+                    }`}
+                    aria-label={`Aller au pilier ${idx + 1}`}
+                  />
+                ))}
               </div>
             </div>
           </section>
@@ -734,20 +846,37 @@ export default function HomePage() {
             </div>
           </section>
 
-          {/* LES 3 ÉTAPES VERS L'AVIS FAVORABLE (Bento Grid) */}
+          {/* LES 3 ÉTAPES VERS L'AVIS FAVORABLE (Carrousel tactile swipeable sur mobile, grille sur desktop) */}
           <section className="py-12 sm:py-20 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 w-full border-t border-neutral-900">
-            <div className="text-center mb-10 sm:mb-14">
+            <div className="text-center mb-6 sm:mb-14">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-neutral-900 border border-neutral-800 text-cyan-400 text-xs font-semibold mb-3 shadow-xs">
+                <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+                <span>Méthode Étape par Étape</span>
+              </div>
               <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
                 Comment ça marche ?
               </h2>
-              <p className="text-xs sm:text-sm text-neutral-400 mt-2">
+              <p className="text-xs sm:text-sm text-neutral-400 mt-2 max-w-xl mx-auto">
                 Une méthode rodée en 3 étapes concrètes pour maximiser vos chances d&apos;admission.
               </p>
+              {/* Indication visuelle mobile de swipe */}
+              <div className="flex md:hidden items-center justify-center gap-1.5 text-[11px] text-cyan-400/90 mt-2.5 font-medium">
+                <span>Glissez de droite à gauche</span>
+                <ArrowRight className="w-3 h-3 animate-pulse" />
+              </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Conteneur Carrousel Mobile / Grille Desktop */}
+            <div 
+              ref={stepsScrollRef}
+              onScroll={handleStepsScroll}
+              className="flex md:grid md:grid-cols-3 gap-4 sm:gap-6 overflow-x-auto md:overflow-x-visible snap-x snap-mandatory pb-4 pt-1 px-4 sm:px-0 -mx-4 sm:mx-0 scroll-smooth [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+            >
               {stepsData.map((step, idx) => (
-                <div key={idx} className="bg-[#0e0e0e] border border-neutral-800 rounded-3xl p-6 sm:p-7 flex flex-col justify-between hover:border-neutral-700 transition">
+                <div 
+                  key={idx} 
+                  className="w-[84vw] max-w-[340px] shrink-0 snap-center md:w-auto md:max-w-none bg-[#0e0e0e] border border-neutral-800 hover:border-neutral-700 rounded-3xl p-6 sm:p-7 flex flex-col justify-between transition-all duration-200 shadow-xl"
+                >
                   <div>
                     <div className="flex items-center justify-between mb-4">
                       <span className="text-2xl font-black text-cyan-400 font-mono">{step.num}</span>
@@ -755,13 +884,13 @@ export default function HomePage() {
                         {step.badge}
                       </span>
                     </div>
-                    <h3 className="text-base font-bold text-white mb-2">{step.title}</h3>
+                    <h3 className="text-base font-bold text-white mb-2 leading-snug">{step.title}</h3>
                     <p className="text-xs text-neutral-400 leading-relaxed mb-4">{step.shortDesc}</p>
-                    <ul className="text-[11px] text-neutral-300 space-y-1.5 mb-6">
+                    <ul className="text-[11px] text-neutral-300 space-y-2 mb-4">
                       {step.keyPoints.map((pt, pIdx) => (
                         <li key={pIdx} className="flex items-start gap-2">
                           <CheckCircle2 className="w-3.5 h-3.5 text-cyan-400 shrink-0 mt-0.5" />
-                          <span>{pt}</span>
+                          <span className="leading-tight">{pt}</span>
                         </li>
                       ))}
                     </ul>
@@ -769,30 +898,90 @@ export default function HomePage() {
                 </div>
               ))}
             </div>
+
+            {/* Pagination Dots & Navigation sur Mobile */}
+            <div className="flex md:hidden flex-col items-center gap-2 mt-2">
+              <div className="flex items-center justify-center gap-2">
+                {stepsData.map((_, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => scrollToStepCard(idx)}
+                    className={`transition-all duration-300 rounded-full cursor-pointer ${
+                      activeStepIdx === idx
+                        ? 'w-7 h-2 bg-gradient-to-r from-blue-500 to-cyan-400 shadow-md shadow-cyan-500/50'
+                        : 'w-2 h-2 bg-neutral-700 hover:bg-neutral-600'
+                    }`}
+                    aria-label={`Aller à l'étape ${idx + 1}`}
+                  />
+                ))}
+              </div>
+
+              <div className="flex items-center justify-between w-full max-w-[280px] px-2 text-xs text-neutral-400">
+                <button
+                  type="button"
+                  onClick={() => scrollToStepCard(Math.max(0, activeStepIdx - 1))}
+                  disabled={activeStepIdx === 0}
+                  className="inline-flex items-center gap-1 text-neutral-400 hover:text-white disabled:opacity-20 transition py-1 cursor-pointer"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                  <span>Précédent</span>
+                </button>
+                <span className="text-[11px] font-mono text-neutral-500">
+                  {activeStepIdx + 1} / {stepsData.length}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => scrollToStepCard(Math.min(stepsData.length - 1, activeStepIdx + 1))}
+                  disabled={activeStepIdx === stepsData.length - 1}
+                  className="inline-flex items-center gap-1 text-neutral-400 hover:text-white disabled:opacity-20 transition py-1 cursor-pointer"
+                >
+                  <span>Suivant</span>
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
           </section>
 
-          {/* TÉMOIGNAGES ÉTUDIANTS */}
+          {/* TÉMOIGNAGES ÉTUDIANTS (Carrousel tactile swipeable sur mobile, grille sur desktop) */}
           <section className="py-12 sm:py-20 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 w-full border-t border-neutral-900">
-            <div className="text-center mb-10 sm:mb-14">
+            <div className="text-center mb-6 sm:mb-14">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-neutral-900 border border-neutral-800 text-cyan-400 text-xs font-semibold mb-3 shadow-xs">
+                <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                <span>Retours d&apos;Expérience Réels</span>
+              </div>
               <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
                 Ils ont décroché leur avis favorable
               </h2>
-              <p className="text-xs sm:text-sm text-neutral-400 mt-2">
+              <p className="text-xs sm:text-sm text-neutral-400 mt-2 max-w-xl mx-auto">
                 Découvrez les retours d&apos;expérience des étudiants qui ont préparé leur entretien avec PrépaCampus.
               </p>
+              {/* Indication visuelle mobile de swipe */}
+              <div className="flex md:hidden items-center justify-center gap-1.5 text-[11px] text-cyan-400/90 mt-2.5 font-medium">
+                <span>Glissez pour lire les avis</span>
+                <ArrowRight className="w-3 h-3 animate-pulse" />
+              </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Conteneur Carrousel Mobile / Grille Desktop */}
+            <div 
+              ref={testimonialsScrollRef}
+              onScroll={handleTestimonialsScroll}
+              className="flex md:grid md:grid-cols-3 gap-4 sm:gap-6 overflow-x-auto md:overflow-x-visible snap-x snap-mandatory pb-4 pt-1 px-4 sm:px-0 -mx-4 sm:mx-0 scroll-smooth [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+            >
               {testimonialsData.map((item, idx) => (
-                <div key={idx} className="bg-[#0e0e0e] border border-neutral-800 rounded-3xl p-6 flex flex-col justify-between hover:border-neutral-700 transition">
+                <div 
+                  key={idx} 
+                  className="w-[84vw] max-w-[340px] shrink-0 snap-center md:w-auto md:max-w-none bg-[#0e0e0e] border border-neutral-800 hover:border-neutral-700 rounded-3xl p-6 flex flex-col justify-between transition-all duration-200 shadow-xl"
+                >
                   <div>
                     <div className="flex items-center gap-3.5 mb-4">
-                      <div className="w-12 h-12 rounded-full overflow-hidden relative border border-neutral-700 shrink-0">
+                      <div className="w-12 h-12 rounded-full overflow-hidden relative border border-cyan-500/30 shrink-0 shadow-md">
                         <Image src={item.avatar} alt={item.name} fill className="object-cover" />
                       </div>
-                      <div>
-                        <h4 className="text-sm font-bold text-white">{item.name}</h4>
-                        <p className="text-[11px] text-cyan-400 font-medium">{item.admission}</p>
+                      <div className="min-w-0">
+                        <h4 className="text-sm font-bold text-white truncate">{item.name}</h4>
+                        <p className="text-[11px] text-cyan-400 font-medium truncate">{item.admission}</p>
                         <p className="text-[10px] text-neutral-500">{item.city}</p>
                       </div>
                     </div>
@@ -812,6 +1001,49 @@ export default function HomePage() {
                   </div>
                 </div>
               ))}
+            </div>
+
+            {/* Pagination Dots & Navigation sur Mobile */}
+            <div className="flex md:hidden flex-col items-center gap-2 mt-2">
+              <div className="flex items-center justify-center gap-2">
+                {testimonialsData.map((_, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => scrollToTestimonialCard(idx)}
+                    className={`transition-all duration-300 rounded-full cursor-pointer ${
+                      activeTestimonialIdx === idx
+                        ? 'w-7 h-2 bg-gradient-to-r from-blue-500 to-cyan-400 shadow-md shadow-cyan-500/50'
+                        : 'w-2 h-2 bg-neutral-700 hover:bg-neutral-600'
+                    }`}
+                    aria-label={`Aller au témoignage ${idx + 1}`}
+                  />
+                ))}
+              </div>
+
+              <div className="flex items-center justify-between w-full max-w-[280px] px-2 text-xs text-neutral-400">
+                <button
+                  type="button"
+                  onClick={() => scrollToTestimonialCard(Math.max(0, activeTestimonialIdx - 1))}
+                  disabled={activeTestimonialIdx === 0}
+                  className="inline-flex items-center gap-1 text-neutral-400 hover:text-white disabled:opacity-20 transition py-1 cursor-pointer"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                  <span>Précédent</span>
+                </button>
+                <span className="text-[11px] font-mono text-neutral-500">
+                  {activeTestimonialIdx + 1} / {testimonialsData.length}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => scrollToTestimonialCard(Math.min(testimonialsData.length - 1, activeTestimonialIdx + 1))}
+                  disabled={activeTestimonialIdx === testimonialsData.length - 1}
+                  className="inline-flex items-center gap-1 text-neutral-400 hover:text-white disabled:opacity-20 transition py-1 cursor-pointer"
+                >
+                  <span>Suivant</span>
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
             </div>
           </section>
 
