@@ -12,7 +12,8 @@ export type InterviewStatus =
   | 'GENERATING_REPORT'
   | 'COMPLETED'
   | 'ERROR_RECOVERY'
-  | 'CREDIT_BLOCKED';
+  | 'CREDIT_BLOCKED'
+  | 'ABORTED_INSUFFICIENT_DATA';
 
 export type JuryPersonality = 'BIENVEILLANT' | 'STANDARD' | 'CRASH_TEST';
 

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import { 
   Mic, 
   MicOff, 
@@ -20,12 +21,14 @@ import {
   Edit3,
   RefreshCw,
   ShieldCheck,
-  AlertTriangle
+  AlertTriangle,
+  LayoutDashboard
 } from 'lucide-react';
 import { AcademicProfileData } from '@/types/profile';
 import { InterviewTurn, InterviewStatus, JuryPersonality } from '@/types/interview';
 import { isTechnicalOrInvalidAnswer } from '@/lib/ai/validation';
 import { MobileMoneyModal } from '@/components/payments/MobileMoneyModal';
+import { createClient } from '@/lib/supabase/client';
 
 /**
  * Détecte le meilleur type MIME audio supporté par le navigateur (Chrome, Safari, Firefox, Edge).
@@ -173,10 +176,9 @@ export function InterviewRoom() {
   const [manualTextAnswer, setManualTextAnswer] = useState<string>('');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isAiPlaying, setIsAiPlaying] = useState<boolean>(false);
-  // États gestion crédits et fin prématurée d'entretien
+  // États gestion crédits et fin d'entretien
   const [hasCreditError, setHasCreditError] = useState<boolean>(false);
   const [isCreditModalOpen, setIsCreditModalOpen] = useState<boolean>(false);
-  const [isEndConfirmOpen, setIsEndConfirmOpen] = useState<boolean>(false);
   const [isActivatingFreeCredits, setIsActivatingFreeCredits] = useState<boolean>(false);
   // Verrou anti-double démarrage / concurrence
   const hasStartedSessionRef = useRef<boolean>(false);
@@ -412,12 +414,17 @@ export function InterviewRoom() {
     };
   }, [status, hasCreditError]);
 
-  // Détection de fin de temps réglementaire
+  // Détection de fin de temps réglementaire (5 minutes)
   useEffect(() => {
-    if (timeRemaining === 0 && status !== 'COMPLETED' && status !== 'GENERATING_REPORT') {
-      handleFinalConclusion();
+    if (timeRemaining === 0 && status !== 'COMPLETED' && status !== 'GENERATING_REPORT' && status !== 'ABORTED_INSUFFICIENT_DATA') {
+      const validTurns = turnsHistory.filter(t => t.studentTranscript && !isTechnicalOrInvalidAnswer(t.studentTranscript));
+      if (validTurns.length < 2) {
+        setStatus('ABORTED_INSUFFICIENT_DATA');
+      } else {
+        handleFinalConclusion();
+      }
     }
-  }, [timeRemaining, status]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [timeRemaining, status, turnsHistory]);
 
   // Démarrer l'enregistrement de l'étudiant
   const startStudentRecording = useCallback(async () => {
@@ -906,6 +913,11 @@ export function InterviewRoom() {
       });
 
       const data = await res.json();
+      if (res.status === 422 || data.insufficientData) {
+        setStatus('ABORTED_INSUFFICIENT_DATA');
+        return;
+      }
+
       if (data.report) {
         localStorage.setItem(`campus_france_report_${sessionId}`, JSON.stringify(data.report));
         localStorage.setItem('campus_france_last_report', JSON.stringify(data.report));
@@ -920,10 +932,31 @@ export function InterviewRoom() {
     }
   };
 
-  // Clôture prématurée demandée par l'étudiant (avant la fin des 5 minutes)
-  const handleEarlyTerminationWithDraft = async () => {
+  // Terminaison immédiate et inconditionnelle de l'entretien (dès que l'étudiant clique sur "Terminer")
+  const handleTerminateInterview = async () => {
+    // 1. Coupe absolument tout le son, la voix IA, le chronomètre et les périphériques
     stopAllAiSpeech();
-    setIsEndConfirmOpen(false);
+
+    if (timerIntervalRef.current) {
+      clearInterval(timerIntervalRef.current);
+      timerIntervalRef.current = null;
+    }
+    if (audioStreamRef.current) {
+      audioStreamRef.current.getTracks().forEach((t) => t.stop());
+      audioStreamRef.current = null;
+    }
+    if (videoStreamRef.current) {
+      videoStreamRef.current.getTracks().forEach((t) => t.stop());
+      videoStreamRef.current = null;
+    }
+    if (speechRecognitionRef.current) {
+      try {
+        speechRecognitionRef.current.abort();
+      } catch {}
+      speechRecognitionRef.current = null;
+    }
+
+    // 2. Récupérer l'éventuelle réponse en cours de parole ou texte
     const finalTurns = [...turnsHistory];
     const draft = candidateDraftAnswer.trim() || accumulatedTranscriptRef.current.trim() || manualTextAnswer.trim();
     if (draft && !isTechnicalOrInvalidAnswer(draft)) {
@@ -938,29 +971,39 @@ export function InterviewRoom() {
       });
     }
 
-    const totalWords = finalTurns.reduce(
+    // Filtrer les vraies réponses académiques (exclure salutations vides ou bruits)
+    const validAcademicTurns = finalTurns.filter(
+      (t) => t.studentTranscript && t.studentTranscript.trim() && !isTechnicalOrInvalidAnswer(t.studentTranscript)
+    );
+    const totalRecordedWords = validAcademicTurns.reduce(
       (acc, t) => acc + t.studentTranscript.split(/\s+/).filter(Boolean).length,
       0
     );
 
-    // Sécurité stricte : si moins de 2 questions de fond ou moins de 30 mots au total (ex: simple salutation "bonjour, je m'appelle..."), refuser de générer un bilan fictif
-    if (finalTurns.length < 2 && totalWords < 30) {
-      if (audioStreamRef.current) audioStreamRef.current.getTracks().forEach((t) => t.stop());
-      if (videoStreamRef.current) videoStreamRef.current.getTracks().forEach((t) => t.stop());
-      router.push('/dashboard');
+    // Contrôle strict : au moins 2 questions répondues avec du contenu substantiel pour générer un bilan
+    const isSubstantialInterview = validAcademicTurns.length >= 2 && totalRecordedWords >= 25;
+
+    if (!isSubstantialInterview) {
+      // Marquer la session en base comme ABANDONED pour préserver les crédits
+      try {
+        if (sessionId && !sessionId.startsWith('session_')) {
+          const supabase = createClient();
+          await supabase
+            .from('interview_sessions')
+            .update({ status: 'ABANDONED', ended_at: new Date().toISOString() })
+            .eq('id', sessionId);
+        }
+      } catch (err) {
+        console.warn('Erreur mise à jour session abandonnée :', err);
+      }
+
+      // Afficher immédiatement l'écran de notification clair
+      setStatus('ABORTED_INSUFFICIENT_DATA');
       return;
     }
 
-    if (finalTurns.length > 0) {
-      await handleFinalConclusion(finalTurns);
-    } else {
-      if (audioStreamRef.current) audioStreamRef.current.getTracks().forEach((t) => t.stop());
-      if (videoStreamRef.current) videoStreamRef.current.getTracks().forEach((t) => t.stop());
-      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
-      }
-      router.push('/dashboard');
-    }
+    // Si la session contient assez de réponses réelles, générer le bilan
+    await handleFinalConclusion(finalTurns);
   };
 
   // Démarrer la session au montage avec verrou anti-double appel / concurrence
@@ -1117,6 +1160,77 @@ export function InterviewRoom() {
     );
   }
 
+  // Écran d'arrêt immédiat avec notification claire si l'étudiant a quitté avant de répondre à assez de questions
+  if (status === 'ABORTED_INSUFFICIENT_DATA') {
+    return (
+      <div className="min-h-screen bg-[#05070E] text-slate-100 flex flex-col justify-between p-4 sm:p-8">
+        <div className="max-w-lg w-full mx-auto my-auto bg-slate-900/90 border border-slate-800 rounded-3xl p-6 sm:p-8 backdrop-blur-md shadow-2xl space-y-6 text-center animate-in fade-in duration-300">
+          <div className="w-16 h-16 rounded-2xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 mx-auto shadow-lg shadow-amber-500/10">
+            <PhoneOff className="w-8 h-8" />
+          </div>
+
+          <div>
+            <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20 mb-3">
+              Simulation terminée
+            </span>
+            <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
+              Entretien interrompu
+            </h2>
+            <p className="text-sm text-slate-300 mt-3 leading-relaxed">
+              Vous avez mis fin à la simulation avant d&apos;avoir répondu à suffisamment de questions.
+            </p>
+            <div className="mt-3 text-xs text-slate-300 leading-relaxed bg-slate-950/70 p-4 rounded-xl border border-slate-800 text-left space-y-1.5">
+              <p className="font-semibold text-amber-300 flex items-center gap-1.5">
+                <AlertCircle className="w-4 h-4 text-amber-400 shrink-0" />
+                <span>Aucun rapport d&apos;évaluation n&apos;a été généré</span>
+              </p>
+              <p className="text-slate-400">
+                L&apos;examinatrice ne dispose pas d&apos;assez d&apos;informations orales (au moins 2 réponses de fond requises) pour noter rigoureusement votre prestation et formuler des axes d&apos;amélioration sans rien inventer.
+              </p>
+            </div>
+          </div>
+
+          <div className="p-3.5 rounded-2xl bg-emerald-950/40 border border-emerald-500/30 flex items-center gap-3 text-left">
+            <ShieldCheck className="w-5 h-5 text-emerald-400 shrink-0" />
+            <div className="text-xs text-emerald-200">
+              <span className="font-bold text-white block">Solde préservé</span>
+              Aucun crédit de simulation n&apos;a été débité de votre compte. Votre solde reste intact.
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-center gap-3 pt-2">
+            <button
+              type="button"
+              onClick={() => {
+                if (typeof window !== 'undefined') {
+                  window.location.reload();
+                }
+              }}
+              className="w-full sm:flex-1 py-3.5 px-4 rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-400 hover:from-blue-500 hover:to-cyan-400 text-white font-bold text-xs sm:text-sm shadow-xl shadow-cyan-500/20 transition flex items-center justify-center gap-2 active:scale-95 cursor-pointer"
+            >
+              <RotateCcw className="w-4 h-4" />
+              <span>Recommencer la simulation</span>
+            </button>
+
+            <Link
+              href="/dashboard"
+              className="w-full sm:flex-1 py-3.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white font-semibold text-xs sm:text-sm border border-slate-700 transition flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <LayoutDashboard className="w-4 h-4" />
+              <span>Tableau de bord</span>
+            </Link>
+          </div>
+
+          <div className="text-center pt-1">
+            <Link href="/" className="text-xs text-slate-400 hover:text-cyan-400 transition">
+              Retourner à l&apos;accueil
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-between">
       {/* Barre supérieure : Chronomètre & Statut */}
@@ -1161,12 +1275,9 @@ export function InterviewRoom() {
 
           <button
             type="button"
-            onClick={() => {
-              stopAllAiSpeech();
-              setIsEndConfirmOpen(true);
-            }}
-            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 sm:px-3 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 hover:text-rose-200 border border-rose-500/30 text-xs font-semibold transition active:scale-95 shadow-sm"
-            title="Arrêter ou terminer l'entretien avant les 5 minutes"
+            onClick={handleTerminateInterview}
+            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 sm:px-3 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 hover:text-rose-200 border border-rose-500/30 text-xs font-semibold transition active:scale-95 shadow-sm cursor-pointer"
+            title="Arrêter ou terminer immédiatement l'entretien"
           >
             <PhoneOff className="w-3.5 h-3.5 text-rose-400 shrink-0" />
             <span>Terminer</span>
@@ -1619,14 +1730,11 @@ export function InterviewRoom() {
         <div className="flex justify-center -mt-2">
           <button
             type="button"
-            onClick={() => {
-              stopAllAiSpeech();
-              setIsEndConfirmOpen(true);
-            }}
-            className="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-rose-300 py-1.5 px-3 rounded-lg hover:bg-rose-500/10 transition active:scale-95"
+            onClick={handleTerminateInterview}
+            className="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-rose-300 py-1.5 px-3 rounded-lg hover:bg-rose-500/10 transition active:scale-95 cursor-pointer"
           >
             <PhoneOff className="w-3.5 h-3.5 text-rose-400/80" />
-            Terminer l&apos;entretien avant les 5 min
+            <span>Terminer l&apos;entretien</span>
           </button>
         </div>
       </main>
@@ -1635,123 +1743,6 @@ export function InterviewRoom() {
       <footer className="border-t border-slate-900 bg-slate-950 px-4 py-2 text-center text-[10px] text-slate-500">
         Simulateur indépendant PrépaCampus • Non affilié à l&apos;organisme Campus France • Caméra locale sans aucun enregistrement vidéo.
       </footer>
-
-      {/* Modal de confirmation d'arrêt d'entretien */}
-      {isEndConfirmOpen && (() => {
-        const currentDraftText = (candidateDraftAnswer.trim() || accumulatedTranscriptRef.current.trim() || manualTextAnswer.trim());
-        const hasValidDraft = !!(currentDraftText && !isTechnicalOrInvalidAnswer(currentDraftText));
-        const totalRecordedWords = turnsHistory.reduce(
-          (acc, t) => acc + t.studentTranscript.split(/\s+/).filter(Boolean).length, 0
-        ) + (hasValidDraft ? currentDraftText.split(/\s+/).filter(Boolean).length : 0);
-        const totalTurnsCount = turnsHistory.length + (hasValidDraft ? 1 : 0);
-        const isSubstantialInterview = totalTurnsCount >= 2 || (totalTurnsCount === 1 && totalRecordedWords >= 30);
-
-        return (
-          <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in">
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
-              {isSubstantialInterview ? (
-                <>
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-rose-500/15 border border-rose-500/30 flex items-center justify-center text-rose-400 shrink-0">
-                      <PhoneOff className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <h3 className="text-base font-bold text-white">Terminer l&apos;entretien ?</h3>
-                      <p className="text-xs text-cyan-400 font-mono font-medium">Temps restant : {formatTime(timeRemaining)}</p>
-                    </div>
-                  </div>
-
-                  <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-                    Vous avez complété <strong className="text-white">{totalTurnsCount} question{totalTurnsCount > 1 ? 's' : ''}</strong> ({totalRecordedWords} mots analysables). Votre bilan pédagogique officiel sera généré fidèlement à partir de vos réponses enregistrées.
-                  </p>
-
-                  <div className="flex flex-col gap-2.5 pt-2">
-                    <button
-                      type="button"
-                      onClick={handleEarlyTerminationWithDraft}
-                      className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs sm:text-sm shadow-lg shadow-emerald-600/20 transition flex items-center justify-center gap-2 active:scale-95"
-                    >
-                      <CheckCircle2 className="w-4 h-4" />
-                      Terminer et générer mon bilan ({totalTurnsCount} question{totalTurnsCount > 1 ? 's' : ''})
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setIsEndConfirmOpen(false);
-                        if (audioStreamRef.current) audioStreamRef.current.getTracks().forEach((t) => t.stop());
-                        if (videoStreamRef.current) videoStreamRef.current.getTracks().forEach((t) => t.stop());
-                        if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-                          window.speechSynthesis.cancel();
-                        }
-                        router.push('/dashboard');
-                      }}
-                      className="w-full py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs sm:text-sm border border-slate-700 transition"
-                    >
-                      Quitter sans générer de bilan
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => setIsEndConfirmOpen(false)}
-                      className="w-full py-2 px-4 rounded-xl text-slate-400 hover:text-white font-medium text-xs sm:text-sm transition hover:bg-slate-800/50"
-                    >
-                      Continuer l&apos;entretien
-                    </button>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0">
-                      <AlertTriangle className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <h3 className="text-base font-bold text-white">Interrompre la simulation ?</h3>
-                      <p className="text-xs text-amber-400/90 font-medium">Session trop courte pour être évaluée</p>
-                    </div>
-                  </div>
-
-                  <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-                    Vous n&apos;avez pas encore abordé les questions de fond (salutation brève ou aucune réponse enregistrée). Aucun bilan consulaire ne peut être calculé valablement sur une simple introduction.
-                  </p>
-
-                  <div className="p-3 rounded-xl bg-emerald-950/30 border border-emerald-500/30 flex items-center gap-2.5 text-xs text-emerald-300">
-                    <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
-                    <span>Aucun crédit de simulation n&apos;est consommé si vous quittez maintenant.</span>
-                  </div>
-
-                  <div className="flex flex-col gap-2.5 pt-2">
-                    <button
-                      type="button"
-                      onClick={() => setIsEndConfirmOpen(false)}
-                      className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs sm:text-sm shadow-lg shadow-emerald-600/20 transition flex items-center justify-center gap-2 active:scale-95"
-                    >
-                      Continuer l&apos;entretien
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setIsEndConfirmOpen(false);
-                        if (audioStreamRef.current) audioStreamRef.current.getTracks().forEach((t) => t.stop());
-                        if (videoStreamRef.current) videoStreamRef.current.getTracks().forEach((t) => t.stop());
-                        if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-                          window.speechSynthesis.cancel();
-                        }
-                        router.push('/dashboard');
-                      }}
-                      className="w-full py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs sm:text-sm border border-slate-700 transition"
-                    >
-                      Quitter vers le tableau de bord
-                    </button>
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
-        );
-      })()}
     </div>
   );
 }

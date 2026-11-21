@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateEvaluationReport } from '@/lib/ai/openai';
+import { isTechnicalOrInvalidAnswer } from '@/lib/ai/validation';
 import { TIMEOUTS, createTimeoutSignal } from '@/config/timeouts';
 import { AcademicProfileData } from '@/types/profile';
 import { InterviewTurn } from '@/types/interview';
@@ -42,6 +43,25 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'Données insuffisantes pour générer le rapport.' },
         { status: 400 }
+      );
+    }
+
+    // Contrôle strict : Refuser catégoriquement de générer un bilan si l'étudiant a répondu à moins de 2 questions de fond
+    const validAcademicTurns = turns.filter(
+      (t) => t.studentTranscript && t.studentTranscript.trim() && !isTechnicalOrInvalidAnswer(t.studentTranscript)
+    );
+    const totalRecordedWords = validAcademicTurns.reduce(
+      (acc, t) => acc + t.studentTranscript.split(/\s+/).filter(Boolean).length, 0
+    );
+
+    if (validAcademicTurns.length < 2 || totalRecordedWords < 25) {
+      cleanup();
+      return NextResponse.json(
+        { 
+          error: "Nombre de réponses insuffisant pour générer un bilan pédagogique d'évaluation. Au moins 2 réponses de fond sont requises pour noter fidèlement le candidat sans inventer de résultats.",
+          insufficientData: true 
+        },
+        { status: 422 }
       );
     }
 

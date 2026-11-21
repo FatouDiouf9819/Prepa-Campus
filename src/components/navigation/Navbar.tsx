@@ -224,8 +224,8 @@ export function Navbar() {
             ) : null}
           </div>
 
-          {/* Section Droite Mobile : Langue + Avatar / Connexion + Menu Hamburger */}
-          <div className="flex md:hidden items-center gap-1 sm:gap-2 shrink-0">
+          {/* Section Droite Mobile : Langue + Menu Hamburger (épuration demandée : pas de bouton connexion à côté des 3 barres) */}
+          <div className="flex md:hidden items-center gap-2 shrink-0">
             {/* Toggle FR / EN rapide sur mobile */}
             <div className="flex items-center rounded-lg bg-[#121827] border border-white/10 p-0.5 text-[9px] sm:text-[10px] font-bold">
               <button
@@ -252,24 +252,7 @@ export function Navbar() {
               </button>
             </div>
 
-            {isAuthenticated ? (
-              <Link href="/profil" className="relative group">
-                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/10 border border-white/15 flex items-center justify-center text-xs font-bold text-white shadow-xs">
-                  <User className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#38BDF8]" />
-                </div>
-                <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-[#05070E]" />
-              </Link>
-            ) : (
-              <Link
-                href="/auth/connexion"
-                prefetch={true}
-                className="text-[11px] sm:text-xs font-bold text-[#38BDF8] hover:text-white px-1 sm:px-1.5 py-1 transition"
-              >
-                {t('nav.login')}
-              </Link>
-            )}
-
-            {/* Bouton Hamburger */}
+            {/* Bouton Hamburger (ouvre le menu complet avec navigation, profil, connexion/créer un compte) */}
             <button
               type="button"
               onClick={() => setMobileMenuOpen(true)}
