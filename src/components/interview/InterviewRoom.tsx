@@ -22,7 +22,8 @@ import {
   RefreshCw,
   ShieldCheck,
   AlertTriangle,
-  LayoutDashboard
+  LayoutDashboard,
+  User
 } from 'lucide-react';
 import { AcademicProfileData } from '@/types/profile';
 import { InterviewTurn, InterviewStatus, JuryPersonality } from '@/types/interview';
@@ -160,8 +161,9 @@ export function InterviewRoom() {
     }
   }, []);
   
-  // Chronomètre de 5 minutes (300 secondes)
+  // Chronomètre de 5 minutes (300 secondes) synchronisé avec la prise de parole de l'IA
   const [timeRemaining, setTimeRemaining] = useState<number>(300);
+  const [isTimerStarted, setIsTimerStarted] = useState<boolean>(false);
   const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Transcription & Parole
@@ -390,18 +392,31 @@ export function InterviewRoom() {
     };
   }, []);
 
-  // Décompte du chronomètre de 5 minutes (300 secondes)
+  // Décompte du chronomètre de 5 minutes (300 secondes) - Démarre exactement dès que l'IA commence à parler
   useEffect(() => {
-    if (status === 'COMPLETED' || status === 'GENERATING_REPORT' || status === 'CREDIT_BLOCKED' || hasCreditError) {
-      if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
+    if (
+      !isTimerStarted ||
+      status === 'COMPLETED' || 
+      status === 'GENERATING_REPORT' || 
+      status === 'CREDIT_BLOCKED' || 
+      status === 'ABORTED_INSUFFICIENT_DATA' ||
+      hasCreditError
+    ) {
+      if (timerIntervalRef.current) {
+        clearInterval(timerIntervalRef.current);
+        timerIntervalRef.current = null;
+      }
       return;
     }
 
-    if (status !== 'PERMISSION_CHECK' && status !== 'READY_TO_START') {
+    if (!timerIntervalRef.current) {
       timerIntervalRef.current = setInterval(() => {
         setTimeRemaining((prev) => {
           if (prev <= 1) {
-            clearInterval(timerIntervalRef.current!);
+            if (timerIntervalRef.current) {
+              clearInterval(timerIntervalRef.current);
+              timerIntervalRef.current = null;
+            }
             return 0;
           }
           return prev - 1;
@@ -410,9 +425,12 @@ export function InterviewRoom() {
     }
 
     return () => {
-      if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
+      if (timerIntervalRef.current) {
+        clearInterval(timerIntervalRef.current);
+        timerIntervalRef.current = null;
+      }
     };
-  }, [status, hasCreditError]);
+  }, [isTimerStarted, status, hasCreditError]);
 
   // Détection de fin de temps réglementaire (5 minutes)
   useEffect(() => {
@@ -596,6 +614,10 @@ export function InterviewRoom() {
         }
       };
 
+      utterance.onstart = () => {
+        setIsTimerStarted(true);
+      };
+
       utterance.onend = safeEnd;
       utterance.onerror = safeEnd;
 
@@ -632,6 +654,7 @@ export function InterviewRoom() {
     setStatus('AI_SPEAKING');
 
     const triggerReadyAfterSpeech = () => {
+      setIsTimerStarted(true);
       setIsAiPlaying(false);
       startStudentRecording();
     };
@@ -658,6 +681,11 @@ export function InterviewRoom() {
         const audio = new Audio(audioUrl);
         audioElementRef.current = audio;
 
+        // Déclencher le minuteur exactement dès que le son commence à sortir des haut-parleurs
+        audio.onplay = () => {
+          setIsTimerStarted(true);
+        };
+
         audio.onended = () => {
           URL.revokeObjectURL(audioUrl);
           if (!isAiSpeakingCancelledRef.current) {
@@ -675,6 +703,7 @@ export function InterviewRoom() {
 
         try {
           await audio.play();
+          setIsTimerStarted(true);
           return;
         } catch (playErr) {
           console.warn('Autoplay audio bloqué sur mobile par le navigateur :', playErr);
@@ -936,6 +965,7 @@ export function InterviewRoom() {
   const handleTerminateInterview = async () => {
     // 1. Coupe absolument tout le son, la voix IA, le chronomètre et les périphériques
     stopAllAiSpeech();
+    setIsTimerStarted(false);
 
     if (timerIntervalRef.current) {
       clearInterval(timerIntervalRef.current);
@@ -1067,16 +1097,42 @@ export function InterviewRoom() {
     startSession();
   }, [profile]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Basculer la webcam locale
-  const toggleCamera = () => {
-    if (videoStreamRef.current) {
-      const videoTrack = videoStreamRef.current.getVideoTracks()[0];
-      if (videoTrack) {
-        videoTrack.enabled = !videoTrack.enabled;
-        setIsCameraActive(videoTrack.enabled);
+  // Basculer la webcam locale (l'étudiant peut couper/rallumer sa caméra à tout moment sans couper son micro)
+  const toggleCamera = async () => {
+    if (isCameraActive) {
+      // 1. Couper la caméra locale (arrête les pistes matérielles pour couper le voyant vert de la caméra)
+      if (videoStreamRef.current) {
+        videoStreamRef.current.getTracks().forEach((track) => track.stop());
+        videoStreamRef.current = null;
+      }
+      if (videoRef.current) {
+        videoRef.current.srcObject = null;
+      }
+      setIsCameraActive(false);
+    } else {
+      // 2. Rallumer la caméra locale
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: 'user' },
+        });
+        videoStreamRef.current = stream;
+        setIsCameraActive(true);
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+        }
+      } catch (err) {
+        console.warn('Impossible de réactiver la caméra :', err);
+        setIsCameraActive(false);
       }
     }
   };
+
+  // Reconnecter le flux vidéo dès que la caméra est active et le nœud DOM vidéo est monté
+  useEffect(() => {
+    if (isCameraActive && videoStreamRef.current && videoRef.current) {
+      videoRef.current.srcObject = videoStreamRef.current;
+    }
+  }, [isCameraActive]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -1260,8 +1316,32 @@ export function InterviewRoom() {
           </div>
         </div>
 
-        {/* Chronomètre dégressif & Bouton Terminer (visible sur Mobile et Desktop) */}
-        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+        {/* Chronomètre dégressif, Contrôle Caméra & Bouton Terminer */}
+        <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
+          {/* Bouton rapide d'activation / coupure de la caméra */}
+          <button
+            type="button"
+            onClick={toggleCamera}
+            className={`px-2.5 py-1.5 sm:px-3 sm:py-1.5 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition active:scale-95 cursor-pointer shadow-sm ${
+              isCameraActive
+                ? 'bg-slate-900 border-slate-700 text-slate-300 hover:text-white hover:bg-slate-800'
+                : 'bg-rose-500/15 border-rose-500/30 text-rose-300 hover:bg-rose-500/25'
+            }`}
+            title={isCameraActive ? "Couper la caméra (mode vocal seul)" : "Allumer la caméra"}
+          >
+            {isCameraActive ? (
+              <>
+                <Camera className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-cyan-400 shrink-0" />
+                <span className="hidden sm:inline text-xs">Caméra ON</span>
+              </>
+            ) : (
+              <>
+                <CameraOff className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-rose-400 shrink-0" />
+                <span className="hidden sm:inline text-xs">Caméra OFF</span>
+              </>
+            )}
+          </button>
+
           <div
             className={`px-2.5 py-1.5 sm:px-3 rounded-xl border flex items-center gap-1.5 sm:gap-2 font-mono font-bold text-xs sm:text-sm ${
               timeRemaining < 60
@@ -1345,9 +1425,33 @@ export function InterviewRoom() {
                   className="w-full h-full object-cover transform -scale-x-100"
                 />
               ) : (
-                <div className="flex flex-col items-center justify-center p-6 text-center text-slate-500 gap-2">
-                  <CameraOff className="w-10 h-10 stroke-[1.5]" />
-                  <span className="text-xs">Caméra désactivée (mode audio pur)</span>
+                <div className="flex flex-col items-center justify-center p-6 text-center gap-3 w-full h-full bg-slate-950/90">
+                  <div className={`relative w-16 h-16 sm:w-20 sm:h-20 rounded-full flex items-center justify-center transition-all duration-200 ${
+                    status === 'STUDENT_RECORDING' && audioLevel > 6
+                      ? 'bg-emerald-500/20 border-2 border-emerald-400 text-emerald-300 scale-105 shadow-[0_0_25px_rgba(16,185,129,0.4)]'
+                      : 'bg-slate-800/80 border border-slate-700 text-slate-300'
+                  }`}>
+                    <User className="w-8 h-8 sm:w-10 sm:h-10 text-cyan-400" />
+                    {status === 'STUDENT_RECORDING' && audioLevel > 6 && (
+                      <span className="absolute inset-0 rounded-full border-2 border-emerald-400 animate-ping opacity-75" />
+                    )}
+                  </div>
+                  <div>
+                    <span className="text-xs font-semibold text-white block">
+                      {profile?.fieldOfStudy ? `Candidat • ${profile.fieldOfStudy}` : 'Candidat'}
+                    </span>
+                    <span className="text-[11px] text-slate-400 block mt-0.5">
+                      Caméra coupée • Micro toujours actif
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={toggleCamera}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-500/30 text-cyan-300 text-xs font-semibold transition active:scale-95 cursor-pointer shadow-xs"
+                  >
+                    <Camera className="w-3.5 h-3.5 text-cyan-400" />
+                    <span>Allumer ma caméra</span>
+                  </button>
                 </div>
               )}
 
@@ -1355,10 +1459,10 @@ export function InterviewRoom() {
               <button
                 type="button"
                 onClick={toggleCamera}
-                className="absolute top-3 right-3 p-2 rounded-xl bg-slate-950/80 hover:bg-slate-800 text-slate-300 border border-slate-700/60 backdrop-blur-md transition"
-                title={isCameraActive ? "Désactiver la caméra" : "Activer la caméra"}
+                className="absolute top-3 right-3 p-2 rounded-xl bg-slate-950/85 hover:bg-slate-800 text-slate-300 border border-slate-700/60 backdrop-blur-md transition cursor-pointer shadow-md active:scale-95 z-20"
+                title={isCameraActive ? "Couper la caméra (mode vocal seul)" : "Allumer la caméra"}
               >
-                {isCameraActive ? <Camera className="w-4 h-4 text-cyan-400" /> : <CameraOff className="w-4 h-4 text-slate-400" />}
+                {isCameraActive ? <Camera className="w-4 h-4 text-cyan-400" /> : <CameraOff className="w-4 h-4 text-rose-400" />}
               </button>
 
               {/* Indicateur de micro & VU-mètre en direct */}
