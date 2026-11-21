@@ -52,7 +52,7 @@ export default function HomePage() {
       const container = stepsScrollRef.current;
       const child = container.children[index] as HTMLElement;
       if (child) {
-        child.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+        child.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
       }
     }
     setActiveStepIdx(index);
@@ -63,7 +63,7 @@ export default function HomePage() {
       const container = testimonialsScrollRef.current;
       const child = container.children[index] as HTMLElement;
       if (child) {
-        child.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+        child.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
       }
     }
     setActiveTestimonialIdx(index);
@@ -74,7 +74,7 @@ export default function HomePage() {
       const container = pillarsScrollRef.current;
       const child = container.children[index] as HTMLElement;
       if (child) {
-        child.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+        child.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
       }
     }
     setActivePillarIdx(index);
@@ -84,8 +84,8 @@ export default function HomePage() {
     if (stepsScrollRef.current) {
       const container = stepsScrollRef.current;
       const scrollLeft = container.scrollLeft;
-      const cardWidth = (container.children[0] as HTMLElement)?.offsetWidth || 300;
-      const idx = Math.round(scrollLeft / (cardWidth + 16));
+      const cardWidth = container.clientWidth || 300;
+      const idx = Math.round(scrollLeft / cardWidth);
       if (idx >= 0 && idx < stepsData.length && idx !== activeStepIdx) {
         setActiveStepIdx(idx);
       }
@@ -96,8 +96,8 @@ export default function HomePage() {
     if (testimonialsScrollRef.current) {
       const container = testimonialsScrollRef.current;
       const scrollLeft = container.scrollLeft;
-      const cardWidth = (container.children[0] as HTMLElement)?.offsetWidth || 300;
-      const idx = Math.round(scrollLeft / (cardWidth + 16));
+      const cardWidth = container.clientWidth || 300;
+      const idx = Math.round(scrollLeft / cardWidth);
       if (idx >= 0 && idx < testimonialsData.length && idx !== activeTestimonialIdx) {
         setActiveTestimonialIdx(idx);
       }
@@ -108,8 +108,8 @@ export default function HomePage() {
     if (pillarsScrollRef.current) {
       const container = pillarsScrollRef.current;
       const scrollLeft = container.scrollLeft;
-      const cardWidth = (container.children[0] as HTMLElement)?.offsetWidth || 300;
-      const idx = Math.round(scrollLeft / (cardWidth + 16));
+      const cardWidth = container.clientWidth || 300;
+      const idx = Math.round(scrollLeft / cardWidth);
       if (idx >= 0 && idx < 3 && idx !== activePillarIdx) {
         setActivePillarIdx(idx);
       }
@@ -305,14 +305,14 @@ export default function HomePage() {
             </div>
           </section>
 
-          {/* 3 Piliers de la méthode (Carrousel swipeable sur mobile, grille sur desktop) */}
+          {/* 3 Piliers de la méthode (1 seule carte visible à la fois sur mobile, grille sur desktop) */}
           <section className="pt-8 pb-16 sm:pt-12 sm:pb-20 border-t border-neutral-900 bg-black">
             <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className="text-center mb-6 sm:mb-10">
                 <h2 className="text-2xl sm:text-3xl font-bold text-white">{t('home.how_it_works')}</h2>
                 {/* Indication visuelle mobile de swipe */}
                 <div className="flex md:hidden items-center justify-center gap-1.5 text-[11px] text-cyan-400/90 mt-2 font-medium">
-                  <span>Glissez de droite à gauche pour défiler</span>
+                  <span>Glissez vers la gauche pour défiler</span>
                   <ArrowRight className="w-3 h-3 animate-pulse" />
                 </div>
               </div>
@@ -320,60 +320,92 @@ export default function HomePage() {
               <div 
                 ref={pillarsScrollRef}
                 onScroll={handlePillarsScroll}
-                className="flex md:grid md:grid-cols-3 gap-4 sm:gap-6 overflow-x-auto md:overflow-x-visible snap-x snap-mandatory pb-4 pt-1 px-4 sm:px-0 -mx-4 sm:mx-0 scroll-smooth [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+                className="flex md:grid md:grid-cols-3 md:gap-6 overflow-x-auto md:overflow-x-visible snap-x snap-mandatory pb-4 pt-1 scroll-smooth [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden w-full"
               >
-                <div className="w-[82vw] max-w-[320px] shrink-0 snap-center md:w-auto md:max-w-none bg-[#0e0e0e] border border-neutral-800 rounded-3xl p-6 relative group hover:border-neutral-700 transition shadow-lg flex flex-col justify-between">
-                  <div>
-                    <div className="w-12 h-12 rounded-2xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center mb-4">
-                      <GraduationCap className="w-6 h-6" />
+                <div className="w-full min-w-full shrink-0 snap-center md:w-auto md:min-w-0">
+                  <div className="bg-[#0e0e0e] border border-neutral-800 rounded-3xl p-6 sm:p-7 relative group hover:border-neutral-700 transition shadow-xl flex flex-col justify-between h-full">
+                    <div>
+                      <div className="w-12 h-12 rounded-2xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center mb-4">
+                        <GraduationCap className="w-6 h-6" />
+                      </div>
+                      <h3 className="text-base sm:text-lg font-semibold text-white mb-2">{t('home.pillar1_title')}</h3>
+                      <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed">
+                        {t('home.pillar1_desc')}
+                      </p>
                     </div>
-                    <h3 className="text-base sm:text-lg font-semibold text-white mb-2">{t('home.pillar1_title')}</h3>
-                    <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed">
-                      {t('home.pillar1_desc')}
-                    </p>
                   </div>
                 </div>
 
-                <div className="w-[82vw] max-w-[320px] shrink-0 snap-center md:w-auto md:max-w-none bg-[#0e0e0e] border border-neutral-800 rounded-3xl p-6 relative group hover:border-neutral-700 transition shadow-lg flex flex-col justify-between">
-                  <div>
-                    <div className="w-12 h-12 rounded-xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center mb-4">
-                      <Mic className="w-6 h-6" />
+                <div className="w-full min-w-full shrink-0 snap-center md:w-auto md:min-w-0">
+                  <div className="bg-[#0e0e0e] border border-neutral-800 rounded-3xl p-6 sm:p-7 relative group hover:border-neutral-700 transition shadow-xl flex flex-col justify-between h-full">
+                    <div>
+                      <div className="w-12 h-12 rounded-xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center mb-4">
+                        <Mic className="w-6 h-6" />
+                      </div>
+                      <h3 className="text-base sm:text-lg font-semibold text-white mb-2">{t('home.pillar2_title')}</h3>
+                      <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed">
+                        {t('home.pillar2_desc')}
+                      </p>
                     </div>
-                    <h3 className="text-base sm:text-lg font-semibold text-white mb-2">{t('home.pillar2_title')}</h3>
-                    <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed">
-                      {t('home.pillar2_desc')}
-                    </p>
                   </div>
                 </div>
 
-                <div className="w-[82vw] max-w-[320px] shrink-0 snap-center md:w-auto md:max-w-none bg-[#0e0e0e] border border-neutral-800 rounded-3xl p-6 relative group hover:border-neutral-700 transition shadow-lg flex flex-col justify-between">
-                  <div>
-                    <div className="w-12 h-12 rounded-xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center mb-4">
-                      <FileText className="w-6 h-6" />
+                <div className="w-full min-w-full shrink-0 snap-center md:w-auto md:min-w-0">
+                  <div className="bg-[#0e0e0e] border border-neutral-800 rounded-3xl p-6 sm:p-7 relative group hover:border-neutral-700 transition shadow-xl flex flex-col justify-between h-full">
+                    <div>
+                      <div className="w-12 h-12 rounded-xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center mb-4">
+                        <FileText className="w-6 h-6" />
+                      </div>
+                      <h3 className="text-base sm:text-lg font-semibold text-white mb-2">{t('home.pillar3_title')}</h3>
+                      <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed">
+                        {t('home.pillar3_desc')}
+                      </p>
                     </div>
-                    <h3 className="text-base sm:text-lg font-semibold text-white mb-2">{t('home.pillar3_title')}</h3>
-                    <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed">
-                      {t('home.pillar3_desc')}
-                    </p>
                   </div>
                 </div>
               </div>
 
-              {/* Pagination Dots sur Mobile */}
-              <div className="flex md:hidden items-center justify-center gap-2 mt-2">
-                {[0, 1, 2].map((idx) => (
+              {/* Pagination Dots & Navigation sur Mobile */}
+              <div className="flex md:hidden flex-col items-center gap-2 mt-2">
+                <div className="flex items-center justify-center gap-2">
+                  {[0, 1, 2].map((idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => scrollToPillarCard(idx)}
+                      className={`transition-all duration-300 rounded-full cursor-pointer ${
+                        activePillarIdx === idx
+                          ? 'w-7 h-2 bg-gradient-to-r from-blue-500 to-cyan-400 shadow-md shadow-cyan-500/50'
+                          : 'w-2 h-2 bg-neutral-700 hover:bg-neutral-600'
+                      }`}
+                      aria-label={`Aller au pilier ${idx + 1}`}
+                    />
+                  ))}
+                </div>
+
+                <div className="flex items-center justify-between w-full max-w-[280px] px-2 text-xs text-neutral-400">
                   <button
-                    key={idx}
                     type="button"
-                    onClick={() => scrollToPillarCard(idx)}
-                    className={`transition-all duration-300 rounded-full cursor-pointer ${
-                      activePillarIdx === idx
-                        ? 'w-7 h-2 bg-gradient-to-r from-blue-500 to-cyan-400 shadow-md shadow-cyan-500/50'
-                        : 'w-2 h-2 bg-neutral-700 hover:bg-neutral-600'
-                    }`}
-                    aria-label={`Aller au pilier ${idx + 1}`}
-                  />
-                ))}
+                    onClick={() => scrollToPillarCard(Math.max(0, activePillarIdx - 1))}
+                    disabled={activePillarIdx === 0}
+                    className="inline-flex items-center gap-1 text-neutral-400 hover:text-white disabled:opacity-20 transition py-1 cursor-pointer"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                    <span>Précédent</span>
+                  </button>
+                  <span className="text-[11px] font-mono text-neutral-500">
+                    {activePillarIdx + 1} / 3
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => scrollToPillarCard(Math.min(2, activePillarIdx + 1))}
+                    disabled={activePillarIdx === 2}
+                    className="inline-flex items-center gap-1 text-neutral-400 hover:text-white disabled:opacity-20 transition py-1 cursor-pointer"
+                  >
+                    <span>Suivant</span>
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
             </div>
           </section>
@@ -866,34 +898,36 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Conteneur Carrousel Mobile / Grille Desktop */}
+            {/* Conteneur Carrousel Mobile (1 seule carte visible à la fois) / Grille Desktop */}
             <div 
               ref={stepsScrollRef}
               onScroll={handleStepsScroll}
-              className="flex md:grid md:grid-cols-3 gap-4 sm:gap-6 overflow-x-auto md:overflow-x-visible snap-x snap-mandatory pb-4 pt-1 px-4 sm:px-0 -mx-4 sm:mx-0 scroll-smooth [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+              className="flex md:grid md:grid-cols-3 md:gap-6 overflow-x-auto md:overflow-x-visible snap-x snap-mandatory pb-4 pt-1 scroll-smooth [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden w-full"
             >
               {stepsData.map((step, idx) => (
                 <div 
                   key={idx} 
-                  className="w-[84vw] max-w-[340px] shrink-0 snap-center md:w-auto md:max-w-none bg-[#0e0e0e] border border-neutral-800 hover:border-neutral-700 rounded-3xl p-6 sm:p-7 flex flex-col justify-between transition-all duration-200 shadow-xl"
+                  className="w-full min-w-full shrink-0 snap-center md:w-auto md:min-w-0"
                 >
-                  <div>
-                    <div className="flex items-center justify-between mb-4">
-                      <span className="text-2xl font-black text-cyan-400 font-mono">{step.num}</span>
-                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-neutral-900 text-neutral-300 border border-neutral-800">
-                        {step.badge}
-                      </span>
+                  <div className="bg-[#0e0e0e] border border-neutral-800 hover:border-neutral-700 rounded-3xl p-6 sm:p-7 flex flex-col justify-between transition-all duration-200 shadow-xl h-full">
+                    <div>
+                      <div className="flex items-center justify-between mb-4">
+                        <span className="text-2xl font-black text-cyan-400 font-mono">{step.num}</span>
+                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-neutral-900 text-neutral-300 border border-neutral-800">
+                          {step.badge}
+                        </span>
+                      </div>
+                      <h3 className="text-base font-bold text-white mb-2 leading-snug">{step.title}</h3>
+                      <p className="text-xs text-neutral-400 leading-relaxed mb-4">{step.shortDesc}</p>
+                      <ul className="text-[11px] text-neutral-300 space-y-2 mb-4">
+                        {step.keyPoints.map((pt, pIdx) => (
+                          <li key={pIdx} className="flex items-start gap-2">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-cyan-400 shrink-0 mt-0.5" />
+                            <span className="leading-tight">{pt}</span>
+                          </li>
+                        ))}
+                      </ul>
                     </div>
-                    <h3 className="text-base font-bold text-white mb-2 leading-snug">{step.title}</h3>
-                    <p className="text-xs text-neutral-400 leading-relaxed mb-4">{step.shortDesc}</p>
-                    <ul className="text-[11px] text-neutral-300 space-y-2 mb-4">
-                      {step.keyPoints.map((pt, pIdx) => (
-                        <li key={pIdx} className="flex items-start gap-2">
-                          <CheckCircle2 className="w-3.5 h-3.5 text-cyan-400 shrink-0 mt-0.5" />
-                          <span className="leading-tight">{pt}</span>
-                        </li>
-                      ))}
-                    </ul>
                   </div>
                 </div>
               ))}
@@ -963,41 +997,43 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Conteneur Carrousel Mobile / Grille Desktop */}
+            {/* Conteneur Carrousel Mobile (1 seule carte visible à la fois) / Grille Desktop */}
             <div 
               ref={testimonialsScrollRef}
               onScroll={handleTestimonialsScroll}
-              className="flex md:grid md:grid-cols-3 gap-4 sm:gap-6 overflow-x-auto md:overflow-x-visible snap-x snap-mandatory pb-4 pt-1 px-4 sm:px-0 -mx-4 sm:mx-0 scroll-smooth [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+              className="flex md:grid md:grid-cols-3 md:gap-6 overflow-x-auto md:overflow-x-visible snap-x snap-mandatory pb-4 pt-1 scroll-smooth [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden w-full"
             >
               {testimonialsData.map((item, idx) => (
                 <div 
                   key={idx} 
-                  className="w-[84vw] max-w-[340px] shrink-0 snap-center md:w-auto md:max-w-none bg-[#0e0e0e] border border-neutral-800 hover:border-neutral-700 rounded-3xl p-6 flex flex-col justify-between transition-all duration-200 shadow-xl"
+                  className="w-full min-w-full shrink-0 snap-center md:w-auto md:min-w-0"
                 >
-                  <div>
-                    <div className="flex items-center gap-3.5 mb-4">
-                      <div className="w-12 h-12 rounded-full overflow-hidden relative border border-cyan-500/30 shrink-0 shadow-md">
-                        <Image src={item.avatar} alt={item.name} fill className="object-cover" />
+                  <div className="bg-[#0e0e0e] border border-neutral-800 hover:border-neutral-700 rounded-3xl p-6 sm:p-7 flex flex-col justify-between transition-all duration-200 shadow-xl h-full">
+                    <div>
+                      <div className="flex items-center gap-3.5 mb-4">
+                        <div className="w-12 h-12 rounded-full overflow-hidden relative border border-cyan-500/30 shrink-0 shadow-md">
+                          <Image src={item.avatar} alt={item.name} fill className="object-cover" />
+                        </div>
+                        <div className="min-w-0">
+                          <h4 className="text-sm font-bold text-white truncate">{item.name}</h4>
+                          <p className="text-[11px] text-cyan-400 font-medium truncate">{item.admission}</p>
+                          <p className="text-[10px] text-neutral-500">{item.city}</p>
+                        </div>
                       </div>
-                      <div className="min-w-0">
-                        <h4 className="text-sm font-bold text-white truncate">{item.name}</h4>
-                        <p className="text-[11px] text-cyan-400 font-medium truncate">{item.admission}</p>
-                        <p className="text-[10px] text-neutral-500">{item.city}</p>
+                      <div className="flex items-center gap-1 text-amber-400 mb-3">
+                        {[...Array(item.stars)].map((_, i) => (
+                          <Star key={i} className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                        ))}
+                        <span className="text-[11px] text-neutral-400 ml-1.5 font-semibold">{item.rating}</span>
                       </div>
+                      <p className="text-xs text-neutral-300 leading-relaxed italic mb-4">
+                        {item.shortQuote}
+                      </p>
                     </div>
-                    <div className="flex items-center gap-1 text-amber-400 mb-3">
-                      {[...Array(item.stars)].map((_, i) => (
-                        <Star key={i} className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                      ))}
-                      <span className="text-[11px] text-neutral-400 ml-1.5 font-semibold">{item.rating}</span>
+                    <div className="pt-3 border-t border-neutral-850 text-[11px] text-neutral-400">
+                      <span className="font-bold text-neutral-300">Point décisif : </span>
+                      {item.keyFactor}
                     </div>
-                    <p className="text-xs text-neutral-300 leading-relaxed italic mb-4">
-                      {item.shortQuote}
-                    </p>
-                  </div>
-                  <div className="pt-3 border-t border-neutral-850 text-[11px] text-neutral-400">
-                    <span className="font-bold text-neutral-300">Point décisif : </span>
-                    {item.keyFactor}
                   </div>
                 </div>
               ))}
