@@ -690,9 +690,10 @@ export function InterviewRoom() {
 
       const frenchVoices = availableVoices.filter((v) => v.lang.startsWith('fr'));
       const femaleFrenchVoice =
+        frenchVoices.find((v) => /marie|amélie|amelie|audrey|aurélie|aurelie/i.test(v.name)) ||
         frenchVoices.find((v) => /google\s+français/i.test(v.name)) ||
         frenchVoices.find((v) =>
-          /audrey|aurélie|aurelie|amélie|amelie|marie|hortense|denise|julie|virginie|céline|celine|female|femme/i.test(v.name)
+          /hortense|denise|julie|virginie|céline|celine|female|femme/i.test(v.name)
         ) ||
         frenchVoices.find((v) => !/thomas|nicolas|paul|claude|male|homme|daniel|david|antoine/i.test(v.name)) ||
         frenchVoices[0];
@@ -786,7 +787,8 @@ export function InterviewRoom() {
 
     const preferredVoice = typeof window !== 'undefined' ? localStorage.getItem('preferred_voice') : null;
 
-    if (preferredVoice === 'native') {
+    // Par défaut (ou si 'native' est choisi), utiliser la voix native ultra-naturelle du téléphone (Siri / Amélie)
+    if (!preferredVoice || preferredVoice === 'native') {
       fallbackWebSpeech(textToSpeak, triggerReadyAfterSpeech);
       return;
     }
@@ -1229,16 +1231,16 @@ export function InterviewRoom() {
     }
   }, [profile, status]);
 
-  // Précharger l'audio réel de l'examinatrice pour une lecture instantanée lors du test
+  // Précharger l'audio de l'examinatrice si une voix serveur spécifique est choisie
   useEffect(() => {
     const preferredVoice = typeof window !== 'undefined' ? localStorage.getItem('preferred_voice') : null;
-    if (preferredVoice === 'native') return;
+    if (!preferredVoice || preferredVoice === 'native') return;
 
     if (status === 'READY_TO_START' && !preloadedWarmupBlobRef.current) {
       fetch('/api/audio/synthesize', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: TEST_EXAMINER_PHRASE, voice: preferredVoice || undefined }),
+        body: JSON.stringify({ text: TEST_EXAMINER_PHRASE, voice: preferredVoice }),
       })
         .then((res) => (res.status === 200 ? res.blob() : null))
         .then((blob) => {
@@ -1250,14 +1252,14 @@ export function InterviewRoom() {
     }
   }, [status]);
 
-  // Test audio de la voix de l'examinatrice (Voix Studio Service Client / Accueil Prestige)
+  // Test audio de la voix de l'examinatrice
   const handleTestExaminerVoice = async () => {
     if (isPlayingTestVoice) return;
     unlockMobileAudio();
     setIsPlayingTestVoice(true);
 
     const preferredVoice = typeof window !== 'undefined' ? localStorage.getItem('preferred_voice') : null;
-    if (preferredVoice === 'native') {
+    if (!preferredVoice || preferredVoice === 'native') {
       fallbackWebSpeech(TEST_EXAMINER_PHRASE, () => {
         setIsPlayingTestVoice(false);
       });
