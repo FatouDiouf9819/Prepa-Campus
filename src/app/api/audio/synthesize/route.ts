@@ -42,11 +42,11 @@ export async function POST(request: NextRequest) {
       return new NextResponse(null, { status: 204 });
     }
 
-    // Voix féminine naturelle, posée et professionnelle pour l'examinatrice Campus France
-    const allowedVoices = ['shimmer', 'nova'] as const;
+    // Voix féminine naturelle, douce et professionnelle pour l'examinatrice Campus France
+    const allowedVoices = ['coral', 'nova', 'shimmer', 'sage'] as const;
     const requestedVoice = process.env.OPENAI_VOICE as typeof allowedVoices[number];
-    // 'shimmer' est la voix féminine posée, douce, très calme et hautement professionnelle
-    const selectedVoice = allowedVoices.includes(requestedVoice) ? requestedVoice : 'shimmer';
+    // 'coral' est la voix féminine par excellence : ultra-douce, lumineuse, très féminine et parfaitement naturelle
+    const selectedVoice = allowedVoices.includes(requestedVoice) ? requestedVoice : 'coral';
 
     // Aération subtile du texte pour induire des respirations et pauses naturelles dans l'audio
     const humanizedText = text
@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
       model: process.env.OPENAI_MODEL_TTS || 'tts-1-hd',
       voice: selectedVoice,
       input: humanizedText,
-      speed: 0.92, // Rythme posé, calme, distinction et humanité
+      speed: 0.95, // Rythme naturel, fluide, posé et doux
     });
 
     const buffer = Buffer.from(await mp3Response.arrayBuffer());

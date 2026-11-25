@@ -33,6 +33,7 @@ yarn-error.log*
 public/check*
 public/crop-*
 public/test*
+!public/test-voice-*
 public/preview*
 public/full*
 public/creative-*
