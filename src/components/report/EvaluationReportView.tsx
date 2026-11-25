@@ -14,12 +14,15 @@ import {
   ArrowRight,
   TrendingUp,
   Printer,
-  Mic
+  Mic,
+  Download,
+  FileText
 } from 'lucide-react';
 import { EvaluationReport } from '@/types/interview';
 import { inferEvaluationCompleteness, getCampusReadinessIndicator } from '@/lib/indicators/progression';
 import { analyzeSpeechFluency } from '@/lib/indicators/speechAnalytics';
 import { RevisionMemoModal } from '@/components/history/RevisionMemoModal';
+import { printReportDocument, downloadReportHtml } from '@/lib/report/printReport';
 
 interface ReportProps {
   report: EvaluationReport;
@@ -51,6 +54,51 @@ export function EvaluationReportView({ report }: ReportProps) {
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8 space-y-8">
+      {/* Barre d'actions d'impression & téléchargement PDF rapide (masquée à l'impression) */}
+      <div className="flex flex-wrap items-center justify-between gap-3 p-4 rounded-2xl bg-slate-900/90 border border-slate-800 print:hidden shadow-xl backdrop-blur-md">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-xl bg-blue-500/15 border border-blue-500/30 text-cyan-400 flex items-center justify-center font-bold text-xs">
+            CF
+          </div>
+          <div>
+            <span className="font-bold text-white text-xs sm:text-sm block">Bilan Officieux Campus France</span>
+            <span className="text-[11px] text-slate-400">Prêt pour impression ou sauvegarde en PDF</span>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2.5">
+          <button
+            type="button"
+            onClick={() => downloadReportHtml(report)}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-slate-700 text-xs font-semibold transition active:scale-95 cursor-pointer shadow-sm"
+            title="Télécharger le fichier complet pour consultation hors-ligne"
+          >
+            <Download className="w-3.5 h-3.5 text-cyan-400" />
+            <span>Télécharger (Fichier)</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => printReportDocument(report)}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-400 hover:from-blue-500 hover:to-cyan-400 text-white text-xs font-bold transition shadow-md shadow-blue-500/20 active:scale-95 cursor-pointer"
+            title="Imprimer ou enregistrer le bilan complet en PDF"
+          >
+            <Printer className="w-4 h-4" />
+            <span>Imprimer mon Bilan (PDF)</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setMemoModalOpen(true)}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-neutral-900 hover:bg-neutral-800 border border-neutral-750 text-neutral-300 hover:text-white text-xs font-semibold transition active:scale-95 cursor-pointer"
+            title="Consulter et imprimer la Fiche Réflexe résumée"
+          >
+            <FileText className="w-3.5 h-3.5 text-amber-400" />
+            <span>Fiche Mémo</span>
+          </button>
+        </div>
+      </div>
+
       {/* En-tête Bilan */}
       <div className="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 sm:p-8 backdrop-blur-md shadow-2xl relative overflow-hidden">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative z-10">
@@ -301,8 +349,8 @@ export function EvaluationReportView({ report }: ReportProps) {
         </div>
       )}
 
-      {/* Actions de fin */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4">
+      {/* Actions de fin (masquées à l'impression) */}
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 print:hidden">
         <Link
           href="/dashboard"
           className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl border border-neutral-800 text-neutral-300 hover:text-white hover:bg-neutral-900 text-xs sm:text-sm font-semibold transition"
@@ -310,24 +358,49 @@ export function EvaluationReportView({ report }: ReportProps) {
           Retour au Tableau de bord
         </Link>
 
-        <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+        <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto justify-end">
+          <button
+            type="button"
+            onClick={() => downloadReportHtml(report)}
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 hover:text-white text-xs sm:text-sm font-semibold transition shadow-sm cursor-pointer"
+            title="Télécharger le fichier complet pour consultation hors-ligne"
+          >
+            <Download className="w-4 h-4 text-cyan-400" />
+            <span>Télécharger (Fichier)</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => printReportDocument(report)}
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-400 hover:from-blue-500 hover:to-cyan-400 text-white text-xs sm:text-sm font-bold shadow-lg shadow-blue-500/25 transition active:scale-95 cursor-pointer"
+            title="Imprimer ou enregistrer le bilan complet en PDF"
+          >
+            <Printer className="w-4 h-4" />
+            <span>Imprimer mon Bilan (PDF)</span>
+          </button>
+
           <button
             type="button"
             onClick={() => setMemoModalOpen(true)}
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-neutral-900 hover:bg-neutral-850 border border-neutral-750 text-white text-xs sm:text-sm font-semibold transition shadow-sm hover:border-neutral-600"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-3 rounded-xl bg-neutral-900 hover:bg-neutral-850 border border-neutral-750 text-white text-xs sm:text-sm font-semibold transition shadow-sm hover:border-neutral-600 cursor-pointer"
           >
-            <Printer className="w-4 h-4 text-cyan-400" />
-            <span>Télécharger mon Mémo (PDF)</span>
+            <FileText className="w-4 h-4 text-amber-400" />
+            <span>Fiche Mémo (PDF)</span>
           </button>
 
           <Link
             href="/entretien/preparation"
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white text-xs sm:text-sm font-semibold shadow-lg shadow-blue-500/25 transition"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs sm:text-sm font-semibold shadow-lg shadow-emerald-600/25 transition"
           >
             <RotateCcw className="w-4 h-4" />
             Refaire une simulation
           </Link>
         </div>
+
+        {/* Notice déontologique d'indépendance */}
+        <p className="mt-6 text-center text-[11px] text-neutral-400 max-w-xl mx-auto leading-relaxed print:hidden">
+          PrépaCampus est une plateforme indépendante d’entraînement pédagogique par intelligence artificielle. Elle n’est affiliée à aucun organisme d’État ni à l’agence Campus France.
+        </p>
       </div>
 
       {/* Modal Mémo de Révision & Impression PDF */}

@@ -6,6 +6,9 @@ import { AcademicProfileData } from '@/types/profile';
 import { InterviewTurn } from '@/types/interview';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 
+export const maxDuration = 60; // 60 secondes max pour les Serverless Functions Vercel (Hobby & Pro)
+export const dynamic = 'force-dynamic';
+
 /**
  * POST /api/interview/report
  * Génère le bilan pédagogique approfondi après l'entretien de 5 minutes
@@ -46,7 +49,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Contrôle strict : Refuser catégoriquement de générer un bilan si l'étudiant a répondu à moins de 2 questions de fond
+    // Contrôle strict : Refuser catégoriquement de générer un bilan si l'étudiant a répondu à moins de 3 questions de fond
     const validAcademicTurns = turns.filter(
       (t) => t.studentTranscript && t.studentTranscript.trim() && !isTechnicalOrInvalidAnswer(t.studentTranscript)
     );
@@ -54,12 +57,54 @@ export async function POST(request: NextRequest) {
       (acc, t) => acc + t.studentTranscript.split(/\s+/).filter(Boolean).length, 0
     );
 
-    if (validAcademicTurns.length < 2 || totalRecordedWords < 25) {
+    if (validAcademicTurns.length < 3 || totalRecordedWords < 50) {
       cleanup();
+
+      // Filet de sécurité déontologique : si la session est incomplète, marquer ABANDONED et restituer le crédit
+      if (sessionId && !sessionId.startsWith('session_')) {
+        try {
+          await supabase.from('interview_sessions').update({
+            status: 'ABANDONED',
+            ended_at: new Date().toISOString(),
+          }).eq('id', sessionId);
+
+          // Restituer le crédit déduit
+          try {
+            await supabase.rpc('refund_user_credit', { p_user_id: user.id });
+          } catch {}
+
+          let curBal = 0;
+          try {
+            const { data: cRow } = await supabase.from('user_credits').select('balance').eq('user_id', user.id).maybeSingle();
+            if (cRow && typeof cRow.balance === 'number') curBal = Math.max(curBal, cRow.balance);
+          } catch {}
+
+          if (typeof user.user_metadata?.credits_balance === 'number') {
+            curBal = Math.max(curBal, user.user_metadata.credits_balance);
+          } else if (typeof user.user_metadata?.credits === 'number') {
+            curBal = Math.max(curBal, user.user_metadata.credits);
+          }
+
+          const newBal = curBal + 1;
+          await supabase.auth.updateUser({
+            data: { credits: newBal, credits_balance: newBal },
+          });
+
+          try {
+            const { createAdminClient } = await import('@/lib/supabase/admin');
+            const adminClient = createAdminClient();
+            await adminClient.from('user_credits').upsert({ user_id: user.id, balance: newBal, updated_at: new Date().toISOString() });
+          } catch {}
+        } catch (abortErr) {
+          console.warn('[Report Abort Refund Safety Net]:', abortErr);
+        }
+      }
+
       return NextResponse.json(
         { 
-          error: "Nombre de réponses insuffisant pour générer un bilan pédagogique d'évaluation. Au moins 2 réponses de fond sont requises pour noter fidèlement le candidat sans inventer de résultats.",
-          insufficientData: true 
+          error: "Nombre de réponses insuffisant pour générer un bilan pédagogique d'évaluation. Au moins 3 réponses de fond et 50 mots sont requis pour noter fidèlement le candidat sans inventer de résultats.",
+          insufficientData: true,
+          refunded: true,
         },
         { status: 422 }
       );

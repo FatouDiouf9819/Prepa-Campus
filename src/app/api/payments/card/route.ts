@@ -26,7 +26,16 @@ export async function POST(request: NextRequest) {
 
     let body: unknown;
     try {
-      body = await request.json();
+      const rawBody = await request.json();
+      if (typeof rawBody === 'object' && rawBody !== null) {
+        body = {
+          ...rawBody,
+          expiry: (rawBody as Record<string, unknown>).expiry || (rawBody as Record<string, unknown>).cardExpiry,
+          cvc: (rawBody as Record<string, unknown>).cvc || (rawBody as Record<string, unknown>).cardCvc,
+        };
+      } else {
+        body = rawBody;
+      }
     } catch {
       return NextResponse.json(
         { success: false, error: 'Corps de requête JSON invalide.' },

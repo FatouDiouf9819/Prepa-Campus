@@ -139,12 +139,14 @@ export default function RapportPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#05070E] flex flex-col text-slate-100 font-sans">
-      <Navbar />
-      <main className="flex-1 py-4">
+    <div className="min-h-screen bg-[#05070E] print:bg-white flex flex-col text-slate-100 print:text-slate-900 font-sans">
+      <div className="print:hidden">
+        <Navbar />
+      </div>
+      <main className="flex-1 py-4 print:py-0">
         <EvaluationReportView report={report} />
       </main>
-      <footer className="border-t border-white/10 py-6 text-center text-xs text-slate-500 bg-[#05070E]">
+      <footer className="border-t border-white/10 py-6 text-center text-xs text-slate-500 bg-[#05070E] print:hidden">
         <p>PrépaCampus — Rapport pédagogique indépendant.</p>
       </footer>
     </div>

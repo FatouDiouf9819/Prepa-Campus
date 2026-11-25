@@ -7,6 +7,9 @@ import { isTechnicalOrInvalidAnswer, sanitizeCandidateTranscript } from '@/lib/a
 
 const MAX_AUDIO_SIZE_BYTES = 25 * 1024 * 1024; // 25 Mo max (limite Whisper)
 
+export const maxDuration = 60; // 60 secondes max pour les Serverless Functions Vercel
+export const dynamic = 'force-dynamic';
+
 /**
  * POST /api/audio/transcribe
  * Transcrit l'audio oral de l'étudiant via OpenAI Whisper.
@@ -104,13 +107,29 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Préparation robuste du fichier uploadable compatible Node / Next.js
+    // Préparation robuste du fichier uploadable compatible Node / Next.js et iOS Safari
     const audioBytes = await audioFile.arrayBuffer();
     const audioBuffer = Buffer.from(audioBytes);
+
+    const mime = (audioFile.type || '').toLowerCase();
+    let ext = 'webm';
+    if (mime.includes('mp4') || mime.includes('m4a') || mime.includes('aac')) {
+      ext = 'm4a';
+    } else if (mime.includes('wav')) {
+      ext = 'wav';
+    } else if (mime.includes('mp3') || mime.includes('mpeg')) {
+      ext = 'mp3';
+    } else if (mime.includes('ogg')) {
+      ext = 'ogg';
+    } else if (audioFile.name && /\.(mp3|mp4|m4a|wav|webm|ogg)$/i.test(audioFile.name)) {
+      ext = audioFile.name.split('.').pop()!.toLowerCase();
+    }
+    const safeFilename = `student_response_${Date.now()}.${ext}`;
+
     const uploadableFile = await OpenAI.toFile(
       audioBuffer,
-      audioFile.name || 'student_response.webm',
-      { type: audioFile.type || 'audio/webm' }
+      safeFilename,
+      { type: audioFile.type || `audio/${ext}` }
     );
 
     // Appel à l'API Whisper d'OpenAI avec timeout adapté aux fichiers audio

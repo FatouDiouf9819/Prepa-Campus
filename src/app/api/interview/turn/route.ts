@@ -6,6 +6,9 @@ import { InterviewTurn, JuryPersonality } from '@/types/interview';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { isTechnicalOrInvalidAnswer } from '@/lib/ai/validation';
 
+export const maxDuration = 60; // 60 secondes max pour les Serverless Functions Vercel
+export const dynamic = 'force-dynamic';
+
 /**
  * POST /api/interview/turn
  * Analyse la réponse de l'étudiant et génère le tour suivant (relance ciblée ou question suivante).

@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getOpenAIClient } from '@/lib/ai/openai';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 
+export const maxDuration = 60; // 60 secondes max pour les Serverless Functions Vercel
+export const dynamic = 'force-dynamic';
+
 /**
  * POST /api/audio/synthesize
  * Génère la synthèse vocale d'une question d'examinateur via OpenAI TTS.

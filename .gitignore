@@ -26,7 +26,36 @@ yarn-debug.log*
 yarn-error.log*
 
 # local env files
+.env
 .env*.local
+
+# test screenshots & temporary previews
+public/check*
+public/crop-*
+public/test*
+public/preview*
+public/full*
+public/creative-*
+public/current-*
+public/simulated-*
+public/desktop-new-*
+public/mobile-new-*
+public/ref-hero-*
+public/reference-*
+public/clean-ref-*
+public/girl-part.png
+public/girl-with-glasses-raw.png
+
+# draft assets from image generation experiments (keep only production assets)
+public/hero-*
+!public/hero-authentic-paris-flipped-hd.jpg
+public/avatar-*
+!public/avatar-ref-aissatou-sow.png
+!public/avatar-ref-ibrahima.png
+!public/avatar-ref-mamadou.png
+
+
+
 
 # vercel
 .vercel

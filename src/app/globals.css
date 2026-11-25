@@ -31,3 +31,84 @@ body {
     scrollbar-width: none;
   }
 }
+
+@media print {
+  @page {
+    margin: 1cm;
+    size: A4 portrait;
+  }
+
+  html, body {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    overflow: visible !important;
+    font-size: 11pt !important;
+    line-height: 1.4 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  nav,
+  header,
+  footer,
+  button,
+  .no-print,
+  [class*="print:hidden"] {
+    display: none !important;
+  }
+
+  /* Cartes et arrière-plans sombres convertis en blanc propre pour impression sans gaspillage d'encre */
+  [class*="bg-slate-"],
+  [class*="bg-neutral-"],
+  [class*="bg-[#05070E]"],
+  [class*="bg-[#0e0e0e]"] {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    border-color: #cbd5e1 !important;
+    box-shadow: none !important;
+  }
+
+  /* Textes clairs convertis en texte foncé contrasté */
+  [class*="text-white"],
+  [class*="text-slate-100"],
+  [class*="text-slate-200"],
+  [class*="text-slate-300"],
+  [class*="text-slate-400"] {
+    color: #1e293b !important;
+  }
+
+  /* Couleurs de badges préservées avec lisibilité sur papier blanc */
+  [class*="text-cyan-"],
+  [class*="text-blue-"] {
+    color: #0284c7 !important;
+    font-weight: 700 !important;
+  }
+  [class*="text-emerald-"] {
+    color: #059669 !important;
+    font-weight: 700 !important;
+  }
+  [class*="text-amber-"] {
+    color: #d97706 !important;
+    font-weight: 700 !important;
+  }
+  [class*="text-rose-"] {
+    color: #dc2626 !important;
+    font-weight: 700 !important;
+  }
+
+  /* Bordures nettes */
+  [class*="border-slate-"],
+  [class*="border-neutral-"],
+  [class*="border-white"] {
+    border-color: #cbd5e1 !important;
+  }
+
+  /* Éviter les coupures de page en plein milieu d'une carte ou d'un critère */
+  .grid > div,
+  .space-y-4 > div,
+  .space-y-3 > div,
+  .space-y-2 > div {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+}

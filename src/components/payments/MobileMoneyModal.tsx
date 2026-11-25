@@ -2,13 +2,13 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { 
-  X, 
-  Smartphone, 
-  CheckCircle2, 
-  AlertCircle, 
-  Loader2, 
-  Sparkles, 
+import {
+  X,
+  Smartphone,
+  CheckCircle2,
+  AlertCircle,
+  Loader2,
+  Sparkles,
   ArrowRight,
   ShieldCheck,
   CreditCard,
@@ -45,7 +45,7 @@ export function MobileMoneyModal({
       setSelectedPackId(defaultPackId);
     }
   }, [defaultPackId, isOpen]);
-  
+
   // États Mobile Money
   const [phoneNumber, setPhoneNumber] = useState('');
 
@@ -156,6 +156,8 @@ export function MobileMoneyModal({
           packId: currentPack.id,
           cardNumber: cleanCard,
           cardHolder: cardHolder.trim(),
+          expiry: cardExpiry,
+          cvc: cardCvc,
           cardExpiry,
           cardCvc,
         }),
@@ -262,7 +264,7 @@ export function MobileMoneyModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md transition-opacity">
-      <div 
+      <div
         className="bg-[#0D121F] border border-white/10 w-full max-w-lg rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden text-slate-100 max-h-[92vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
@@ -337,7 +339,7 @@ export function MobileMoneyModal({
                 {t('payment.title')}
               </h2>
               <p className="text-xs text-slate-400 mt-1">
-                {isEn 
+                {isEn
                   ? 'Accepting Bank Cards (Visa/Mastercard) across all Africa & Mobile Money.'
                   : 'Cartes bancaires (Visa/Mastercard) pour toute l\'Afrique & Mobile Money.'}
               </p>
@@ -348,11 +350,10 @@ export function MobileMoneyModal({
               <button
                 type="button"
                 onClick={() => { setPaymentMethod('card'); setErrorMessage(null); }}
-                className={`py-2.5 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer ${
-                  paymentMethod === 'card'
-                    ? 'bg-[#0066FF] text-white shadow-xs'
-                    : 'text-slate-400 hover:text-white'
-                }`}
+                className={`py-2.5 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer ${paymentMethod === 'card'
+                  ? 'bg-[#0066FF] text-white shadow-xs'
+                  : 'text-slate-400 hover:text-white'
+                  }`}
               >
                 <CreditCard className="w-4 h-4" />
                 <span>{isEn ? 'Bank Card (Visa / MC)' : 'Carte Bancaire (Visa/MC)'}</span>
@@ -361,11 +362,10 @@ export function MobileMoneyModal({
               <button
                 type="button"
                 onClick={() => { setPaymentMethod('mobile_money'); setErrorMessage(null); }}
-                className={`py-2.5 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer ${
-                  paymentMethod === 'mobile_money'
-                    ? 'bg-[#0066FF] text-white shadow-xs'
-                    : 'text-slate-400 hover:text-white'
-                }`}
+                className={`py-2.5 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer ${paymentMethod === 'mobile_money'
+                  ? 'bg-[#0066FF] text-white shadow-xs'
+                  : 'text-slate-400 hover:text-white'
+                  }`}
               >
                 <Smartphone className="w-4 h-4" />
                 <span>Mobile Money</span>
@@ -392,11 +392,10 @@ export function MobileMoneyModal({
                       type="button"
                       key={pack.id}
                       onClick={() => setSelectedPackId(pack.id)}
-                      className={`p-3 rounded-2xl border text-left transition relative flex flex-col justify-between cursor-pointer ${
-                        isSelected
-                          ? 'bg-blue-500/20 border-2 border-[#0066FF] shadow-xs'
-                          : 'bg-[#121827] border-white/10 hover:border-white/20'
-                      }`}
+                      className={`p-3 rounded-2xl border text-left transition relative flex flex-col justify-between cursor-pointer ${isSelected
+                        ? 'bg-blue-500/20 border-2 border-[#0066FF] shadow-xs'
+                        : 'bg-[#121827] border-white/10 hover:border-white/20'
+                        }`}
                     >
                       {pack.popular && (
                         <span className="absolute -top-2 left-2 text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-[#0066FF] text-white">
@@ -561,11 +560,10 @@ export function MobileMoneyModal({
                           type="button"
                           key={op.id}
                           onClick={() => setSelectedOperatorId(op.id)}
-                          className={`p-2.5 rounded-xl border text-left transition flex items-center gap-2 cursor-pointer ${
-                            isSelected
-                              ? 'bg-blue-500/20 border-2 border-[#0066FF] text-white shadow-xs'
-                              : 'bg-[#121827] border-white/10 text-slate-300 hover:border-white/20'
-                          }`}
+                          className={`p-2.5 rounded-xl border text-left transition flex items-center gap-2 cursor-pointer ${isSelected
+                            ? 'bg-blue-500/20 border-2 border-[#0066FF] text-white shadow-xs'
+                            : 'bg-[#121827] border-white/10 text-slate-300 hover:border-white/20'
+                            }`}
                         >
                           <span className="text-base">{op.flag}</span>
                           <div className="truncate">

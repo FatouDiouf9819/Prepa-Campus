@@ -557,6 +557,13 @@ function InscriptionForm() {
             <span>4.9/5 satisfaction candidats</span>
           </div>
         </div>
+
+        {/* Notice déontologique d'indépendance */}
+        <p className="mt-4 text-center text-[10px] text-slate-400 max-w-sm mx-auto leading-relaxed">
+          {language === 'fr' 
+            ? "Plateforme pédagogique indépendante d'entraînement par IA. Non affiliée à l'organisme officiel Campus France."
+            : "Independent pedagogical AI training platform. Not affiliated with the official Campus France agency."}
+        </p>
       </div>
     </div>
   );

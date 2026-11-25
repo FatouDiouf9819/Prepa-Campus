@@ -8,9 +8,11 @@ import {
   CheckCircle2, 
   AlertTriangle, 
   Quote, 
-  ShieldCheck
+  ShieldCheck,
+  Download
 } from 'lucide-react';
 import { SessionRecord, generateRevisionMemo } from '@/lib/indicators/progression';
+import { printMemoDocument, downloadMemoHtml } from '@/lib/report/printReport';
 
 interface RevisionMemoModalProps {
   isOpen: boolean;
@@ -24,7 +26,11 @@ export function RevisionMemoModal({ isOpen, onClose, sessions }: RevisionMemoMod
   const memo = generateRevisionMemo(sessions);
 
   const handlePrint = () => {
-    window.print();
+    printMemoDocument(memo);
+  };
+
+  const handleDownload = () => {
+    downloadMemoHtml(memo);
   };
 
   return (
@@ -40,11 +46,19 @@ export function RevisionMemoModal({ isOpen, onClose, sessions }: RevisionMemoMod
           </div>
           <div className="flex items-center gap-2">
             <button
+              onClick={handleDownload}
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium text-xs border border-slate-700 transition"
+              title="Télécharger la fiche au format HTML autonome"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Télécharger</span>
+            </button>
+            <button
               onClick={handlePrint}
               className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white font-bold text-xs shadow-md transition"
             >
               <Printer className="w-4 h-4" />
-              Imprimer / Sauvegarder en PDF
+              Imprimer / PDF
             </button>
             <button
               onClick={onClose}
@@ -238,11 +252,18 @@ export function RevisionMemoModal({ isOpen, onClose, sessions }: RevisionMemoMod
             Fermer
           </button>
           <button
+            onClick={handleDownload}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs border border-slate-700 transition"
+          >
+            <Download className="w-4 h-4" />
+            Télécharger le fichier
+          </button>
+          <button
             onClick={handlePrint}
             className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white font-bold text-xs shadow-md transition"
           >
             <Printer className="w-4 h-4" />
-            Imprimer la fiche
+            Imprimer la fiche (PDF)
           </button>
         </div>
       </div>

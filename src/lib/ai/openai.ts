@@ -48,17 +48,17 @@ export function getJuryPromptGuideline(juryPersonality?: JuryPersonality): strin
       return `POSTURE DE L'EXAMINATRICE : PÉDAGOGUE ET BIENVEILLANTE
 - Ton chaleureux, rassurant et encourageant.
 - Met le candidat en confiance, valorise ses efforts, reformule avec empathie s'il hésite.
-- Pose des questions claires et ouvertes pour l'aider à structurer son parcours.`;
+- Pose une question claire, courte et unique pour l'aider à structurer son parcours.`;
     case 'CRASH_TEST':
       return `POSTURE DE L'EXAMINATRICE : CRASH-TEST / TRÈS EXIGEANTE
 - Ton direct, incisif, pointilleux et sans complaisance (style concours sélectif).
-- Traque impitoyablement les incohérences, le manque de précision chiffrée, les choix de formations injustifiés ou le flou sur le budget.
-- Pousse le candidat dans ses retranchements pour tester sa résistance au stress.`;
+- Traque impitoyablement les incohérences, le manque de précision chiffrée, les choix de formations injustifiés ou le flou sur le budget (615 €/mois, logement).
+- Pousse le candidat dans ses retranchements pour tester sa résistance au stress sans jamais poser deux questions à la fois.`;
     case 'STANDARD':
     default:
       return `POSTURE DE L'EXAMINATRICE : STANDARD / OFFICIELLE CAMPUS FRANCE
 - Ton neutre, posé, professionnel et impartial.
-- Évalue avec rigueur et équilibre la cohérence du parcours, le réalisme du projet et la maîtrise de l'expression.`;
+- Évalue avec rigueur et équilibre la cohérence du parcours, le réalisme du projet, le financement du séjour et la maîtrise de l'expression.`;
   }
 }
 
@@ -338,10 +338,21 @@ export async function generateAdaptiveTurn(
       };
     }
 
-    if (currentTurnIndex === 3 || currentTurnIndex === 4) {
+    if (currentTurnIndex === 3) {
       return {
-        question: `Vous visez l'établissement suivant : ${instText}. Qu'est-ce qui a motivé ce choix plutôt qu'une autre université ou école ?`,
-        pedagogicalIntent: "Évaluer la recherche documentaire et la pertinence du choix des universités.",
+        question: `Parlons de votre projet professionnel. Vous visez l'objectif suivant : "${profile.professionalGoal}". Comment cette formation en France vous permettra-t-elle concrètement d'atteindre ce métier ?`,
+        pedagogicalIntent: "Évaluer la cohérence entre le diplôme visé et l'insertion professionnelle.",
+        turnType: 'REGULAR',
+        evaluationStatus: 'ANSWER_ACCEPTED',
+        relevanceCategory: 'PERTINENT_DEVELOPPED',
+        isConcluding: false,
+      };
+    }
+
+    if (currentTurnIndex === 4) {
+      return {
+        question: `Abordons le financement de votre séjour : comment avez-vous prévu de subvenir à vos besoins en France (garant, compte bloqué AVI, logement et frais de vie) ?`,
+        pedagogicalIntent: "Vérifier la préparation et le réalisme des garanties financières (seuil légal de 615 €/mois, caution, logement).",
         turnType: 'REGULAR',
         evaluationStatus: 'ANSWER_ACCEPTED',
         relevanceCategory: 'PERTINENT_DEVELOPPED',
@@ -350,8 +361,8 @@ export async function generateAdaptiveTurn(
     }
 
     return {
-      question: `Parlons maintenant de votre projet professionnel. Vous visez l'objectif suivant : "${profile.professionalGoal}". Comment cette formation en France vous permettra-t-elle concrètement d'atteindre ce métier ?`,
-      pedagogicalIntent: "Évaluer la cohérence entre le diplôme visé et l'insertion professionnelle.",
+      question: `Vous visez également l'établissement suivant : ${instText}. Qu'est-ce qui a motivé ce choix plutôt qu'une autre université ou école ?`,
+      pedagogicalIntent: "Évaluer la recherche documentaire et la pertinence du choix des universités.",
       turnType: 'REGULAR',
       evaluationStatus: 'ANSWER_ACCEPTED',
       relevanceCategory: 'PERTINENT_DEVELOPPED',
@@ -419,13 +430,19 @@ RÈGLES D'ADAPTATION DE L'EXAMINATRICE :
 - Sinon (réponse pertinente) :
   * evaluationStatus = "ANSWER_ACCEPTED"
   * turnType = "REGULAR"
-  * Poser une NOUVELLE question différente parmi : les modules spécifiques du semestre, le projet professionnel et débouchés concrets, pourquoi la France et pas un autre pays, le financement du séjour, les stages prévus.
+  * Poser une NOUVELLE question différente en suivant les 5 piliers officiels Campus France :
+    1. Parcours actuel & fil conducteur (déjà exploré au tour 1)
+    2. Choix de la formation visée & unités d'enseignement (matières clés, spécialité)
+    3. Projet professionnel précis & débouchés concrets (métier visé, insertion dans le pays d'origine ou à l'international)
+    4. Financement et budget du séjour (garant, compte bloqué AVI, logement, respect du seuil légal officiel de 615 €/mois)
+    5. Synthèse ou challenge bienveillant d'une particularité du dossier (réorientation, césure, redoublement à justifier)
 
-IMPORTANT :
-- Une SEULE question à la fois.
-- Français fluide, naturel, avec une ponctuation soignée (virgules, intonations) adaptée à une voix féminine posée.
+RÈGLES ABSOLUES DE FORMULATION ORALE :
+- UNE SEULE QUESTION À LA FOIS (Moins de 25 mots).
+- INTERDICTION ABSOLUE DES QUESTIONS DOUBLES OU COMPOSÉES (Exemple interdit : "Pourquoi cette formation et comment comptez-vous la financer ?"). Pose UNE SEULE question directe.
+- Français fluide, naturel, avec une ponctuation soignée (virgules, intonations) parfaitement adaptée à une voix féminine douce et posée.
 - RÈGLE ABSOLUE ANTI-RÉPÉTITION : Ne repose JAMAIS la même question ni une question similaire à celles déjà posées ci-dessus. Explore un NOUVEL angle thématique différent.
-- GESTION BIENVEILLANTE DU TEMPS DE PAROLE : Un court temps de réflexion (quelques secondes) ou des pauses posées entre deux phrases sont tout à fait normaux lors d'un entretien oral. Ne qualifie JAMAIS ces pauses d'hésitation ou de faiblesse si le fond de la réponse est constructif. Seules les réponses complètement vides, muettes ou hors-sujet font l'objet d'une relance.
+- GESTION ÉLÉGANTE DU TEMPS DE PAROLE : Si le candidat a été bavard sur un point, fais une transition fluide ("Très bien, j'ai bien saisi ces éléments. Parlons maintenant de..."). Un court temps de réflexion (quelques secondes) ou des pauses posées entre deux phrases sont normaux lors d'un entretien oral. Ne qualifie JAMAIS ces pauses d'hésitation si le fond est constructif.
 
 Format JSON strict :
 {
@@ -531,57 +548,54 @@ export async function generateEvaluationReport(
     0
   );
 
-  // Cas 2 : Prise de parole dérisoire ou salutation brève sans contenu évaluable (ex: "Bonjour je m'appelle Fatou...")
-  if (totalWords < 25 || (validAcademicTurns.length === 1 && totalWords < 35)) {
-    const rawTranscript = validAcademicTurns[0].studentTranscript.trim();
-    const scoreParcours = Math.min(3, Math.max(1, Math.round(totalWords / 10)));
-    const scoreElocution = Math.min(2, Math.max(1, Math.round(totalWords / 15)));
-    const totalMinimalScore = scoreParcours + scoreElocution;
+  // Cas 2 : Prise de parole dérisoire ou salutation brève sans contenu évaluable (moins de 3 questions ou moins de 50 mots)
+  if (totalWords < 50 || validAcademicTurns.length < 3) {
+    const rawTranscript = validAcademicTurns.map(t => t.studentTranscript).join(' ').trim();
 
     return {
       id: `report_${Date.now()}`,
       sessionId: `session_${Date.now()}`,
-      overallScore: totalMinimalScore,
+      overallScore: 0,
       evaluationCompleteness: 'UNAVAILABLE',
       isTechnicalIssue: false,
       evaluationGridVersion: 'v1.0.0',
       createdAt: new Date().toISOString(),
-      synthesisSummary: `Entretien écourté dès les premières secondes (${totalWords} mots prononcés : « ${rawTranscript.slice(0, 60)}... »). Vous avez mis fin à la simulation avant d'aborder les questions fondamentales sur votre projet d'études, vos universités visées et votre projet professionnel. Aucun score consulaire favorable ne peut être attribué sur une prestation interrompue. Nous vous recommandons de réaliser un entretien complet de 5 minutes pour obtenir un bilan fidèle et constructif.`,
+      synthesisSummary: `Entretien incomplet (${validAcademicTurns.length} réponse(s) enregistrée(s), ${totalWords} mots au total : « ${rawTranscript.slice(0, 80)}... »). La simulation a été interrompue avant d'aborder les questions fondamentales sur vos formations et votre projet professionnel. Conformément aux exigences du barème officiel Campus France, aucun score favorable ne peut être validé sans réponses complètes sur l'ensemble des critères.`,
       scoresByCriteria: [
         {
           name: 'parcours',
           label: 'Cohérence du parcours académique',
-          score: scoreParcours,
+          score: 0,
           maxScore: 20,
-          comment: 'Présentation interrompue avant d\'aborder les détails du parcours.',
+          comment: 'Présentation interrompue avant d\'aborder les détails complets du parcours.',
         },
         {
           name: 'formations',
           label: 'Justification des vœux et formations',
           score: 0,
           maxScore: 25,
-          comment: 'Sujet non évalué : la simulation s\'est arrêtée avant toute question sur vos formations.',
+          comment: 'Critère non évalué : simulation arrêtée avant d\'aborder les formations.',
         },
         {
           name: 'projet_pro',
           label: 'Solidité du projet professionnel',
           score: 0,
           maxScore: 25,
-          comment: 'Sujet non évalué : aucun projet professionnel n\'a été formulé durant cette session.',
+          comment: 'Critère non évalué : simulation arrêtée avant d\'aborder le projet professionnel.',
         },
         {
           name: 'argumentation',
           label: 'Capacité d\'argumentation sous relance',
           score: 0,
           maxScore: 20,
-          comment: 'Sujet non évalué : l\'entretien a été clôturé avant toute phase de relance.',
+          comment: 'Critère non évalué : simulation arrêtée avant la phase de relances.',
         },
         {
           name: 'elocution',
           label: 'Clarté de l\'expression et structure',
-          score: scoreElocution,
+          score: 0,
           maxScore: 10,
-          comment: 'Volume de parole trop court pour mesurer la fluidité et le débit.',
+          comment: 'Volume de parole insuffisant pour mesurer la fluidité globale.',
         },
       ],
       strengths: [],
@@ -589,7 +603,7 @@ export async function generateEvaluationReport(
         {
           criterion: 'Durée et développement de l\'entretien',
           verbatimQuote: rawTranscript.slice(0, 80),
-          feedback: 'Ne coupez pas l\'entretien au début. Répondez aux questions successives de l\'examinatrice pour couvrir les 5 critères officiels.',
+          feedback: 'Menez l\'entretien jusqu\'à son terme (5 minutes) pour permettre à l\'examinatrice d\'évaluer l\'ensemble des 5 critères officiels.',
           suggestedReformulation: `« Bonjour, je m'appelle ${profile.academicStatus || 'étudiant'} en ${profile.fieldOfStudy}, et je candidate pour ${profile.targetPrograms || 'mes formations en France'}. »`,
         },
       ],
@@ -597,7 +611,7 @@ export async function generateEvaluationReport(
       revisionTopics: [
         'Mener une simulation complète jusqu\'au terme des 5 minutes',
         'Structurer sa présentation d\'introduction en 1 minute (Nom, diplôme actuel, projet visé)',
-        'Préparer les réponses aux questions sur les universités et le financement',
+        'Préparer les réponses aux questions sur les universités et le projet professionnel',
       ],
     };
   }
@@ -804,11 +818,11 @@ CONSIGNES STRICTES D'ÉVALUATION ET DE NOTATION RÉELLE :
 Format JSON strict :
 {
   "scoresByCriteria": [
-    {"name": "parcours", "label": "Cohérence du parcours académique", "score": 14, "maxScore": 20, "comment": "Analyse personnalisée du parcours..."},
-    {"name": "formations", "label": "Justification des vœux et formations", "score": 19, "maxScore": 25, "comment": "Analyse personnalisée des vœux..."},
-    {"name": "projet_pro", "label": "Solidité du projet professionnel", "score": 17, "maxScore": 25, "comment": "Analyse personnalisée du projet..."},
-    {"name": "argumentation", "label": "Capacité d'argumentation sous relance", "score": 13, "maxScore": 20, "comment": "Analyse personnalisée sous relance..."},
-    {"name": "elocution", "label": "Clarté de l'expression et structure", "score": 8, "maxScore": 10, "comment": "Analyse personnalisée de l'élocution..."}
+    {"name": "parcours", "label": "Cohérence du parcours académique", "score": 0, "maxScore": 20, "comment": "Analyse personnalisée du parcours..."},
+    {"name": "formations", "label": "Justification des vœux et formations", "score": 0, "maxScore": 25, "comment": "Analyse personnalisée des vœux..."},
+    {"name": "projet_pro", "label": "Solidité du projet professionnel", "score": 0, "maxScore": 25, "comment": "Analyse personnalisée du projet..."},
+    {"name": "argumentation", "label": "Capacité d'argumentation sous relance", "score": 0, "maxScore": 20, "comment": "Analyse personnalisée sous relance..."},
+    {"name": "elocution", "label": "Clarté de l'expression et structure", "score": 0, "maxScore": 10, "comment": "Analyse personnalisée de l'élocution..."}
   ],
   "synthesisSummary": "Synthèse personnalisée, bienveillante et constructive...",
   "strengths": [
@@ -827,7 +841,7 @@ Format JSON strict :
   ]
 }
 
-Attention : Les nombres de score dans l'exemple ci-dessus ne sont que des illustrations de format. Tu dois impérativement calculer les vraies notes correspondant aux réponses effectives du candidat !`;
+Attention : Tu dois impérativement calculer les vraies notes correspondant aux réponses effectives du candidat ! Si un critère n'a pas été abordé, attribue 0 point.`;
 
   try {
     const response = await openai.chat.completions.create({
@@ -839,6 +853,25 @@ Attention : Les nombres de score dans l'exemple ci-dessus ne sont que des illust
 
     const parsed = JSON.parse(response.choices[0]?.message?.content || '{}');
     const criteria = parsed.scoresByCriteria || [];
+
+    // Règle absolue anti-hallucination / complaisance :
+    // Si le nombre de tours réels est inférieur au seuil d'un critère, forcer la note à 0 même si le LLM a mis des points par erreur !
+    for (const criterion of criteria) {
+      if (criterion.name === 'formations' && validAcademicTurns.length < 2) {
+        criterion.score = 0;
+        criterion.comment = "Critère non évalué : simulation arrêtée avant d'aborder les formations.";
+      }
+      if (criterion.name === 'projet_pro' && validAcademicTurns.length < 3) {
+        criterion.score = 0;
+        criterion.comment = "Critère non évalué : simulation arrêtée avant d'aborder le projet professionnel.";
+      }
+      if (criterion.name === 'argumentation' && validAcademicTurns.length < 4) {
+        criterion.score = 0;
+        criterion.comment = "Critère non évalué : entretien clôturé avant la phase de relances.";
+      }
+      const max = criterion.maxScore || (criterion.name === 'elocution' ? 10 : criterion.name === 'parcours' || criterion.name === 'argumentation' ? 20 : 25);
+      criterion.score = Math.min(max, Math.max(0, Math.round(Number(criterion.score) || 0)));
+    }
 
     // Nettoyage et assainissement des citations du modèle
     const sanitizedStrengths = (parsed.strengths || []).filter(
@@ -853,7 +886,7 @@ Attention : Les nombres de score dans l'exemple ci-dessus ne sont que des illust
     
     // Calcul strict et non arbitraire de la somme réelle
     const sumScores = criteria.reduce((sum: number, c: { score?: number }) => sum + (Number(c.score) || 0), 0);
-    const overallScore = sumScores;
+    const overallScore = Math.min(100, Math.max(0, sumScores));
 
     return {
       id: `report_${Date.now()}`,

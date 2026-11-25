@@ -76,10 +76,38 @@ export function InterviewRoom() {
   const isRecordingRef = useRef<boolean>(false);
   const isAiSpeakingCancelledRef = useRef<boolean>(false);
   const ttsAbortControllerRef = useRef<AbortController | null>(null);
+  const speechSafetyTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const wakeLockRef = useRef<any>(null); // eslint-disable-line @typescript-eslint/no-explicit-any
+  const preloadedWarmupBlobRef = useRef<Blob | null>(null);
+
+  // Déverrouillage préventif de l'élément audio HTML5 sur geste utilisateur (iOS Safari & Chrome Android)
+  const unlockMobileAudio = useCallback(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      if (!audioElementRef.current) {
+        const audio = new Audio();
+        audio.preload = 'auto';
+        audio.setAttribute('playsinline', 'true');
+        audio.setAttribute('webkit-playsinline', 'true');
+        audioElementRef.current = audio;
+      }
+      const audio = audioElementRef.current;
+      if (!audio.src || audio.src === '' || audio.src.startsWith('data:audio/wav')) {
+        audio.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
+        audio.play().catch(() => {});
+      }
+    } catch {}
+  }, []);
 
   // Arrêt immédiat et inconditionnel de toutes les voix et audios de l'IA (sans aucun déclenchement de fallback d'erreur)
   const stopAllAiSpeech = useCallback(() => {
     isAiSpeakingCancelledRef.current = true;
+
+    // 0. Annuler immédiatement le minuteur de sécurité de synthèse vocale
+    if (speechSafetyTimeoutRef.current) {
+      clearTimeout(speechSafetyTimeoutRef.current);
+      speechSafetyTimeoutRef.current = null;
+    }
 
     // 1. Avorter immédiatement toute requête de synthèse audio OpenAI en cours
     if (ttsAbortControllerRef.current) {
@@ -89,7 +117,7 @@ export function InterviewRoom() {
       ttsAbortControllerRef.current = null;
     }
 
-    // 2. Stopper et réinitialiser l'élément audio HTML5 en supprimant TOUS les écouteurs pour éviter que onerror ne déclenche le WebSpeech fallback
+    // 2. Stopper et réinitialiser l'élément audio HTML5 en préservant l'instance déverrouillée
     if (audioElementRef.current) {
       try {
         const audio = audioElementRef.current;
@@ -100,9 +128,8 @@ export function InterviewRoom() {
         audio.pause();
         audio.currentTime = 0;
         audio.removeAttribute('src');
-        audio.load();
       } catch {}
-      audioElementRef.current = null;
+      // Conserver l'instance HTMLAudioElement pour garder le déverrouillage mobile actif
     }
 
     // 3. Stopper et vider définitivement la file d'attente de synthèse vocale locale
@@ -134,6 +161,19 @@ export function InterviewRoom() {
     }
   }, []);
 
+  // Déverrouiller le sous-système audio mobile au tout premier contact avec la page
+  useEffect(() => {
+    const handleFirstGesture = () => {
+      unlockMobileAudio();
+    };
+    window.addEventListener('touchstart', handleFirstGesture, { once: true, passive: true });
+    window.addEventListener('click', handleFirstGesture, { once: true, passive: true });
+    return () => {
+      window.removeEventListener('touchstart', handleFirstGesture);
+      window.removeEventListener('click', handleFirstGesture);
+    };
+  }, [unlockMobileAudio]);
+
   // Analyseur audio (VU-mètre en direct)
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
@@ -148,6 +188,40 @@ export function InterviewRoom() {
   const [currentQuestion, setCurrentQuestion] = useState<string>('');
   const [pedagogicalIntent, setPedagogicalIntent] = useState<string>('');
   const [turnsHistory, setTurnsHistory] = useState<InterviewTurn[]>([]);
+
+  // Maintien de l'écran allumé pendant l'entretien sur smartphone via Screen WakeLock API
+  useEffect(() => {
+    const handleWakeLock = async () => {
+      if (
+        status === 'READY_TO_START' ||
+        status === 'AI_SPEAKING' ||
+        status === 'STUDENT_RECORDING' ||
+        status === 'REVIEW_RESPONSE'
+      ) {
+        if (typeof navigator !== 'undefined' && 'wakeLock' in navigator && !wakeLockRef.current) {
+          try {
+            wakeLockRef.current = await (navigator as any).wakeLock.request('screen'); // eslint-disable-line @typescript-eslint/no-explicit-any
+          } catch {}
+        }
+      } else {
+        if (wakeLockRef.current) {
+          try {
+            await wakeLockRef.current.release();
+          } catch {}
+          wakeLockRef.current = null;
+        }
+      }
+    };
+    handleWakeLock();
+    return () => {
+      if (wakeLockRef.current) {
+        try {
+          wakeLockRef.current.release();
+        } catch {}
+        wakeLockRef.current = null;
+      }
+    };
+  }, [status]);
 
   // Charger la personnalité jury
   useEffect(() => {
@@ -178,6 +252,8 @@ export function InterviewRoom() {
   const [manualTextAnswer, setManualTextAnswer] = useState<string>('');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isAiPlaying, setIsAiPlaying] = useState<boolean>(false);
+  const [isPlayingTestVoice, setIsPlayingTestVoice] = useState<boolean>(false);
+  const [isAudioAutoplayBlocked, setIsAudioAutoplayBlocked] = useState<boolean>(false);
   // États gestion crédits et fin d'entretien
   const [hasCreditError, setHasCreditError] = useState<boolean>(false);
   const [isCreditModalOpen, setIsCreditModalOpen] = useState<boolean>(false);
@@ -436,13 +512,23 @@ export function InterviewRoom() {
   useEffect(() => {
     if (timeRemaining === 0 && status !== 'COMPLETED' && status !== 'GENERATING_REPORT' && status !== 'ABORTED_INSUFFICIENT_DATA') {
       const validTurns = turnsHistory.filter(t => t.studentTranscript && !isTechnicalOrInvalidAnswer(t.studentTranscript));
-      if (validTurns.length < 2) {
+      const totalRecordedWords = validTurns.reduce(
+        (acc, t) => acc + t.studentTranscript.split(/\s+/).filter(Boolean).length, 0
+      );
+      if (validTurns.length < 3 || totalRecordedWords < 50) {
+        if (sessionId) {
+          fetch('/api/interview/abort', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ sessionId, turnsCount: validTurns.length, totalWords: totalRecordedWords }),
+          }).catch(() => {});
+        }
         setStatus('ABORTED_INSUFFICIENT_DATA');
       } else {
         handleFinalConclusion();
       }
     }
-  }, [timeRemaining, status, turnsHistory]);
+  }, [timeRemaining, status, turnsHistory, sessionId]);
 
   // Démarrer l'enregistrement de l'étudiant
   const startStudentRecording = useCallback(async () => {
@@ -486,7 +572,10 @@ export function InterviewRoom() {
       try {
         const pureAudioStream = new MediaStream(activeStream.getAudioTracks());
         const mimeType = getBestSupportedAudioMimeType();
-        const options: MediaRecorderOptions = mimeType ? { mimeType } : {};
+        const options: MediaRecorderOptions = {
+          mimeType: mimeType || undefined,
+          audioBitsPerSecond: 32000, // 32 kbps mono : ultra-optimisé pour 3G/4G et voix humaine
+        };
 
         const recorder = new MediaRecorder(pureAudioStream, options);
         mediaRecorderRef.current = recorder;
@@ -572,6 +661,12 @@ export function InterviewRoom() {
       return;
     }
 
+    // Nettoyer tout minuteur de sécurité précédent
+    if (speechSafetyTimeoutRef.current) {
+      clearTimeout(speechSafetyTimeoutRef.current);
+      speechSafetyTimeoutRef.current = null;
+    }
+
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
       window.speechSynthesis.cancel();
 
@@ -585,7 +680,7 @@ export function InterviewRoom() {
 
       const utterance = new SpeechSynthesisUtterance(relaxedText);
       utterance.lang = 'fr-FR';
-      utterance.rate = 0.88; // Rythme posé, calme et distinct (au lieu de 0.98 qui précipitait l'élocution)
+      utterance.rate = 0.88; // Rythme posé, calme et distinct
       utterance.pitch = 1.0; // Hauteur de voix naturelle, douce et posée
 
       // Sélection prioritaire d'une voix féminine naturelle et douce
@@ -608,6 +703,10 @@ export function InterviewRoom() {
 
       let hasEnded = false;
       const safeEnd = () => {
+        if (speechSafetyTimeoutRef.current) {
+          clearTimeout(speechSafetyTimeoutRef.current);
+          speechSafetyTimeoutRef.current = null;
+        }
         if (!hasEnded) {
           hasEnded = true;
           onEnd();
@@ -621,10 +720,10 @@ export function InterviewRoom() {
       utterance.onend = safeEnd;
       utterance.onerror = safeEnd;
 
-      // Timeout de sécurité mobile si la synthèse vocale est gelée par l'OS sans interaction
+      // Délai de sécurité généreux pour NE JAMAIS couper l'IA en plein milieu
       const wordsCount = relaxedText.split(/\s+/).length;
-      const estimatedDurationMs = Math.max(3000, Math.min(12000, wordsCount * 450));
-      setTimeout(safeEnd, estimatedDurationMs + 1500);
+      const estimatedDurationMs = Math.max(5000, wordsCount * 550) + 3000;
+      speechSafetyTimeoutRef.current = setTimeout(safeEnd, estimatedDurationMs);
 
       window.speechSynthesis.speak(utterance);
     } else {
@@ -632,14 +731,39 @@ export function InterviewRoom() {
     }
   }, [hasCreditError, status]);
 
-  // Synthèse vocale de la question de l'IA (voix féminine française naturelle)
+  // Synthèse vocale de la question de l'IA (voix féminine française naturelle avec verrouillage anti-collision)
   const speakQuestion = useCallback(async (textToSpeak: string) => {
     if (!textToSpeak || !textToSpeak.trim() || hasCreditError || status === 'CREDIT_BLOCKED') {
       return;
     }
 
+    // 1. Verrou anti-collision absolu : stopper immédiatement et inconditionnellement toute voix ou audio précédent
+    if (speechSafetyTimeoutRef.current) {
+      clearTimeout(speechSafetyTimeoutRef.current);
+      speechSafetyTimeoutRef.current = null;
+    }
+    if (audioElementRef.current) {
+      try {
+        const audio = audioElementRef.current;
+        audio.onended = null;
+        audio.onerror = null;
+        audio.onplay = null;
+        audio.onpause = null;
+        audio.pause();
+        audio.currentTime = 0;
+        audio.removeAttribute('src');
+      } catch {}
+      // Préserver l'instance HTMLAudioElement pour garder l'autorisation mobile active
+    }
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      try {
+        window.speechSynthesis.cancel();
+      } catch {}
+    }
+
     // Réinitialiser le verrou d'annulation pour cette nouvelle prise de parole légitime
     isAiSpeakingCancelledRef.current = false;
+    setIsAudioAutoplayBlocked(false);
 
     // Annuler toute requête audio OpenAI précédente encore en vol
     if (ttsAbortControllerRef.current) {
@@ -656,6 +780,7 @@ export function InterviewRoom() {
     const triggerReadyAfterSpeech = () => {
       setIsTimerStarted(true);
       setIsAiPlaying(false);
+      setIsAudioAutoplayBlocked(false);
       startStudentRecording();
     };
 
@@ -678,22 +803,32 @@ export function InterviewRoom() {
         }
 
         const audioUrl = URL.createObjectURL(audioBlob);
-        const audio = new Audio(audioUrl);
-        audioElementRef.current = audio;
+        if (!audioElementRef.current) {
+          audioElementRef.current = new Audio();
+          audioElementRef.current.setAttribute('playsinline', 'true');
+          audioElementRef.current.setAttribute('webkit-playsinline', 'true');
+        }
+        const audio = audioElementRef.current;
 
         // Déclencher le minuteur exactement dès que le son commence à sortir des haut-parleurs
         audio.onplay = () => {
           setIsTimerStarted(true);
+          setIsAudioAutoplayBlocked(false);
         };
 
         audio.onended = () => {
           URL.revokeObjectURL(audioUrl);
+          audio.onended = null;
+          audio.onerror = null;
           if (!isAiSpeakingCancelledRef.current) {
             triggerReadyAfterSpeech();
           }
         };
 
         audio.onerror = () => {
+          URL.revokeObjectURL(audioUrl);
+          audio.onended = null;
+          audio.onerror = null;
           // NE JAMAIS déclencher le fallback local si l'arrêt a été demandé par l'utilisateur !
           if (isAiSpeakingCancelledRef.current) {
             return;
@@ -701,15 +836,18 @@ export function InterviewRoom() {
           fallbackWebSpeech(textToSpeak, triggerReadyAfterSpeech);
         };
 
+        audio.src = audioUrl;
+        audio.load();
+
         try {
           await audio.play();
           setIsTimerStarted(true);
           return;
         } catch (playErr) {
           console.warn('Autoplay audio bloqué sur mobile par le navigateur :', playErr);
-          // Si l'autoplay est bloqué par iOS/Chrome mobile, on donne immédiatement la main au candidat
+          // Si l'autoplay audio est restreint sur Safari mobile, proposer le bouton pour écouter la voix Studio Nova
           if (!isAiSpeakingCancelledRef.current) {
-            triggerReadyAfterSpeech();
+            setIsAudioAutoplayBlocked(true);
           }
           return;
         }
@@ -725,6 +863,7 @@ export function InterviewRoom() {
 
   // Arrêter l'enregistrement et transcrire la réponse pour vérification
   const handleStopRecordingAndTranscribe = async () => {
+    unlockMobileAudio();
     isRecordingRef.current = false;
     // 1. Arrêter la reconnaissance vocale Web Speech
     if (speechRecognitionRef.current) {
@@ -802,12 +941,24 @@ export function InterviewRoom() {
         formData.append('audio', finalAudioBlob, `student_response.${extension}`);
         formData.append('fallbackTranscript', recognizedText || '');
 
-        const transcribeRes = await fetch('/api/audio/transcribe', {
-          method: 'POST',
-          body: formData,
-        });
+        let transcribeRes: Response | null = null;
+        try {
+          transcribeRes = await fetch('/api/audio/transcribe', {
+            method: 'POST',
+            body: formData,
+          });
+        } catch {
+          // En cas de micro-coupure réseau 3G/4G : tenter un second essai automatique
+          await new Promise((r) => setTimeout(r, 400));
+          try {
+            transcribeRes = await fetch('/api/audio/transcribe', {
+              method: 'POST',
+              body: formData,
+            });
+          } catch {}
+        }
 
-        if (transcribeRes.ok) {
+        if (transcribeRes && transcribeRes.ok) {
           const transData = await transcribeRes.json();
           if (transData.transcript && !isTechnicalOrInvalidAnswer(transData.transcript)) {
             recognizedText = transData.transcript.trim();
@@ -815,7 +966,7 @@ export function InterviewRoom() {
             setCandidateDraftAnswer(recognizedText);
             setErrorMessage(null);
           }
-        } else {
+        } else if (transcribeRes) {
           const errData = await transcribeRes.json().catch(() => null);
           if (transcribeRes.status === 401) {
             apiErrorMessage = errData?.error || "Non authentifié. Connexion requise.";
@@ -843,6 +994,9 @@ export function InterviewRoom() {
 
   // Valider et envoyer la réponse confirmée à l'examinatrice IA
   const handleSubmitConfirmedAnswer = async (finalText: string) => {
+    // Déverrouillage audio immédiat sur l'action tactile de l'utilisateur
+    unlockMobileAudio();
+
     // Verrou anti-double clic pour éviter toute question posée en double
     if (isSubmittingTurnRef.current) return;
     isSubmittingTurnRef.current = true;
@@ -858,20 +1012,39 @@ export function InterviewRoom() {
     // Envoyer au moteur d'entretien adaptatif
     setStatus('AI_EVALUATING');
     try {
-      const turnRes = await fetch('/api/interview/turn', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          sessionId,
-          turnIndex: currentTurnIndex,
-          currentQuestion, // Transmettre la question exacte à laquelle la candidate vient de répondre
-          studentTranscript: studentResponse,
-          elapsedSeconds: 300 - timeRemaining,
-          profile,
-          turnsHistory: turnsHistory,
-          juryPersonality,
-        }),
+      const payload = JSON.stringify({
+        sessionId,
+        turnIndex: currentTurnIndex,
+        currentQuestion, // Transmettre la question exacte à laquelle la candidate vient de répondre
+        studentTranscript: studentResponse,
+        elapsedSeconds: 300 - timeRemaining,
+        profile,
+        turnsHistory: turnsHistory,
+        juryPersonality,
       });
+
+      let turnRes: Response | null = null;
+      try {
+        turnRes = await fetch('/api/interview/turn', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: payload,
+        });
+      } catch {
+        // En cas de micro-coupure réseau 3G/4G : tenter un second essai automatique
+        await new Promise((r) => setTimeout(r, 500));
+        try {
+          turnRes = await fetch('/api/interview/turn', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: payload,
+          });
+        } catch {}
+      }
+
+      if (!turnRes) {
+        throw new Error('Connexion réseau interrompue');
+      }
 
       const turnData = await turnRes.json();
 
@@ -1010,24 +1183,28 @@ export function InterviewRoom() {
       0
     );
 
-    // Contrôle strict : au moins 2 questions répondues avec du contenu substantiel pour générer un bilan
-    const isSubstantialInterview = validAcademicTurns.length >= 2 && totalRecordedWords >= 25;
+    // Contrôle strict : au moins 3 questions répondues avec au moins 50 mots pour générer un bilan fidèle
+    const isSubstantialInterview = validAcademicTurns.length >= 3 && totalRecordedWords >= 50;
 
     if (!isSubstantialInterview) {
-      // Marquer la session en base comme ABANDONED pour préserver les crédits
+      // Clôturer la session et restituer le crédit immédiatement via /api/interview/abort
       try {
-        if (sessionId && !sessionId.startsWith('session_')) {
-          const supabase = createClient();
-          await supabase
-            .from('interview_sessions')
-            .update({ status: 'ABANDONED', ended_at: new Date().toISOString() })
-            .eq('id', sessionId);
+        if (sessionId) {
+          await fetch('/api/interview/abort', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              sessionId,
+              turnsCount: validAcademicTurns.length,
+              totalWords: totalRecordedWords,
+            }),
+          });
         }
       } catch (err) {
-        console.warn('Erreur mise à jour session abandonnée :', err);
+        console.warn('Erreur appel /api/interview/abort :', err);
       }
 
-      // Afficher immédiatement l'écran de notification clair
+      // Afficher immédiatement l'écran de notification clair avec mention du crédit préservé
       setStatus('ABORTED_INSUFFICIENT_DATA');
       return;
     }
@@ -1036,66 +1213,157 @@ export function InterviewRoom() {
     await handleFinalConclusion(finalTurns);
   };
 
-  // Démarrer la session au montage avec verrou anti-double appel / concurrence
-  useEffect(() => {
-    async function startSession() {
-      if (!profile || hasStartedSessionRef.current) return;
-      hasStartedSessionRef.current = true;
+  const TEST_EXAMINER_PHRASE = "Bonjour ! Je suis votre examinatrice Campus France. Prenez une grande inspiration, installez-vous confortablement, nous démarrons dès que vous êtes prêt.";
 
-      try {
-        const res = await fetch('/api/interview/start', {
+  // 1. Passage automatique en mode READY_TO_START (Sas d'échauffement) dès que le profil est prêt
+  useEffect(() => {
+    if (profile && status === 'PERMISSION_CHECK') {
+      setStatus('READY_TO_START');
+    }
+  }, [profile, status]);
+
+  // Précharger l'audio réel de l'examinatrice pour une lecture instantanée lors du test
+  useEffect(() => {
+    if (status === 'READY_TO_START' && !preloadedWarmupBlobRef.current) {
+      fetch('/api/audio/synthesize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: TEST_EXAMINER_PHRASE }),
+      })
+        .then((res) => (res.status === 200 ? res.blob() : null))
+        .then((blob) => {
+          if (blob) {
+            preloadedWarmupBlobRef.current = blob;
+          }
+        })
+        .catch(() => {});
+    }
+  }, [status]);
+
+  // Test audio de la voix de l'examinatrice (Voix Studio Nova OpenAI ultra-réaliste)
+  const handleTestExaminerVoice = async () => {
+    if (isPlayingTestVoice) return;
+    unlockMobileAudio();
+    setIsPlayingTestVoice(true);
+
+    try {
+      let audioBlob = preloadedWarmupBlobRef.current;
+      if (!audioBlob) {
+        const res = await fetch('/api/audio/synthesize', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            profile, 
-            juryPersonality,
-            sessionId: requestedSessionId || undefined,
-          }),
+          body: JSON.stringify({ text: TEST_EXAMINER_PHRASE }),
         });
-
-        const data = await res.json();
-        if (data.success) {
-          setSessionId(data.sessionId);
-          setCurrentQuestion(data.initialTurn.aiQuestion);
-          setPedagogicalIntent(data.initialTurn.pedagogicalIntent);
-          speakQuestion(data.initialTurn.aiQuestion);
-        } else {
-          hasStartedSessionRef.current = false;
-          const isCreditIssue = res.status === 403 || 
-            (data.error && (
-              data.error.toLowerCase().includes('solde') || 
-              data.error.toLowerCase().includes('crédit') ||
-              data.error.toLowerCase().includes('credit') ||
-              data.error.toLowerCase().includes('simulations disponibles')
-            ));
-
-          if (isCreditIssue) {
-            setHasCreditError(true);
-            setStatus('CREDIT_BLOCKED');
-            if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
-            if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-              window.speechSynthesis.cancel();
-            }
-            if (audioElementRef.current) {
-              audioElementRef.current.pause();
-            }
-            if (audioStreamRef.current) {
-              audioStreamRef.current.getTracks().forEach((t) => t.stop());
-            }
-            if (videoStreamRef.current) {
-              videoStreamRef.current.getTracks().forEach((t) => t.stop());
-            }
-          }
-          setErrorMessage(data.error || 'Erreur lors du démarrage.');
+        if (res.status === 200) {
+          audioBlob = await res.blob();
+          preloadedWarmupBlobRef.current = audioBlob;
         }
-      } catch {
-        hasStartedSessionRef.current = false;
-        setErrorMessage('Impossible de contacter le serveur.');
       }
+
+      if (audioBlob) {
+        const audioUrl = URL.createObjectURL(audioBlob);
+        if (!audioElementRef.current) {
+          audioElementRef.current = new Audio();
+          audioElementRef.current.setAttribute('playsinline', 'true');
+          audioElementRef.current.setAttribute('webkit-playsinline', 'true');
+        }
+        const audio = audioElementRef.current;
+
+        audio.src = audioUrl;
+        audio.load();
+
+        audio.onended = () => {
+          URL.revokeObjectURL(audioUrl);
+          audio.onended = null;
+          audio.onerror = null;
+          setIsPlayingTestVoice(false);
+        };
+
+        audio.onerror = () => {
+          URL.revokeObjectURL(audioUrl);
+          audio.onended = null;
+          audio.onerror = null;
+          setIsPlayingTestVoice(false);
+          fallbackWebSpeech(TEST_EXAMINER_PHRASE, () => {
+            setIsPlayingTestVoice(false);
+          });
+        };
+
+        await audio.play();
+        return;
+      }
+    } catch (err) {
+      console.warn('Erreur lecture test voix OpenAI Nova :', err);
     }
 
-    startSession();
-  }, [profile]); // eslint-disable-line react-hooks/exhaustive-deps
+    fallbackWebSpeech(TEST_EXAMINER_PHRASE, () => {
+      setIsPlayingTestVoice(false);
+    });
+  };
+
+  // 2. Démarrage officiel de l'entretien de 5 minutes uniquement lorsque le candidat clique sur Démarrer
+  const handleStartInterview = async () => {
+    // Déverrouillage audio immédiat sur l'action tactile de l'utilisateur
+    unlockMobileAudio();
+    if (hasStartedSessionRef.current) return;
+    hasStartedSessionRef.current = true;
+    setStatus('AI_SPEAKING');
+    setErrorMessage(null);
+
+    try {
+      const res = await fetch('/api/interview/start', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          profile, 
+          juryPersonality,
+          sessionId: requestedSessionId || undefined,
+        }),
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        setSessionId(data.sessionId);
+        setCurrentQuestion(data.initialTurn.aiQuestion);
+        setPedagogicalIntent(data.initialTurn.pedagogicalIntent);
+        speakQuestion(data.initialTurn.aiQuestion);
+      } else {
+        hasStartedSessionRef.current = false;
+        const isCreditIssue = res.status === 403 || 
+          (data.error && (
+            data.error.toLowerCase().includes('solde') || 
+            data.error.toLowerCase().includes('crédit') ||
+            data.error.toLowerCase().includes('credit') ||
+            data.error.toLowerCase().includes('simulations disponibles')
+          ));
+
+        if (isCreditIssue) {
+          setHasCreditError(true);
+          setStatus('CREDIT_BLOCKED');
+          if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
+          if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+            window.speechSynthesis.cancel();
+          }
+          if (audioElementRef.current) {
+            audioElementRef.current.pause();
+          }
+          if (audioStreamRef.current) {
+            audioStreamRef.current.getTracks().forEach((t) => t.stop());
+          }
+          if (videoStreamRef.current) {
+            videoStreamRef.current.getTracks().forEach((t) => t.stop());
+          }
+        } else {
+          setStatus('READY_TO_START');
+        }
+        setErrorMessage(data.error || 'Erreur lors du démarrage.');
+      }
+    } catch {
+      hasStartedSessionRef.current = false;
+      setStatus('READY_TO_START');
+      setErrorMessage('Impossible de contacter le serveur. Vérifiez votre connexion.');
+    }
+  };
 
   // Basculer la webcam locale (l'étudiant peut couper/rallumer sa caméra à tout moment sans couper son micro)
   const toggleCamera = async () => {
@@ -1132,7 +1400,7 @@ export function InterviewRoom() {
     if (isCameraActive && videoStreamRef.current && videoRef.current) {
       videoRef.current.srcObject = videoStreamRef.current;
     }
-  }, [isCameraActive]);
+  }, [isCameraActive, status]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -1283,6 +1551,230 @@ export function InterviewRoom() {
             </Link>
           </div>
         </div>
+      </div>
+    );
+  }
+
+  // Écran d'Échauffement & de Mise en Confiance (Sas interactif sans chrono pour tester son matériel et se préparer)
+  if (status === 'READY_TO_START') {
+    return (
+      <div className="min-h-screen bg-[#05070E] text-slate-100 flex flex-col justify-between p-4 sm:p-6 lg:p-8 font-sans">
+        {/* En-tête PrépaCampus */}
+        <header className="max-w-4xl w-full mx-auto flex items-center justify-between pb-4 border-b border-slate-800/80">
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#0066FF] to-[#38BDF8] flex items-center justify-center text-white font-bold text-xs shadow-md shadow-blue-500/20">
+              CF
+            </div>
+            <div>
+              <span className="font-extrabold text-white text-sm sm:text-base tracking-tight block">
+                Prépa<span className="text-[#38BDF8]">Campus</span>
+              </span>
+              <span className="text-[10px] text-slate-400">Sas d&apos;échauffement &amp; préparation</span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-blue-500/10 text-cyan-400 border border-blue-500/20">
+              <Sparkles className="w-3.5 h-3.5" />
+              Chronomètre en pause
+            </span>
+          </div>
+        </header>
+
+        {/* Contenu principal */}
+        <main className="max-w-4xl w-full mx-auto my-auto py-6 space-y-6">
+          <div className="text-center space-y-2">
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+              Prenez une grande inspiration
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-300 max-w-xl mx-auto leading-relaxed">
+              Votre entretien de 5 minutes va débuter dès que vous cliquerez sur le bouton ci-dessous. Vérifiez votre micro, réglez votre caméra et lancez-vous en toute sérénité.
+            </p>
+          </div>
+
+          {/* Grille : Test Micro & Audio + Réglage Caméra */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+            {/* 1. Carte Microphone & Audio */}
+            <div className="bg-slate-900/80 border border-slate-800 rounded-3xl p-5 sm:p-6 backdrop-blur-md shadow-xl flex flex-col justify-between space-y-4">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+                      <Mic className="w-4 h-4" />
+                    </div>
+                    <span className="font-bold text-white text-xs sm:text-sm">Test Microphone</span>
+                  </div>
+                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-semibold border ${
+                    hasMicrophonePermission 
+                      ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+                      : 'bg-amber-500/10 text-amber-400 border-amber-500/30'
+                  }`}>
+                    {hasMicrophonePermission ? 'Microphone actif' : 'En attente'}
+                  </span>
+                </div>
+
+                <p className="text-xs text-slate-300 leading-relaxed">
+                  Dites quelques mots à voix haute pour vérifier la sensibilité de votre microphone :
+                </p>
+
+                {/* Jauge VU-mètre en direct */}
+                <div className="space-y-1.5 bg-slate-950/70 p-3.5 rounded-2xl border border-slate-800">
+                  <div className="flex items-center justify-between text-[11px] text-slate-400">
+                    <span>Niveau capté :</span>
+                    <span className="font-mono font-bold text-cyan-400">{audioLevel}%</span>
+                  </div>
+                  <div className="w-full bg-slate-900 h-3 rounded-full overflow-hidden border border-slate-800/80 p-0.5">
+                    <div 
+                      className="h-full rounded-full transition-all duration-75 bg-gradient-to-r from-emerald-500 via-teal-400 to-cyan-400"
+                      style={{ width: `${Math.max(6, audioLevel)}%` }}
+                    />
+                  </div>
+                  <p className="text-[10px] text-slate-400 pt-0.5">
+                    {audioLevel > 15 
+                      ? '✔ Voix bien détectée, niveau optimal !' 
+                      : 'Parlez un peu plus fort si la barre ne monte pas.'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Bouton de test voix examinatrice */}
+              <button
+                type="button"
+                onClick={handleTestExaminerVoice}
+                disabled={isPlayingTestVoice}
+                className="w-full py-2.5 px-3.5 rounded-xl bg-slate-800/80 hover:bg-slate-750 text-slate-200 hover:text-white border border-slate-700/80 text-xs font-semibold transition flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer active:scale-95"
+              >
+                <Volume2 className={`w-4 h-4 text-cyan-400 ${isPlayingTestVoice ? 'animate-pulse' : ''}`} />
+                <span>
+                  {isPlayingTestVoice 
+                    ? 'Lecture du test vocal...' 
+                    : 'Tester la voix de l\'examinatrice'}
+                </span>
+              </button>
+            </div>
+
+            {/* 2. Carte Caméra (Facultative) */}
+            <div className="bg-slate-900/80 border border-slate-800 rounded-3xl p-5 sm:p-6 backdrop-blur-md shadow-xl flex flex-col justify-between space-y-4">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-xl bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
+                      <Camera className="w-4 h-4" />
+                    </div>
+                    <span className="font-bold text-white text-xs sm:text-sm">Caméra (Optionnelle)</span>
+                  </div>
+                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-semibold border ${
+                    isCameraActive 
+                      ? 'bg-cyan-500/10 text-cyan-400 border-cyan-500/30'
+                      : 'bg-slate-800 text-slate-400 border-slate-700'
+                  }`}>
+                    {isCameraActive ? 'Caméra ON' : 'Mode vocal seul'}
+                  </span>
+                </div>
+
+                {/* Aperçu vidéo ou avatar vocal */}
+                <div className="relative w-full h-36 sm:h-40 rounded-2xl overflow-hidden bg-slate-950 border border-slate-800 flex items-center justify-center">
+                  {isCameraActive ? (
+                    <video
+                      ref={videoRef}
+                      autoPlay
+                      playsInline
+                      muted
+                      className="w-full h-full object-cover transform -scale-x-100"
+                    />
+                  ) : (
+                    <div className="text-center p-4 space-y-2">
+                      <div className="w-12 h-12 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-500 mx-auto">
+                        <CameraOff className="w-5 h-5 text-slate-400" />
+                      </div>
+                      <span className="text-[11px] text-slate-400 block font-medium">
+                        Caméra désactivée • Mode vocal seul
+                      </span>
+                    </div>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={toggleCamera}
+                    className="absolute bottom-2.5 right-2.5 px-3 py-1.5 rounded-xl bg-slate-950/85 hover:bg-slate-850 text-slate-200 border border-slate-700/80 text-[11px] font-semibold backdrop-blur-md transition cursor-pointer active:scale-95 shadow-md flex items-center gap-1.5"
+                  >
+                    {isCameraActive ? (
+                      <>
+                        <CameraOff className="w-3.5 h-3.5 text-rose-400" />
+                        <span>Couper la caméra</span>
+                      </>
+                    ) : (
+                      <>
+                        <Camera className="w-3.5 h-3.5 text-cyan-400" />
+                        <span>Allumer la caméra</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              <p className="text-[11px] text-slate-400 leading-relaxed">
+                Si vous ne souhaitez pas être vu(e), coupez simplement la caméra : l&apos;entretien s&apos;effectue sans aucun impact sur votre note.
+              </p>
+            </div>
+          </div>
+
+          {/* Rappel des 3 Règles Clés */}
+          <div className="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-4 sm:p-5 text-xs text-slate-300">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="flex items-start gap-2.5">
+                <span className="w-5 h-5 rounded-full bg-blue-500/20 text-cyan-300 flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">1</span>
+                <div>
+                  <strong className="text-white block font-semibold mb-0.5">5 minutes officielles</strong>
+                  <span>Le chronomètre ne démarre que dès votre premier échange avec l&apos;examinatrice.</span>
+                </div>
+              </div>
+              <div className="flex items-start gap-2.5">
+                <span className="w-5 h-5 rounded-full bg-blue-500/20 text-cyan-300 flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">2</span>
+                <div>
+                  <strong className="text-white block font-semibold mb-0.5">Prenez votre temps</strong>
+                  <span>Visez 1 minute par réponse. Structurez vos arguments avec clarté.</span>
+                </div>
+              </div>
+              <div className="flex items-start gap-2.5">
+                <span className="w-5 h-5 rounded-full bg-blue-500/20 text-cyan-300 flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">3</span>
+                <div>
+                  <strong className="text-white block font-semibold mb-0.5">Aucune pénalité</strong>
+                  <span>Vous pouvez stopper à tout moment. Votre solde reste protégé si la session est écourtée.</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Grand Bouton de Lancement */}
+          <div className="text-center pt-2 space-y-3">
+            <button
+              type="button"
+              onClick={handleStartInterview}
+              className="w-full sm:w-auto min-w-[320px] py-4 px-8 rounded-2xl bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-400 hover:from-blue-500 hover:to-cyan-400 text-white font-black text-sm sm:text-base shadow-2xl shadow-cyan-500/30 transition transform hover:scale-[1.02] active:scale-95 cursor-pointer inline-flex items-center justify-center gap-2.5"
+            >
+              <Sparkles className="w-5 h-5 text-yellow-300" />
+              <span>Démarrer mon entretien (5 minutes)</span>
+            </button>
+
+            <div className="flex items-center justify-center gap-4 text-xs text-slate-400">
+              <Link href="/entretien/preparation" className="hover:text-cyan-400 transition">
+                Modifier mon profil
+              </Link>
+              <span>•</span>
+              <Link href="/dashboard" className="hover:text-slate-300 transition">
+                Tableau de bord
+              </Link>
+            </div>
+          </div>
+        </main>
+
+        {/* Footer avec mention déontologique */}
+        <footer className="max-w-4xl w-full mx-auto text-center text-[11px] text-slate-400 pt-4 border-t border-slate-800/80">
+          <p>
+            PrépaCampus est une plateforme indépendante d&apos;entraînement pédagogique. Elle n&apos;est affiliée à aucun organisme d&apos;État ni à l&apos;agence Campus France.
+          </p>
+        </footer>
       </div>
     );
   }
@@ -1545,18 +2037,43 @@ export function InterviewRoom() {
 
               {/* Bouton pour réécouter ou répondre tout de suite */}
               <div className="mt-4 flex flex-wrap items-center gap-3">
-                <button
-                  type="button"
-                  disabled={!currentQuestion || isAiPlaying}
-                  onClick={() => {
-                    if (currentQuestion) {
-                      speakQuestion(currentQuestion);
-                    }
-                  }}
-                  className="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-cyan-300 disabled:opacity-30 disabled:cursor-not-allowed transition"
-                >
-                  <RotateCcw className="w-3.5 h-3.5" /> Réécouter la question
-                </button>
+                {isAudioAutoplayBlocked ? (
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      setIsAudioAutoplayBlocked(false);
+                      if (audioElementRef.current) {
+                        try {
+                          await audioElementRef.current.play();
+                        } catch {
+                          fallbackWebSpeech(currentQuestion, () => {
+                            setIsTimerStarted(true);
+                            setIsAiPlaying(false);
+                            startStudentRecording();
+                          });
+                        }
+                      }
+                    }}
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white font-semibold text-xs shadow-lg shadow-emerald-500/25 animate-bounce active:scale-95 transition cursor-pointer"
+                  >
+                    <Volume2 className="w-4 h-4" />
+                    <span>Appuyez ici pour écouter l&apos;examinatrice</span>
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    disabled={!currentQuestion || isAiPlaying}
+                    onClick={() => {
+                      unlockMobileAudio();
+                      if (currentQuestion) {
+                        speakQuestion(currentQuestion);
+                      }
+                    }}
+                    className="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-cyan-300 disabled:opacity-30 disabled:cursor-not-allowed transition"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" /> Réécouter la question
+                  </button>
+                )}
 
                 {isAiPlaying && (
                   <button
