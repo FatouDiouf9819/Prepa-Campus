@@ -786,18 +786,13 @@ export function InterviewRoom() {
     };
 
     const preferredVoice = typeof window !== 'undefined' ? localStorage.getItem('preferred_voice') : null;
-
-    // Par défaut (ou si 'native' est choisi), utiliser la voix native ultra-naturelle du téléphone (Siri / Amélie)
-    if (!preferredVoice || preferredVoice === 'native') {
-      fallbackWebSpeech(textToSpeak, triggerReadyAfterSpeech);
-      return;
-    }
+    const selectedVoice = preferredVoice && preferredVoice !== 'native' ? preferredVoice : 'alloy';
 
     try {
       const res = await fetch('/api/audio/synthesize', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: textToSpeak, voice: preferredVoice || undefined }),
+        body: JSON.stringify({ text: textToSpeak, voice: selectedVoice }),
         signal: abortController.signal,
       });
 
@@ -1231,16 +1226,16 @@ export function InterviewRoom() {
     }
   }, [profile, status]);
 
-  // Précharger l'audio de l'examinatrice si une voix serveur spécifique est choisie
+  // Précharger l'audio de l'examinatrice pour une lecture instantanée lors du test
   useEffect(() => {
     const preferredVoice = typeof window !== 'undefined' ? localStorage.getItem('preferred_voice') : null;
-    if (!preferredVoice || preferredVoice === 'native') return;
+    const selectedVoice = preferredVoice && preferredVoice !== 'native' ? preferredVoice : 'alloy';
 
     if (status === 'READY_TO_START' && !preloadedWarmupBlobRef.current) {
       fetch('/api/audio/synthesize', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: TEST_EXAMINER_PHRASE, voice: preferredVoice }),
+        body: JSON.stringify({ text: TEST_EXAMINER_PHRASE, voice: selectedVoice }),
       })
         .then((res) => (res.status === 200 ? res.blob() : null))
         .then((blob) => {
@@ -1252,19 +1247,14 @@ export function InterviewRoom() {
     }
   }, [status]);
 
-  // Test audio de la voix de l'examinatrice
+  // Test audio de la voix de l'examinatrice (Voix Studio Réelle MP3)
   const handleTestExaminerVoice = async () => {
     if (isPlayingTestVoice) return;
     unlockMobileAudio();
     setIsPlayingTestVoice(true);
 
     const preferredVoice = typeof window !== 'undefined' ? localStorage.getItem('preferred_voice') : null;
-    if (!preferredVoice || preferredVoice === 'native') {
-      fallbackWebSpeech(TEST_EXAMINER_PHRASE, () => {
-        setIsPlayingTestVoice(false);
-      });
-      return;
-    }
+    const selectedVoice = preferredVoice && preferredVoice !== 'native' ? preferredVoice : 'alloy';
 
     try {
       let audioBlob = preloadedWarmupBlobRef.current;
@@ -1272,7 +1262,7 @@ export function InterviewRoom() {
         const res = await fetch('/api/audio/synthesize', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ text: TEST_EXAMINER_PHRASE, voice: preferredVoice || undefined }),
+          body: JSON.stringify({ text: TEST_EXAMINER_PHRASE, voice: selectedVoice }),
         });
         if (res.status === 200) {
           audioBlob = await res.blob();
