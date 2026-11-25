@@ -43,10 +43,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Voix féminine naturelle, posée et professionnelle pour l'examinatrice Campus France
-    const allowedVoices = ['nova', 'shimmer'] as const;
+    const allowedVoices = ['shimmer', 'nova'] as const;
     const requestedVoice = process.env.OPENAI_VOICE as typeof allowedVoices[number];
-    // 'nova' est plébiscitée pour sa clarté, son naturel, sa chaleur et son articulation irréprochable en français
-    const selectedVoice = allowedVoices.includes(requestedVoice) ? requestedVoice : 'nova';
+    // 'shimmer' est la voix féminine posée, douce, très calme et hautement professionnelle
+    const selectedVoice = allowedVoices.includes(requestedVoice) ? requestedVoice : 'shimmer';
 
     // Aération subtile du texte pour induire des respirations et pauses naturelles dans l'audio
     const humanizedText = text
@@ -59,10 +59,10 @@ export async function POST(request: NextRequest) {
       .trim();
 
     const mp3Response = await openai.audio.speech.create({
-      model: process.env.OPENAI_MODEL_TTS || 'tts-1',
+      model: process.env.OPENAI_MODEL_TTS || 'tts-1-hd',
       voice: selectedVoice,
       input: humanizedText,
-      speed: 0.94, // Rythme naturel, fluide et posé
+      speed: 0.92, // Rythme posé, calme, distinction et humanité
     });
 
     const buffer = Buffer.from(await mp3Response.arrayBuffer());
