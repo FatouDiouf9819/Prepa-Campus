@@ -784,11 +784,18 @@ export function InterviewRoom() {
       startStudentRecording();
     };
 
+    const preferredVoice = typeof window !== 'undefined' ? localStorage.getItem('preferred_voice') : null;
+
+    if (preferredVoice === 'native') {
+      fallbackWebSpeech(textToSpeak, triggerReadyAfterSpeech);
+      return;
+    }
+
     try {
       const res = await fetch('/api/audio/synthesize', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: textToSpeak }),
+        body: JSON.stringify({ text: textToSpeak, voice: preferredVoice || undefined }),
         signal: abortController.signal,
       });
 
@@ -1224,11 +1231,14 @@ export function InterviewRoom() {
 
   // Précharger l'audio réel de l'examinatrice pour une lecture instantanée lors du test
   useEffect(() => {
+    const preferredVoice = typeof window !== 'undefined' ? localStorage.getItem('preferred_voice') : null;
+    if (preferredVoice === 'native') return;
+
     if (status === 'READY_TO_START' && !preloadedWarmupBlobRef.current) {
       fetch('/api/audio/synthesize', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: TEST_EXAMINER_PHRASE }),
+        body: JSON.stringify({ text: TEST_EXAMINER_PHRASE, voice: preferredVoice || undefined }),
       })
         .then((res) => (res.status === 200 ? res.blob() : null))
         .then((blob) => {
@@ -1240,11 +1250,19 @@ export function InterviewRoom() {
     }
   }, [status]);
 
-  // Test audio de la voix de l'examinatrice (Voix Studio Nova OpenAI ultra-réaliste)
+  // Test audio de la voix de l'examinatrice (Voix Studio Service Client / Accueil Prestige)
   const handleTestExaminerVoice = async () => {
     if (isPlayingTestVoice) return;
     unlockMobileAudio();
     setIsPlayingTestVoice(true);
+
+    const preferredVoice = typeof window !== 'undefined' ? localStorage.getItem('preferred_voice') : null;
+    if (preferredVoice === 'native') {
+      fallbackWebSpeech(TEST_EXAMINER_PHRASE, () => {
+        setIsPlayingTestVoice(false);
+      });
+      return;
+    }
 
     try {
       let audioBlob = preloadedWarmupBlobRef.current;
@@ -1252,7 +1270,7 @@ export function InterviewRoom() {
         const res = await fetch('/api/audio/synthesize', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ text: TEST_EXAMINER_PHRASE }),
+          body: JSON.stringify({ text: TEST_EXAMINER_PHRASE, voice: preferredVoice || undefined }),
         });
         if (res.status === 200) {
           audioBlob = await res.blob();

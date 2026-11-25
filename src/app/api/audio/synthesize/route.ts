@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { text } = await request.json();
+    const { text, voice: requestedVoiceBody } = await request.json();
 
     if (!text || typeof text !== 'string') {
       return NextResponse.json({ error: 'Texte requis pour la synthèse vocale.' }, { status: 400 });
@@ -42,14 +42,20 @@ export async function POST(request: NextRequest) {
       return new NextResponse(null, { status: 204 });
     }
 
-    // Voix féminine naturelle, douce et professionnelle pour l'examinatrice Campus France
-    const allowedVoices = ['coral', 'nova', 'shimmer', 'sage'] as const;
-    const requestedVoice = process.env.OPENAI_VOICE as typeof allowedVoices[number];
-    // 'coral' est la voix féminine par excellence : ultra-douce, lumineuse, très féminine et parfaitement naturelle
-    const selectedVoice = allowedVoices.includes(requestedVoice) ? requestedVoice : 'coral';
+    // Voix feutrée, douce, bienveillante et professionnelle (style Service Client Orange / Annonce Aérienne)
+    const allowedVoices = ['alloy', 'sage', 'nova', 'shimmer'] as const;
+    type AllowedVoice = typeof allowedVoices[number];
 
-    // Aération subtile du texte pour induire des respirations et pauses naturelles dans l'audio
+    let selectedVoice: AllowedVoice = 'alloy';
+    if (requestedVoiceBody && allowedVoices.includes(requestedVoiceBody as AllowedVoice)) {
+      selectedVoice = requestedVoiceBody as AllowedVoice;
+    } else if (process.env.OPENAI_VOICE && allowedVoices.includes(process.env.OPENAI_VOICE as AllowedVoice)) {
+      selectedVoice = process.env.OPENAI_VOICE as AllowedVoice;
+    }
+
+    // Aération subtile et suppression des points d'exclamation pour éliminer tout cri ou intonation agressive
     const humanizedText = text
+      .replace(/!+/g, '.') // Élimine les montées criardes
       .replace(/Bonjour\s/i, 'Bonjour, ')
       .replace(/Très bien\s/i, 'Très bien, ')
       .replace(/D'accord\s/i, "D'accord, ")
@@ -58,11 +64,13 @@ export async function POST(request: NextRequest) {
       .replace(/\s*\?\s*/g, ' ? ')
       .trim();
 
+    const speed = selectedVoice === 'sage' ? 0.88 : 0.90;
+
     const mp3Response = await openai.audio.speech.create({
       model: process.env.OPENAI_MODEL_TTS || 'tts-1-hd',
       voice: selectedVoice,
       input: humanizedText,
-      speed: 0.95, // Rythme naturel, fluide, posé et doux
+      speed, // Rythme très posé, calme et soigné
     });
 
     const buffer = Buffer.from(await mp3Response.arrayBuffer());

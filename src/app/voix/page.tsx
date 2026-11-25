@@ -1,79 +1,153 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { Volume2, Play, Pause, Sparkles, CheckCircle2, ArrowRight } from 'lucide-react';
+import { Volume2, Play, Pause, Sparkles, CheckCircle2, ArrowRight, ShieldCheck, Check } from 'lucide-react';
 
 interface VoiceOption {
   id: string;
-  name: string;
-  audioSrc: string;
+  title: string;
+  subtitle: string;
   tag: string;
+  type: 'file' | 'native';
+  audioSrc?: string;
   description: string;
-  pitch: string;
-  color: string;
+  accent: string;
+  colorBadge: string;
 }
 
 const VOICES: VoiceOption[] = [
   {
-    id: 'coral',
-    name: 'Coral (Recommandée)',
-    audioSrc: '/test-voice-coral.mp3',
-    tag: 'Très douce & ultra-féminine',
-    description: 'Une voix lumineuse, mélodieuse, très chaleureuse et naturelle. Elle respire la bienveillance d\'une vraie examinatrice.',
-    pitch: 'Douceur cristalline & articulation parfaite',
-    color: 'from-emerald-500/20 to-teal-500/10 border-emerald-500/40 text-emerald-400',
+    id: 'alloy',
+    title: 'Service Client Prestige (Orange)',
+    subtitle: 'Style standardiste d\'accueil & service client',
+    tag: 'Orange & Téléphonie',
+    type: 'file',
+    audioSrc: '/voice-service-client-alloy.mp3',
+    description: 'Une voix posée, limpide, polie et mesurée. Articulation exemplaire, zéro cri et zéro agressivité : exactement le ton apaisant et professionnel d\'un accueil client haut de gamme.',
+    accent: 'Posée, mesurée & chaleureuse',
+    colorBadge: 'from-amber-500/20 to-orange-500/20 border-orange-500/40 text-orange-400',
+  },
+  {
+    id: 'sage',
+    title: 'Annonce Cabine Aérienne (Air France)',
+    subtitle: 'Style hôtesse de l\'air & vol long-courrier',
+    tag: 'Annonce Aérienne',
+    type: 'file',
+    audioSrc: '/voice-avion-sage.mp3',
+    description: 'Une voix feutrée, très douce et enveloppante. Elle reproduit la quiétude des annonces en cabine d\'avion : très calme, bienveillante et conçue pour détendre immédiatement.',
+    accent: 'Feutrée, zen & rassurante',
+    colorBadge: 'from-emerald-500/20 to-teal-500/20 border-emerald-500/40 text-emerald-400',
+  },
+  {
+    id: 'native',
+    title: 'Voix Native de votre Téléphone',
+    subtitle: 'La voix officielle de votre appareil (Siri / Amélie / Google)',
+    tag: '100% Native Smartphone',
+    type: 'native',
+    description: 'La voix française authentique intégrée à votre smartphone (iPhone / Android). Aucun accent synthétique, diction française naturelle et familière.',
+    accent: 'Naturelle & familière',
+    colorBadge: 'from-blue-500/20 to-indigo-500/20 border-blue-500/40 text-blue-400',
   },
   {
     id: 'nova',
-    name: 'Nova',
-    audioSrc: '/test-voice-nova.mp3',
-    tag: 'Dynamique & claire',
-    description: 'Une voix énergique, jeune et dynamique, avec un rythme un peu plus vif.',
-    pitch: 'Énergique & directe',
-    color: 'from-cyan-500/20 to-blue-500/10 border-cyan-500/30 text-cyan-400',
-  },
-  {
-    id: 'shimmer',
-    name: 'Shimmer',
-    audioSrc: '/test-voice-shimmer.mp3',
-    tag: 'Plus posée & grave',
-    description: 'Une voix plus mature et grave, très sérieuse.',
-    pitch: 'Timbre plus bas & solennel',
-    color: 'from-purple-500/20 to-indigo-500/10 border-purple-500/30 text-purple-400',
+    title: 'Standardiste Dynamique (Nova)',
+    subtitle: 'Style moderne et rythmé',
+    tag: 'Moderne & Dynamique',
+    type: 'file',
+    audioSrc: '/sample-nova.mp3',
+    description: 'Une voix plus vive et tonique, pour ceux qui préfèrent une cadence plus rapide.',
+    accent: 'Rythmée & dynamique',
+    colorBadge: 'from-cyan-500/20 to-sky-500/20 border-cyan-500/40 text-cyan-400',
   },
 ];
 
+const TEST_PHRASE = "Bonjour et bienvenue à votre entretien officiel Campus France. Prenez le temps de vous installer, nous allons commencer dès que vous êtes prêt.";
+
 export default function VoicePreviewPage() {
+  const [selectedVoiceId, setSelectedVoiceId] = useState<string>('alloy');
   const [playingId, setPlayingId] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  const handlePlayVoice = (voice: VoiceOption) => {
+  // Charger la préférence de l'utilisateur au montage
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('preferred_voice');
+      if (saved && VOICES.some((v) => v.id === saved)) {
+        setSelectedVoiceId(saved);
+      } else {
+        setSelectedVoiceId('alloy');
+      }
+    }
+  }, []);
+
+  const stopAllAudio = () => {
     if (audioRef.current) {
       audioRef.current.pause();
       audioRef.current = null;
     }
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      try {
+        window.speechSynthesis.cancel();
+      } catch {}
+    }
+  };
+
+  const handlePlayVoice = (voice: VoiceOption) => {
+    stopAllAudio();
 
     if (playingId === voice.id) {
       setPlayingId(null);
       return;
     }
 
-    const audio = new Audio(voice.audioSrc);
-    audioRef.current = audio;
     setPlayingId(voice.id);
 
-    audio.onended = () => {
-      setPlayingId(null);
-    };
+    if (voice.type === 'native') {
+      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(TEST_PHRASE);
+        utterance.lang = 'fr-FR';
+        utterance.rate = 0.90;
+        utterance.pitch = 1.0;
 
-    audio.onerror = () => {
-      setPlayingId(null);
-    };
+        const voices = window.speechSynthesis.getVoices();
+        const frenchVoices = voices.filter((v) => v.lang.startsWith('fr'));
+        const preferredFrench =
+          frenchVoices.find((v) => /google\s+français/i.test(v.name)) ||
+          frenchVoices.find((v) => /audrey|aurélie|aurelie|amélie|amelie|marie|hortense|celine/i.test(v.name)) ||
+          frenchVoices.find((v) => !/thomas|nicolas|paul|claude|male|homme/i.test(v.name)) ||
+          frenchVoices[0];
 
-    audio.play().catch(() => {
-      setPlayingId(null);
-    });
+        if (preferredFrench) {
+          utterance.voice = preferredFrench;
+        }
+
+        utterance.onend = () => setPlayingId(null);
+        utterance.onerror = () => setPlayingId(null);
+
+        window.speechSynthesis.speak(utterance);
+      } else {
+        setPlayingId(null);
+      }
+      return;
+    }
+
+    if (voice.audioSrc) {
+      const audio = new Audio(voice.audioSrc);
+      audioRef.current = audio;
+
+      audio.onended = () => setPlayingId(null);
+      audio.onerror = () => setPlayingId(null);
+
+      audio.play().catch(() => setPlayingId(null));
+    }
+  };
+
+  const handleSelectVoice = (voiceId: string) => {
+    setSelectedVoiceId(voiceId);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('preferred_voice', voiceId);
+    }
   };
 
   return (
@@ -81,15 +155,15 @@ export default function VoicePreviewPage() {
       <div className="max-w-xl w-full space-y-6">
         {/* En-tête */}
         <div className="text-center space-y-2">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-xs font-semibold">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/30 text-orange-400 text-xs font-semibold">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>Studio Vocal Haute Définition</span>
+            <span>Studio Vocal Personnalisé</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-            Quelle voix préférez-vous pour l&apos;examinatrice ?
+            Choisissez la voix de votre examinatrice
           </h1>
-          <p className="text-sm text-slate-400 max-w-md mx-auto">
-            Écoutez chaque échantillon audio réel généré par OpenAI pour Prépa Campus et comparez la douceur et la féminité.
+          <p className="text-xs sm:text-sm text-slate-400 max-w-md mx-auto leading-relaxed">
+            Écoutez les voix professionnelles inspirées des services clients (Orange) et des annonces en cabine d&apos;avion (Air France).
           </p>
         </div>
 
@@ -97,39 +171,76 @@ export default function VoicePreviewPage() {
         <div className="space-y-3.5">
           {VOICES.map((voice) => {
             const isPlaying = playingId === voice.id;
+            const isSelected = selectedVoiceId === voice.id;
+
             return (
               <div
                 key={voice.id}
                 className={`p-4 sm:p-5 rounded-2xl bg-slate-900/90 border transition-all ${
-                  isPlaying ? 'border-cyan-400 shadow-lg shadow-cyan-500/10' : 'border-slate-800 hover:border-slate-700'
+                  isSelected
+                    ? 'border-emerald-500/80 shadow-lg shadow-emerald-500/10 ring-1 ring-emerald-500/30'
+                    : 'border-slate-800 hover:border-slate-700'
                 }`}
               >
                 <div className="flex items-start justify-between gap-3">
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <span className="font-bold text-white text-base">{voice.name}</span>
-                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold border bg-gradient-to-r ${voice.color}`}>
+                  <div className="space-y-1.5 flex-1 min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="font-bold text-white text-sm sm:text-base">{voice.title}</span>
+                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold border bg-gradient-to-r ${voice.colorBadge}`}>
                         {voice.tag}
                       </span>
+                      {isSelected && (
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center gap-1">
+                          <Check className="w-3 h-3" />
+                          <span>Active</span>
+                        </span>
+                      )}
                     </div>
                     <p className="text-xs text-slate-300 leading-relaxed">{voice.description}</p>
-                    <p className="text-[11px] text-slate-400 flex items-center gap-1 pt-1">
-                      <Volume2 className="w-3 h-3 text-slate-400" />
-                      <span>{voice.pitch}</span>
+                    <p className="text-[11px] text-slate-400 flex items-center gap-1 pt-0.5">
+                      <Volume2 className="w-3.5 h-3.5 text-slate-400" />
+                      <span>{voice.accent}</span>
                     </p>
                   </div>
 
+                  {/* Bouton Écouter */}
                   <button
                     type="button"
                     onClick={() => handlePlayVoice(voice)}
                     className={`shrink-0 w-11 h-11 rounded-xl flex items-center justify-center transition active:scale-95 cursor-pointer shadow-md ${
                       isPlaying
-                        ? 'bg-cyan-500 text-slate-950 font-bold animate-pulse'
+                        ? 'bg-amber-500 text-slate-950 font-bold animate-pulse'
                         : 'bg-slate-800 hover:bg-slate-700 text-white border border-slate-700'
                     }`}
-                    aria-label={`Écouter la voix ${voice.name}`}
+                    aria-label={`Écouter la voix ${voice.title}`}
+                    title={isPlaying ? 'Arrêter la lecture' : 'Écouter un extrait'}
                   >
                     {isPlaying ? <Pause className="w-5 h-5 fill-current" /> : <Play className="w-5 h-5 fill-current ml-0.5" />}
+                  </button>
+                </div>
+
+                {/* Bouton de sélection */}
+                <div className="mt-3 pt-3 border-t border-slate-800/80 flex items-center justify-between">
+                  <span className="text-[11px] text-slate-400">
+                    {isSelected ? 'Cette voix est actuellement assignée à vos simulations.' : 'Cliquez pour utiliser cette voix.'}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => handleSelectVoice(voice.id)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition active:scale-95 cursor-pointer flex items-center gap-1.5 ${
+                      isSelected
+                        ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 cursor-default'
+                        : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700'
+                    }`}
+                  >
+                    {isSelected ? (
+                      <>
+                        <Check className="w-3.5 h-3.5 text-emerald-400" />
+                        <span>Voix Sélectionnée</span>
+                      </>
+                    ) : (
+                      <span>Choisir cette voix</span>
+                    )}
                   </button>
                 </div>
               </div>
@@ -137,11 +248,11 @@ export default function VoicePreviewPage() {
           })}
         </div>
 
-        {/* Phrase de confirmation */}
-        <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center gap-3">
-          <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
-          <p className="text-xs text-emerald-300 leading-relaxed">
-            La voix <strong>Coral</strong> est désormais activée par défaut en production pour sa douceur et son naturel féminin exceptionnel.
+        {/* Bannière de confirmation */}
+        <div className="p-4 rounded-xl bg-slate-900/90 border border-slate-800 flex items-center gap-3">
+          <ShieldCheck className="w-5 h-5 text-emerald-400 shrink-0" />
+          <p className="text-xs text-slate-300 leading-relaxed">
+            Votre choix est sauvegardé sur votre appareil. L&apos;examinatrice parlera automatiquement avec la voix sélectionnée lors de tous vos prochains entretiens.
           </p>
         </div>
 
@@ -151,7 +262,7 @@ export default function VoicePreviewPage() {
             href="/entretien"
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white text-xs font-semibold shadow-lg shadow-blue-500/20 active:scale-95 transition"
           >
-            <span>Tester dans l&apos;entretien Campus France</span>
+            <span>Lancer la simulation d&apos;entretien</span>
             <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
